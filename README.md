@@ -6,16 +6,16 @@
 # Compiling and running
 | Command                   | Info                                          |
 | ---------------------     | --------------------------------------------- |
-| `make`                    | `make build` `make run`                       |
+| `make`                    | `make build run`                              |
 | `make build`              | Compiles production build files               |
 | `make run [ARGS]`         | Runs production binary                        |
 |||
-| `make debug`              | `make debug_build` `make debug_run`           |
+| `make debug`              | `make debug_build debug_run`                  |
 | `make debug_build`        | Compiles development build files              |
 | `make debug_run [ARGS]`   | Runs development binary                       |
 |||
-| `make test`               | `make build` `make test_build` `make test_run`|
-| `make test_build`         | Compiles test files                           |
+| `make test`               | `make test_build test_run`                    |
+| `make test_build`         | `make build` + Compiles test files            |
 | `make test_run`           | Runs test binaries                            |
 |||
 | `make clean`              | Removes generated folders                     |
