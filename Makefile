@@ -70,7 +70,7 @@ test_run:
 	@ for test in $(TESTS_BIN) ; do ./$$test ; done
 
 clean:
-	@ rm -rf $(BUILD_DIR) $(DEBUG_BIN_DIR) $(TESTS_BUILD_DIR)
+	@ rm -rf $(BUILD_DIR) $(DEBUG_BUILD_DIR) $(TESTS_BUILD_DIR)
 	@ echo Clean done
 
 # ----------------------------------------------------------------
