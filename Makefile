@@ -6,77 +6,109 @@ ARGS=
 
 # directories
 SRC_DIR := src
-TEST_DIR := tests
+TESTS_SRC_DIR := tests
+
 BUILD_DIR := build
-DEBUG_DIR := debug_$(BUILD_DIR)
-DEP_DIR := .deps
+BUILD_O_DIR := $(BUILD_DIR)/obj
+BUILD_BIN_DIR := $(BUILD_DIR)/bin
+BUILD_DEPS_DIR := $(BUILD_DIR)/.dep
+
+DEBUG_BUILD_DIR := debug_build
+DEBUG_O_DIR := $(DEBUG_BUILD_DIR)/obj
+DEBUG_BIN_DIR := $(DEBUG_BUILD_DIR)/bin
+DEBUG_DEPS_DIR := $(DEBUG_BUILD_DIR)/.dep
+
+TESTS_BUILD_DIR := tests_build
+TESTS_O_DIR := $(TESTS_BUILD_DIR)/obj
+TESTS_BIN_DIR := $(TESTS_BUILD_DIR)/bin
+TESTS_DEPS_DIR := $(TESTS_BUILD_DIR)/.dep
 
 # compiler
 CC := gcc
 CFLAGS := -std=gnu99 -Wextra -Werror -pedantic -pthread -Wall
 debug_build: CFLAGS += -D DEBUG
-DEPFLAGS = -MT $@ -MMD -MP -MF $(DEP_DIR)/$*.d
+test_build: CFLAGS += -lcriterion
+DEPFLAGS = -MT $@ -MMD -MP -MF
+BUILD_DEPFLAGS = $(DEPFLAGS) $(BUILD_DEPS_DIR)/$*.d
+DEBUG_DEPFLAGS = $(DEPFLAGS) $(DEBUG_DEPS_DIR)/$*.d
+TESTS_DEPFLAGS = $(DEPFLAGS) $(TESTS_DEPS_DIR)/$*.d
 
 # files
 C := $(wildcard $(SRC_DIR)/*.c)
-H := $(wildcard $(SRC_DIR)/*.h)
-BUILD_O := $(patsubst $(SRC_DIR)/%.c,$(BUILD_DIR)/obj/%.o,$(C))
-BUILD_O_WITHOUT_MAIN := $(filter-out $(BUILD_DIR)/obj/main.o, $(BUILD_O))
-DEBUG_O := $(patsubst $(SRC_DIR)/%.c,$(DEBUG_DIR)/obj/%.o,$(C))
-TEST_C := $(wildcard $(TEST_DIR)/*.c)
-TEST_BIN := $(patsubst $(TEST_DIR)/%.c,$(TEST_DIR)/bin/%,$(TEST_C))
-DEPENDENCIES := $(C:$(SRC_DIR)/%.c=$(DEP_DIR)/%.d)
+TESTS_C := $(wildcard $(TESTS_SRC_DIR)/*.c)
 
+BUILD_O := $(patsubst $(SRC_DIR)/%.c,$(BUILD_O_DIR)/%.o,$(C))
+BUILD_O_WITHOUT_MAIN := $(filter-out $(BUILD_O_DIR)/main.o, $(BUILD_O))
+BUILD_DEPS := $(C:$(SRC_DIR)/%.c=$(BUILD_DEPS_DIR)/%.d)
+
+DEBUG_O := $(patsubst $(SRC_DIR)/%.c,$(DEBUG_O_DIR)/%.o,$(C))
+DEBUG_DEPS := $(C:$(SRC_DIR)/%.c=$(DEBUG_DEPS_DIR)/%.d)
+
+TESTS_O := $(patsubst $(TESTS_SRC_DIR)/%.c,$(TESTS_O_DIR)/%.o,$(TESTS_C))
+TESTS_BIN := $(patsubst $(TESTS_SRC_DIR)/%.c,$(TESTS_BIN_DIR)/%,$(TESTS_C))
+TESTS_DEPS := $(TESTS_C:$(TESTS_SRC_DIR)/%.c=$(TESTS_DEPS_DIR)/%.d)
+
+# special
 .PHONY: all build run debug debug_build debug_run test test_build test_run clean
-.PRECIOUS: %/obj %/bin
+.SECONDARY:
 
 # ----------------------------------------------------------------
 
 all: build run
-build: $(BUILD_DIR)/bin/$(BIN)
+build: $(BUILD_BIN_DIR)/$(BIN)
 run:
-	@ bash cRunner.sh $(BUILD_DIR)/bin/$(BIN) "$(ARGS)"
+	@ bash cRunner.sh $(BUILD_BIN_DIR)/$(BIN) "$(ARGS)"
 
 debug: debug_build debug_run
-debug_build: $(DEBUG_DIR)/bin/$(BIN)
+debug_build: $(DEBUG_BIN_DIR)/$(BIN)
 debug_run:
-	@ bash cRunner.sh $(DEBUG_DIR)/bin/$(BIN) "$(ARGS)"
+	@ bash cRunner.sh $(DEBUG_BIN_DIR)/$(BIN) "$(ARGS)"
 
 test: test_build test_run
-test_build: build $(TEST_BIN)
+test_build: build $(TESTS_BIN)
 test_run:
-	@ for test in $(TEST_BIN) ; do ./$$test ; done
+	@ for test in $(TESTS_BIN) ; do ./$$test ; done
 
 clean:
-	rm -rf $(BUILD_DIR) $(DEBUG_DIR) $(TEST_DIR)/bin $(DEP_DIR)
+	@ rm -rf $(BUILD_DIR) $(DEBUG_BIN_DIR) $(TESTS_BUILD_DIR)
+	@ echo Clean done
 
 # ----------------------------------------------------------------
 
-$(BUILD_DIR)/bin/$(BIN): $(BUILD_O) | $(BUILD_DIR)/bin
-	$(CC) $(CFLAGS) $< -o $@
+$(BUILD_BIN_DIR)/$(BIN): $(BUILD_O) | $(BUILD_BIN_DIR)
+	$(CC) $(CFLAGS) $(BUILD_O) -o $@
 
-$(DEBUG_DIR)/bin/$(BIN): $(DEBUG_O) | $(DEBUG_DIR)/bin
-	$(CC) $(CFLAGS) $< -o $@
+$(DEBUG_BIN_DIR)/$(BIN): $(DEBUG_O) | $(DEBUG_BIN_DIR)
+	$(CC) $(CFLAGS) $(DEBUG_O) -o $@
 
-$(BUILD_DIR)/obj/%.o: $(SRC_DIR)/%.c
-$(BUILD_DIR)/obj/%.o: $(SRC_DIR)/%.c $(DEP_DIR)/%.d | $(BUILD_DIR)/obj $(DEP_DIR)
-	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
+$(TESTS_BIN_DIR)/%: $(TESTS_O) | $(TESTS_BIN_DIR)
+	$(CC) $(CFLAGS) $(TESTS_O) $(BUILD_O_WITHOUT_MAIN) -o $@
 
-$(DEBUG_DIR)/obj/%.o: $(SRC_DIR)/%.c
-$(DEBUG_DIR)/obj/%.o: $(SRC_DIR)/%.c $(DEP_DIR)/%.d | $(DEBUG_DIR)/obj $(DEP_DIR)
-	$(CC) $(CFLAGS) $(DEPFLAGS) -c $< -o $@
+$(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.c
+$(BUILD_O_DIR)/%.o: $(SRC_DIR)/%.c $(BUILD_DEPS_DIR)/%.d | $(BUILD_O_DIR) $(BUILD_DEPS_DIR)
+	$(CC) $(CFLAGS) $(BUILD_DEPFLAGS) -c $< -o $@
 
-$(TEST_DIR)/bin/%: $(TEST_C) $(BUILD_O_WITHOUT_MAIN) | $(TEST_DIR)/bin
-	$(CC) $(CFLAGS) $< $(BUILD_O_WITHOUT_MAIN) -o $@ -lcriterion
+$(DEBUG_O_DIR)/%.o: $(SRC_DIR)/%.c
+$(DEBUG_O_DIR)/%.o: $(SRC_DIR)/%.c $(DEBUG_DEPS_DIR)/%.d | $(DEBUG_O_DIR) $(DEBUG_DEPS_DIR)
+	$(CC) $(CFLAGS) $(DEBUG_DEPFLAGS) -c $< -o $@
 
-$(DEP_DIR):
-	@mkdir -p $@
+$(TESTS_O_DIR)/%.o: $(TESTS_SRC_DIR)/%.c
+$(TESTS_O_DIR)/%.o: $(TESTS_SRC_DIR)/%.c $(TESTS_DEPS_DIR)/%.d | $(TESTS_O_DIR) $(TESTS_DEPS_DIR)
+	$(CC) $(CFLAGS) $(TESTS_DEPFLAGS) -c $< -o $@
 
-%/bin:
-	@mkdir -p $@
+$(BUILD_O_DIR): ; @mkdir -p $@
+$(BUILD_BIN_DIR): ; @mkdir -p $@
+$(BUILD_DEPS_DIR): ; @mkdir -p $@
+$(DEBUG_O_DIR): ; @mkdir -p $@
+$(DEBUG_BIN_DIR): ; @mkdir -p $@
+$(DEBUG_DEPS_DIR): ; @mkdir -p $@
+$(TESTS_O_DIR): ; @mkdir -p $@
+$(TESTS_BIN_DIR): ; @mkdir -p $@
+$(TESTS_DEPS_DIR): ; @mkdir -p $@
 
-%/obj:
-	@mkdir -p $@
-
-$(DEPENDENCIES):
-include $(wildcard $(DEPENDENCIES))
+$(BUILD_DEPS):
+$(DEBUG_DEPS):
+$(TESTS_DEPS):
+include $(wildcard $(BUILD_DEPS))
+include $(wildcard $(DEBUG_DEPS))
+include $(wildcard $(TESTS_DEPS))
