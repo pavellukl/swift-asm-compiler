@@ -1,4 +1,4 @@
 build
 debug_build
-tests/bin
+tests_build
 .deps
