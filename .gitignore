@@ -2,3 +2,4 @@ build
 debug_build
 tests_build
 .deps
+.vscode
