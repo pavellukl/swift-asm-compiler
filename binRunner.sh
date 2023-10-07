@@ -1,5 +1,5 @@
 # © Razzy 2022
-# usage: cRunner.sh FILE ARGUMENTS
+# usage: binRunner.sh FILE ARGUMENTS
 
 FILE="$1"
 ARGUMENTS="$2"

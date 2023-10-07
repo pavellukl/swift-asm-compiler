@@ -57,12 +57,12 @@ TESTS_DEPS := $(TESTS_C:$(TESTS_SRC_DIR)/%.c=$(TESTS_DEPS_DIR)/%.d)
 all: build run
 build: $(BUILD_BIN_DIR)/$(BIN)
 run:
-	@ bash cRunner.sh $(BUILD_BIN_DIR)/$(BIN) "$(ARGS)"
+	@ bash binRunner.sh $(BUILD_BIN_DIR)/$(BIN) "$(ARGS)"
 
 debug: debug_build debug_run
 debug_build: $(DEBUG_BIN_DIR)/$(BIN)
 debug_run:
-	@ bash cRunner.sh $(DEBUG_BIN_DIR)/$(BIN) "$(ARGS)"
+	@ bash binRunner.sh $(DEBUG_BIN_DIR)/$(BIN) "$(ARGS)"
 
 test: test_build test_run
 test_build: build $(TESTS_BIN)
