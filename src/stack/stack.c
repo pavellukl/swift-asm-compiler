@@ -8,19 +8,14 @@ Stack* stack_init() {
 
     stack->size = INITIAL_N_ITEMS;
     stack->items = malloc(stack->size * sizeof(void*));
+    if (stack->items == NULL) {
+        free(stack);
+        return NULL;
+    }
     stack->length = 0;
     stack->topIndex = -1;
 
     return stack;
-}
-
-void* stack_pop(Stack* stack) {
-    if (stack->length == 0) return NULL;
-
-    stack->topIndex--;
-    stack->length--;
-
-    return stack->items[stack->topIndex + 1];
 }
 
 bool stack_push(Stack* stack, void* data) {
@@ -44,10 +39,21 @@ bool stack_push(Stack* stack, void* data) {
     return true;
 }
 
+void* stack_pop(Stack* stack) {
+    if (stack->length == 0) return NULL;
+
+    stack->topIndex--;
+    stack->length--;
+
+    return stack->items[stack->topIndex + 1];
+}
+
 void* stack_top(Stack* stack) {
     if (stack->length == 0) return NULL;
     return stack->items[stack->topIndex];
 }
+
+bool is_empty(Stack* stack) { return stack->length == 0; }
 
 bool stack_remove_elements(Stack* stack) {
     while (stack_pop(stack))
@@ -71,6 +77,5 @@ bool stack_remove_elements(Stack* stack) {
 void stack_free(Stack* stack) {
     free(stack->items);
     free(stack);
+    stack = NULL;
 }
-
-bool is_empty(Stack* stack) { return stack->length == 0; }

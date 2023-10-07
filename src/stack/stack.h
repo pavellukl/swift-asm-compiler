@@ -6,7 +6,8 @@
  *
  */
 typedef struct {
-    /// @brief index of the top stack item in items array
+    /// @brief index of the top stack item in items array, is -1 if stack is
+    /// empty
     int topIndex;
 
     /// @brief current length of the items array
@@ -30,16 +31,6 @@ const int INITIAL_N_ITEMS = 8;
 Stack* stack_init();
 
 /**
- * @brief stack pop function, removes the top item of the stack, doesn't do
- * anything if stack is empty
- *
- * @param stack pointer to the stack which should be popped
- * @return void* returns pointer to the data of the popped element or NULL if
- * stack is empty
- */
-void* stack_pop(Stack* stack);
-
-/**
  * @brief stack push function, adds an item to the top of the stack, if alloced
  * size for the array is full reallocates memory
  *
@@ -52,6 +43,16 @@ void* stack_pop(Stack* stack);
 bool stack_push(Stack* stack, void* data);
 
 /**
+ * @brief stack pop function, removes the top item of the stack, doesn't do
+ * anything if stack is empty
+ *
+ * @param stack pointer to the stack which should be popped
+ * @return void* returns pointer to the data of the popped element or NULL if
+ * stack is empty
+ */
+void* stack_pop(Stack* stack);
+
+/**
  * @brief function which returns the data pointer of the top item
  *
  * @param stack pointer to the stack
@@ -59,6 +60,15 @@ bool stack_push(Stack* stack, void* data);
  * top item
  */
 void* stack_top(Stack* stack);
+
+/**
+ * @brief function to check whether the stack is empty
+ *
+ * @param stack pointer to the stack
+ * @return true if stack is empty
+ * @return false if stack is not empty
+ */
+bool is_empty(Stack* stack);
 
 /**
  * @brief Removes all elements of the stack and re-initializes the stack
