@@ -1,5 +1,6 @@
 #include <criterion/criterion.h>
-#include <stack.h>
+
+#include "stack.h"
 
 Test(stack, init_and_free) {
     Stack *stack = stack_init();
