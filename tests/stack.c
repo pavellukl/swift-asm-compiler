@@ -1,6 +1,7 @@
-#include <criterion/criterion.h>
+#include "../src/stack/stack.h"
 
-#include "stack.h"
+#include <criterion/criterion.h>
+#include <stdio.h>
 
 Test(stack, init_and_free) {
     Stack *stack = stack_init();
@@ -37,5 +38,3 @@ Test(stack, push) {
     cr_assert(stack->length = 9);
     cr_assert(stack->size == INITIAL_N_ITEMS * 2);
 }
-
-Test(misc, passing) { cr_assert(1); }

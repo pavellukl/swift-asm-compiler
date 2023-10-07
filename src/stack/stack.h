@@ -1,3 +1,6 @@
+#ifndef STACK_H
+#define STACK_H
+
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -86,3 +89,5 @@ bool stack_remove_elements(Stack* stack);
  * @param stack pointer to the stack
  */
 void stack_free(Stack* stack);
+
+#endif
