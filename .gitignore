@@ -1,5 +1,5 @@
-build
-debug_build
-tests_build
+_build
+_debug_build
+_tests_build
 .deps
 .vscode

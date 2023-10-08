@@ -6,7 +6,7 @@
 # Compiling and running
 | Command                   | Info                                          |
 | ---------------------     | --------------------------------------------- |
-| `make`                    | `make build run`                              |
+| `make`                    | `make build`                              |
 | `make build`              | Compiles production build files               |
 | `make run [ARGS]`         | Runs production binary                        |
 |||
