@@ -1,4 +1,5 @@
-#include <stack.h>
+#include "stack.h"
+
 #include <stdbool.h>
 #include <stdlib.h>
 
@@ -77,5 +78,4 @@ bool stack_remove_elements(Stack* stack) {
 void stack_free(Stack* stack) {
     free(stack->items);
     free(stack);
-    stack = NULL;
 }

@@ -13,7 +13,6 @@ Test(stack, init_and_free) {
     cr_assert(stack->size == INITIAL_N_ITEMS);
 
     stack_free(stack);
-    cr_assert(stack == NULL);
 }
 
 Test(stack, push) {

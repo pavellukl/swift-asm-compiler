@@ -4,6 +4,9 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
+/// @brief initial allocated size of the items array
+#define INITIAL_N_ITEMS 8
+
 /**
  * @brief Stack structure type
  *
@@ -22,9 +25,6 @@ typedef struct {
     /// @brief array of stack items which contain saved pointers
     void** items;
 } Stack;
-
-/// @brief initial allocated size of the items array
-const int INITIAL_N_ITEMS = 8;
 
 /**
  * @brief procedure to initialize a new stack
