@@ -62,17 +62,22 @@ TESTS_DEPS_DIRS := $(call uniq,$(dir $(TESTS_DEPS)))
 MKFILE_PATH := $(abspath $(lastword $(MAKEFILE_LIST)))
 MKFILE_DIR := $(MKFILE_PATH:/Makefile=)
 
-#	all files and directories ever created to ensure that we delete everything
+#	all files and directories ever created (to remove empty folders)
 CLEAN_FS_NODES := $(BUILD_BASE_DIR) $(DEBUG_BUILD_BASE_DIR) $(TESTS_BUILD_BASE_DIR) \
 				  $(BUILD_O_BASE_DIR) $(BUILD_BIN_BASE_DIR) $(BUILD_DEPS_BASE_DIR) \
 				  $(DEBUG_O_BASE_DIR) $(DEBUG_BIN_BASE_DIR) $(DEBUG_DEPS_BASE_DIR) \
-				  $(TESTS_O_BASE_DIR) $(TESTS_BIN_BASE_DIR) $(TESTS_DEPS_BASE_DIR) \
-				  $(BUILD_O) $(DEBUG_O) $(TESTS_O) \
+				  $(TESTS_O_BASE_DIR) $(TESTS_BIN_BASE_DIR) $(TESTS_DEPS_BASE_DIR)
+CLEAN_FS_NODES := $(realpath $(CLEAN_FS_NODES))
+
+#	filters out the Makefiles directory and its parent directories (to preserve Makefiles directory)
+CLEAN_FS_NODES := $(filter $(MKFILE_DIR)%,$(CLEAN_FS_NODES))
+
+#	adds all files ever created to make sure even those files which are in the Makefiles directory
+#   or parent directories are deleted (to delete all files)
+CLEAN_FS_NODES := $(BUILD_O) $(DEBUG_O) $(TESTS_O) \
 			  	  $(BUILD_DEPS) $(DEBUG_DEPS) $(TESTS_DEPS) \
 			  	  $(TESTS_BIN) $(BUILD_BIN_BASE_DIR)/$(BIN) $(DEBUG_BIN_BASE_DIR)/$(BIN) \
-
-#	filters out the Makefiles directory but keeps created files in the Makefiles directory
-CLEAN_FS_NODES := $(filter-out $(MKFILE_DIR), $(realpath $(CLEAN_FS_NODES)))
+				  $(CLEAN_FS_NODES)
 
 # special
 .PHONY: build run debug debug_build debug_run test test_build test_run clean
@@ -98,7 +103,6 @@ test_run:
 clean:
 	@ rm -rf $(CLEAN_FS_NODES)
 	@ echo Clean done
-
 # ----------------------------------------------------------------
 
 $(BUILD_BIN_BASE_DIR)/$(BIN): $(BUILD_O) | $(BUILD_BIN_BASE_DIR)
