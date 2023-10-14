@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include "debug.h"
+#include "compiler/compiler.h"
 
 // Write your definitions here
 

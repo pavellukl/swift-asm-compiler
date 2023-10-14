@@ -26,6 +26,7 @@ TESTS_DEPS_BASE_DIR := $(TESTS_BUILD_BASE_DIR)/.dep
 # compiler
 CC := gcc
 CFLAGS := -std=gnu99 -Wextra -Werror -pedantic -pthread -Wall
+build: CFLAGS += -D NDEBUG
 debug_build: CFLAGS += -D DEBUG
 test_build: CFLAGS += -lcriterion
 DEPFLAGS = -MT $@ -MMD -MP -MF

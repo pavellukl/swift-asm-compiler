@@ -1,4 +1,4 @@
-#include "../src/stack/stack.h"
+#include "../src/helpers/stack/stack.h"
 
 #include <criterion/criterion.h>
 #include <stdio.h>
