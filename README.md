@@ -4,21 +4,23 @@
 3. `git clone git@github.com:Limikul/IFJ.git`
 
 # Compiling and running
-| Command                   | Info                                          |
-| ---------------------     | --------------------------------------------- |
-| `make`                    | `make build`                              |
-| `make build`              | Compiles production build files               |
-| `make run [ARGS]`         | Runs production binary                        |
+| Command                   | Info                                                      |
+| ------------------------- | --------------------------------------------------------- |
+| `make`                    | `make build`                                              |
+| `make build`              | Compiles production build files                           |
+| `make run [ARGS]`         | Runs production binary                                    |
 |||
-| `make debug`              | `make debug_build debug_run`                  |
-| `make debug_build`        | Compiles development build files              |
-| `make debug_run [ARGS]`   | Runs development binary                       |
+| `make debug`              | `make debug_build debug_run`                              |
+| `make debug_build`        | Compiles development build files                          |
+| `make debug_run [ARGS]`   | Runs development binary                                   |
 |||
-| `make test`               | `make test_build test_run`                    |
-| `make test_build`         | `make build` + Compiles test files            |
-| `make test_run`           | Runs test binaries                            |
+| `make test`               | `make test_build test_run`                                |
+| `make test_build`         | `make build` + Compiles test files                        |
+| `make test_run`           | Runs test binaries                                        |
 |||
-| `make clean`              | Removes generated folders                     |
+| `make deploy`             | Creates a deploynment zip file and performs content check |
+|||
+| `make clean`              | Removes generated folders                                 |
 
 [ARGS] -> ARGS="arg1 arg2 arg3 ..."
 
