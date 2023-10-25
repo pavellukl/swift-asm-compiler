@@ -4,29 +4,15 @@ BIN = epicCompiler3000
 # directories
 SRC_BASE_DIR := .
 
-BUILD_BASE_DIR := _build
-BUILD_O_BASE_DIR := $(BUILD_BASE_DIR)/obj
 BUILD_BIN_BASE_DIR := .
-BUILD_DEPS_BASE_DIR := $(BUILD_BASE_DIR)/.dep
 
 # compiler
 CC := gcc
 CFLAGS := -std=gnu99 -Wextra -Werror -pedantic -pthread -Wall
-build: CFLAGS += -D NDEBUG
-DEPFLAGS = -MT $@ -MMD -MP -MF
-BUILD_DEPFLAGS = $(DEPFLAGS) $(BUILD_DEPS_BASE_DIR)/$*.d
-
-# custom functions
-uniq = $(if $1,$(firstword $1) $(call uniq,$(filter-out $(firstword $1),$1)))
 
 # files
 C := $(shell find "$(SRC_BASE_DIR)" -name "*.c")
-
-BUILD_O := $(patsubst $(SRC_BASE_DIR)/%.c,$(BUILD_O_BASE_DIR)/%.o,$(C))
-BUILD_O_DIRS := $(call uniq,$(dir $(BUILD_O)))
-BUILD_O_WITHOUT_MAIN := $(filter-out $(BUILD_O_BASE_DIR)/main.o, $(BUILD_O))
-BUILD_DEPS := $(C:$(SRC_BASE_DIR)/%.c=$(BUILD_DEPS_BASE_DIR)/%.d)
-BUILD_DEPS_DIRS := $(call uniq,$(dir $(BUILD_DEPS)))
+H := $(shell find "$(SRC_BASE_DIR)" -name "*.h")
 
 # special
 .PHONY: clean
@@ -34,21 +20,11 @@ BUILD_DEPS_DIRS := $(call uniq,$(dir $(BUILD_DEPS)))
 
 # ----------------------------------------------------------------
 
-$(BUILD_BIN_BASE_DIR)/$(BIN): $(BUILD_O) | $(BUILD_BIN_BASE_DIR)
-	$(CC) $(CFLAGS) $(BUILD_O) -o $@
-	@ rm -rf $(BUILD_BASE_DIR)
-
-$(BUILD_O_BASE_DIR)/%.o: $(SRC_BASE_DIR)/%.c
-$(BUILD_O_BASE_DIR)/%.o: $(SRC_BASE_DIR)/%.c $(BUILD_DEPS_BASE_DIR)/%.d | $$(dir $(BUILD_O_BASE_DIR)/%.o) $$(dir $(BUILD_DEPS_BASE_DIR)/%.d)
-	$(CC) $(CFLAGS) $(BUILD_DEPFLAGS) -c $< -o $@
+$(BUILD_BIN_BASE_DIR)/$(BIN): $(C) $(H) | $(BUILD_BIN_BASE_DIR)
+	$(CC) $(CFLAGS) $(C) -o $@
 
 $(BUILD_BIN_BASE_DIR): ; @mkdir -p $@
-$(BUILD_O_DIRS): ; @mkdir -p $@
-$(BUILD_DEPS_DIRS): ; @mkdir -p $@
 
 clean:
 	@ rm -rf $(BIN)
 	@ echo Clean done
-
-$(BUILD_DEPS):
-include $(wildcard $(BUILD_DEPS))
