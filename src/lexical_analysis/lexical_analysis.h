@@ -58,7 +58,7 @@ typedef enum {
     TOKEN_KEYWORD_DOUBLE_NIL,   // Double?
     TOKEN_KEYWORD_STRING,       // String
     TOKEN_KEYWORD_STRING_NIL,   // String?
-    TOKEN_KEYWORD_NIL,          // Nil
+    TOKEN_KEYWORD_NIL,          // nil
     TOKEN_KEYWORD_LET,          // let
     TOKEN_KEYWORD_VAR,          // var
     TOKEN_KEYWORD_FUNC,         // func
