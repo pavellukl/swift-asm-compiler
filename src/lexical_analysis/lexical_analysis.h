@@ -97,7 +97,7 @@ typedef enum {
     TOKEN_R_BRACKET,            // )
     TOKEN_L_CRLY_BRACKET,       // {
     TOKEN_R_CRLY_BRACKET,       // }
-    TOKEN_COLON,                // |
+    TOKEN_COLON,                // :
     TOKEN_COMA,                 // ,
     TOKEN_ARROW,                // ->
     TOKEN_NEW_LINE,
