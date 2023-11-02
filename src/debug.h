@@ -11,22 +11,22 @@
 #define ANSI_COLOR_YELLOW "\x1b[0;33m"
 #define ANSI_COLOR_RESET "\x1b[0m"
 
-#define STDDEBUG stderr
+#define stddebug stderr
 
 #define RED(str) ANSI_COLOR_RED str ANSI_COLOR_RESET
 #define YELLOW(str) ANSI_COLOR_YELLOW str ANSI_COLOR_RESET
 
-#define PRINTF_STDERR(fmt, ...) \
-        do { if (DEBUG_TEST) { \
-                fprintf(stderr, RED("Error: " fmt), ##__VA_ARGS__); \
-        } else { \
-                fprintf(stderr, "Error: " fmt, ##__VA_ARGS__); \
+#define PRINTF_STDERR(fmt, ...)                                                \
+        do { if (DEBUG_TEST) {                                                 \
+                fprintf(stderr, RED("Error: " fmt), ##__VA_ARGS__);            \
+        } else {                                                               \
+                fprintf(stderr, "Error: " fmt, ##__VA_ARGS__);                 \
         } } while(0);
 
-#define PRINTF_STDDEBUG(fmt, ...) \
-        do { if (DEBUG_TEST) { \
-                fprintf(STDDEBUG, YELLOW("%s:%d:%s(): " fmt), __FILE__, \
-                __LINE__, __func__, ##__VA_ARGS__); \
+#define PRINTF_STDDEBUG(fmt, ...)                                              \
+        do { if (DEBUG_TEST) {                                                 \
+                fprintf(stddebug, YELLOW("%s:%d:%s(): " fmt), __FILE__,        \
+                __LINE__, __func__, ##__VA_ARGS__);                            \
         } } while(0);
 
 #endif /* DEBUG_H */

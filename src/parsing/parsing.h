@@ -2,7 +2,7 @@
 #define PARSING_H
 
 #include "predictive_parsing.h"
-#include "precedent_parsing.h"
+#include "precedence_parsing.h"
 
 /**
  * @brief Type for parsing parameters.
@@ -18,7 +18,7 @@ typedef struct {
     int ll_table_m;
 
     /// @brief Simple precedent table containing numbers of rules.
-    PrecedentTable precedent_table;
+    // PrecedenceTable precedence_table;
 
     /// @brief Length of precedent table in n direction.
     int precedent_table_n;
