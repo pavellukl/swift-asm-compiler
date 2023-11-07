@@ -1,42 +1,43 @@
-#ifndef PRECEDENCE_PARSING_H
-#define PRECEDENCE_PARSING_H
+#ifndef PRECEDENCE_PARSER_H
+#define PRECEDENCE_PARSER_H
 
-#include "../lexical_analysis/lexical_analysis.h"
+#include "../scanner/scanner.h"
+#include "parser.h"
 
 /**
  * @brief Operation that occurs in precedence parsing.
  * Operations stand for `=`, `<`, `>`, `err` in their defined order.
  */
-typedef enum { PPR_SHIFT, PPR_SHIFT_HANDLE, PPR_REDUCE, PPR_ERROR } PPROperation;
+typedef enum { PP_SHIFT, PP_SHIFT_HANDLE, PP_REDUCE, PP_ERROR } PPOperation;
 
 /// @brief List item variant.
-typedef enum { PPR_TERMINAL, PPR_NONTERMINAL, PPR_HANDLE, PPR_START } PPRListItemVariant;
+typedef enum { PP_TERMINAL, PP_NONTERMINAL, PP_HANDLE, PP_START } PPListItemVariant;
 
 /// @brief Nonterminal which occurs in precedence parsing.
-typedef enum { _placeholder_ } PPRNonterminal;
+typedef enum { _placeholder_ } PPNonterminal;
 
 /**
  * @brief Represents an item in the precedence list.
  * 
- * Its variant is one of `PPR_TERMINAL`, `PPR_NONTERMINAL`, `PPR_HANDLE`, `PPR_START`.
+ * Its variant is one of `PP_TERMINAL`, `PP_NONTERMINAL`, `PP_HANDLE`, `PP_START`.
  * Fields are for each variant specified as follows. Others are undefined.
  * ╔═════════════════╦══════════════════════════════════════╗
  * ║     Variant     ║                Fields                ║
  * ╠═════════════════╬══════════════════════════════════════╣
- * ║ PPR_TERMINAL    ║ type.token, value.[depends on token] ║
+ * ║ PP_TERMINAL     ║ type.token, value.[depends on token] ║
  * ╠═════════════════╬══════════════════════════════════════╣
- * ║ PPR_NONTERMINAL ║ type.nonterminal                     ║
+ * ║ PP_NONTERMINAL  ║ type.nonterminal                     ║
  * ╠═════════════════╬══════════════════════════════════════╣
- * ║ PPR_HANDLE      ║                                      ║
+ * ║ PP_HANDLE       ║                                      ║
  * ╠═════════════════╬══════════════════════════════════════╣
- * ║ PPR_START       ║                                      ║
+ * ║ PP_START        ║                                      ║
  * ╚═════════════════╩══════════════════════════════════════╝
  */
 typedef struct {
-  PPRListItemVariant variant;
+  PPListItemVariant variant;
   union {
     TokenType token;
-    PPRNonterminal nonterminal;
+    PPNonterminal nonterminal;
   } type;
   // value
   union {
@@ -44,7 +45,7 @@ typedef struct {
       int int_;
       double float_;
   } value;
-} PPRListItem;
+} PPListItem;
 
 // /**
 //  * @brief Precedence table type.
@@ -54,4 +55,6 @@ typedef struct {
 //  */
 // typedef PrecedentOperation **PrecedentTable;
 
-#endif /* PRECEDENCE_PARSING_H */
+bool parse_check_optimize_generate_expression(ParserOptions *parser_opt);
+
+#endif /* PRECEDENCE_PARSER_H */

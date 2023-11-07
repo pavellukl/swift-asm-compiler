@@ -11,6 +11,8 @@ typedef enum {
     TOKEN_KEYWORD_DOUBLE_NIL,   // Double?
     TOKEN_KEYWORD_STRING,       // String
     TOKEN_KEYWORD_STRING_NIL,   // String?
+    TOKEN_KEYWORD_BOOL,         // Bool
+    TOKEN_KEYWORD_BOOL_NIL,     // Bool?
     TOKEN_KEYWORD_NIL,          // nil
     TOKEN_KEYWORD_LET,          // let
     TOKEN_KEYWORD_VAR,          // var
@@ -32,6 +34,7 @@ typedef enum {
     TOKEN_NUM_W_EXP,            // e.g. 1.23E+10
     TOKEN_INT_NUM,              // e.g. 6
     TOKEN_FLOAT_NUM,            // e.g. 1.2                // TODO: nested strings
+    TOKEN_NUMBER,
     TOKEN_STRING,               // e.g. "any string"       // TODO: unicode (and escape) value evaluation
     TOKEN_ADD,                  // +
     TOKEN_SUB,                  // -
@@ -53,6 +56,7 @@ typedef enum {
     TOKEN_COLON,                // :
     TOKEN_COMA,                 // ,
     TOKEN_ARROW,                // ->
+    TOKEN_UNDERSCORE,           // _
     TOKEN_NEW_LINE,
     TOKEN_END_OF_FILE
 } TokenType;

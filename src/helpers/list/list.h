@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "../../parsing/precedence_parsing.h"
+#include "../../parser/precedence_parser.h"
 
 /// @brief Retrun value from some functions operating upon list.
 typedef enum { LIST_OK, LIST_NOT_ACTIVE, LIST_ALLOC_ERR } ListReturnCode;
@@ -150,6 +150,6 @@ typedef enum { LIST_OK, LIST_NOT_ACTIVE, LIST_ALLOC_ERR } ListReturnCode;
      */                                                                        \
     void list_##TNAME_SNAKE##_dispose(List##TNAME_PASCAL *list);
 
-LIST_DEC(PPRListItem, PPR, ppr)
+LIST_DEC(PPListItem, PP, pp)
 
 #endif /* LIST_H */

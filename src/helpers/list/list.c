@@ -141,4 +141,4 @@ void list_##TNAME_SNAKE##_dispose(List##TNAME_PASCAL *list) {				   \
 	list->firstItem = NULL;													   \
 }
 
-LIST_DEF(PPRListItem, PPR, ppr)
+LIST_DEF(PPListItem, PP, pp)

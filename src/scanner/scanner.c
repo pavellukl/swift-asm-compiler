@@ -1,11 +1,5 @@
 #include "scanner.h"
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
 TokenData is_keyword(char* keyword) {
     if (strcmp(keyword, "Double") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_DOUBLE};
