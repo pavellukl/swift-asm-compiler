@@ -72,7 +72,7 @@ bool scanner_opt_init(ScannerOptions *opt, FILE *file);
 
 void scanner_rewind_file(ScannerOptions *opt);
 
-// TokenData get_next_token(FILE *input, int line_counter);
-TokenData get_next_token(ScannerOptions opt);
+TokenData get_next_token(FILE *input, int line_counter);
+// TokenData get_next_token(ScannerOptions opt);
 
 #endif /* LEXICAL_ANALYSIS_H */
