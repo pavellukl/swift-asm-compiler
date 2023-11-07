@@ -1,52 +1,5 @@
-#ifndef LEXICAL_ANALYSIS_H
-#define LEXICAL_ANALYSIS_H
-
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-
-typedef enum {
-    START,
-    DIV,
-    LINE_COMMENT,
-    BLOCK_COMMENT,
-    BLOCK_COMMENT_END,
-    ADD,
-    SUB,
-    ARROW,
-    NEW_LINE,
-    END_OF_FILE,
-    MUL,
-    EXCL_MARK,
-    NOT_EQUAL,
-    ASSIGN,
-    EQUAL,
-    GREATER,
-    GREATER_EQUAL,
-    LESSER,
-    LESSER_EQUAL,
-    L_BRACKET,
-    R_BRACKET,
-    L_CRLY_BRACKET,
-    R_CRLY_BRACKET,
-    COLON,
-    COMA,
-    IDENTIF,
-    NUM,
-    DECIMAL_POINT,
-    DECIMAL_VALUE,
-    EXP_MARK,
-    EXP_SIGN,
-    EXPONENT,
-    STRING,
-    STRING_END,
-    ESCAPE_SEQUENCE,
-    UNICODE_SEQUENCE,
-    UNICODE_VALUE,
-    QUESTION_MARK,
-    NIL_COALESCING
-} AutomatState;
+#ifndef TOKEN_H
+#define TOKEN_H
 
 typedef enum {
     TOKEN_LINE_COMMENT,         
@@ -115,13 +68,4 @@ typedef struct {
     } value;
 } TokenData;
 
-
-TokenData is_keyword(char* keyword);
-
-TokenData is_built_in_function(char* keyword);
-
-void _skip_whitespaces(FILE* input);
-
-TokenData get_next_token(FILE *input, int line_counter);
-
-#endif /* LEXICAL_ANALYSIS_H */
+#endif /* TOKEN_H */

@@ -4,7 +4,7 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "../../lexical_analysis/lexical_analysis.h"
+#include "../../scanner/token.h"
 
 /// @brief initial allocated size of the items array
 #define STACK_INITIAL_N_ITEMS 8

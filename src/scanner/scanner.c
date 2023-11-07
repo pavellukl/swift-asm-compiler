@@ -1,4 +1,4 @@
-#include "lexical_analysis.h"
+#include "scanner.h"
 
 #include <ctype.h>
 #include <stdbool.h>
@@ -97,6 +97,50 @@ void _skip_whitespaces(FILE* input) {
     }
 }
 
+bool scanner_opt_init(ScannerOptions *opt, FILE *file) {
+    int capacity = 128;
+    opt->size = 0;
+
+    opt->file = malloc(sizeof *opt->file * capacity);
+    if (opt->file == NULL) return false;
+
+    int c;
+    while ((c = fgetc(file)) != EOF)
+    {   
+        if (opt->size == capacity) {
+            capacity *= 2;
+            opt->file = realloc(opt->file, sizeof *opt->file * capacity);
+            if (opt->file == NULL) return false;
+        }
+
+        opt->file[opt->size] = c;
+        opt->size++;
+    }
+
+    opt->i = 0;
+    opt->line_counter = 0;
+
+    opt->returned_tokens = stack_token_data_init();
+
+    return true;
+}
+
+void scanner_opt_free(ScannerOptions *opt) {
+    free(opt->file);
+    stack_token_data_free(opt->returned_tokens);
+
+    opt->file = NULL;
+    opt->returned_tokens = NULL;
+    opt->size = 0;
+    opt->line_counter = 0;
+}
+
+void scanner_rewind_file(ScannerOptions *opt) {
+    opt->i = 0;
+    opt->line_counter = 0;
+}
+
+// TokenData get_next_token(ScannerOptions opt) {
 TokenData get_next_token(FILE* input, int line_counter) {
     TokenData token;
     AutomatState current_state = START;
