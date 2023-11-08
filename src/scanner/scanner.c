@@ -91,7 +91,7 @@ void _skip_whitespaces(FILE* input) {
     }
 }
 
-bool scanner_opt_init(ScannerOptions *opt, FILE *file) {
+bool scanner_opt_init(ScannerOptions* opt, FILE* file) {
     int capacity = 128;
     opt->size = 0;
 
@@ -99,8 +99,7 @@ bool scanner_opt_init(ScannerOptions *opt, FILE *file) {
     if (opt->file == NULL) return false;
 
     int c;
-    while ((c = fgetc(file)) != EOF)
-    {   
+    while ((c = fgetc(file)) != EOF) {
         if (opt->size == capacity) {
             capacity *= 2;
             opt->file = realloc(opt->file, sizeof *opt->file * capacity);
@@ -119,7 +118,7 @@ bool scanner_opt_init(ScannerOptions *opt, FILE *file) {
     return true;
 }
 
-void scanner_opt_free(ScannerOptions *opt) {
+void scanner_opt_free(ScannerOptions* opt) {
     free(opt->file);
     stack_token_data_free(opt->returned_tokens);
 
@@ -129,7 +128,7 @@ void scanner_opt_free(ScannerOptions *opt) {
     opt->line_counter = 0;
 }
 
-void scanner_rewind_file(ScannerOptions *opt) {
+void scanner_rewind_file(ScannerOptions* opt) {
     opt->i = 0;
     opt->line_counter = 0;
 }
@@ -238,7 +237,7 @@ TokenData get_next_token(FILE* input, int line_counter) {
                         } else if (isalpha(current_char) || '_') {
                             current_state = IDENTIF;
                         } else {
-                            // printf("LEX ERROR\n", current_char);
+                            printf("LEX ERROR\n", current_char);
                         }
                         break;
                 }
