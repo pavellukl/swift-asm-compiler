@@ -1,11 +1,35 @@
 #include "recursive_parser.h"
 
+void _skip_function_definition(ParserOptions *parser_opt) {
+    // search start of function body
+    while (parser_opt->token.type != TOKEN_L_CRLY_BRACKET) {
+        _next_token(parser_opt);
+    }
+    _next_token(parser_opt);
+
+    // skip function body
+    int left_brackets_cnt = 1;
+    while (left_brackets_cnt != 0) {
+        while (parser_opt->token.type != TOKEN_L_CRLY_BRACKET
+            || parser_opt->token.type != TOKEN_R_CRLY_BRACKET) {
+            _next_token(parser_opt);
+        }
+        if (parser_opt->token.type == TOKEN_L_CRLY_BRACKET) {
+            left_brackets_cnt++;
+        } else {
+            left_brackets_cnt--;
+        }
+    }
+}
+
 bool _program(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_END_OF_FILE) {
         _next_token(parser_opt);
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
-        return _function_definition(parser_opt) && _program(parser_opt);
+        // skip function definitions because they have already been checked
+        _skip_funcition_definition(parser_opt);
+        return _program(parser_opt);
     } else if (parser_opt->token.type == TOKEN_KEYWORD_FUNC
             || parser_opt->token.type == TOKEN_KEYWORD_VAR
             || parser_opt->token.type == TOKEN_KEYWORD_LET
@@ -20,18 +44,7 @@ bool _program(ParserOptions *parser_opt) {
 
 bool _function_definition(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
-        // skip function head as it has been already checked in the first run
-        while (parser_opt->token.type != TOKEN_R_BRACKET
-            && parser_opt->token.type != TOKEN_END_OF_FILE) {
-            _next_token(parser_opt);
-        }
-        if (parser_opt->token.type == TOKEN_END_OF_FILE) {
-            parser_opt->return_code = RP_STX_ERR;
-            return false;
-        };
-        _next_token(parser_opt);
-
-        return _scope_body(parser_opt);
+        return _function_head(parser_opt) && _scope_body(parser_opt);
     }
     parser_opt->return_code = RP_STX_ERR;
     return false;
@@ -482,27 +495,37 @@ void _next_token(ParserOptions *parser_opt) {
     parser_opt->token = get_next_token(parser_opt->sc_opt);
 }
 
-RPReturnValue parse_function_definition(ParserOptions *parser_opt) {
+void parse_function_definition(ParserOptions *parser_opt) {
+    // get first token
     _next_token(parser_opt);
 
-    while (parser_opt->token.type != TOKEN_END_OF_FILE) {
+    while (true) {
+        // search functions and EOF
         while (parser_opt->token.type != TOKEN_KEYWORD_FUNC && parser_opt->token.type != TOKEN_END_OF_FILE) {
             _next_token(parser_opt);
         }
-        if (parser_opt->token.type == TOKEN_END_OF_FILE) return RP_OK;
+        // if EOF -> end with success
+        if (parser_opt->token.type == TOKEN_END_OF_FILE) {
+            parser_opt->return_code = RP_OK;
+            return;
+        };
 
-        _function_head(parser_opt);
-
+        // operate upon function definition
+        _function_definition(parser_opt);
         switch (parser_opt->return_code)
         {
             case RP_OK: break;
-            default: return parser_opt->return_code;
+            default: return;
         } 
     }
-    
-    return RP_INTER_ERR;
 }
 
-RPReturnValue parse_check_optimize_generate(ParserOptions *parser_opt) {
-    return _program(parser_opt);
+void parse_check_optimize_generate(ParserOptions *parser_opt) {
+    // get first token
+    _next_token(parser_opt);
+
+    // operate upon code (skip function definitions)
+    _program(parser_opt);
+
+    return;
 }

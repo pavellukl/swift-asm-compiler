@@ -28,21 +28,21 @@ CompilerReturnValue compile(FILE *in, FILE *out) {
     parser_opt.out = out;
 
     // first run
-    RPReturnValue result = parse_function_definition(&parser_opt);
-    switch (result)
+    parse_function_definition(&parser_opt);
+    switch (parser_opt.return_code)
     {
       case RP_OK: break;
       default: 
         scanner_opt_free(&parser_opt.sc_opt);
-        return _get_return_code(result);
+        return _get_return_code(parser_opt.return_code);
     }
 
     // file rewind
     scanner_rewind_file(&parser_opt.sc_opt);
 
     // second run
-    result = parse_check_optimize_generate(&parser_opt);
+    parse_check_optimize_generate(&parser_opt);
 
     scanner_opt_free(&parser_opt.sc_opt);
-    return _get_return_code(result);
+    return _get_return_code(parser_opt.return_code);
 }

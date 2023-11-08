@@ -4,11 +4,19 @@
 #include "parser.h"
 #include "precedence_parser.h"
 
-RPReturnValue parse_function_definition(ParserOptions *parser_opt);
+void parse_function_definition(ParserOptions *parser_opt);
 
-RPReturnValue parse_check_optimize_generate(ParserOptions *parser_opt);
+void parse_check_optimize_generate(ParserOptions *parser_opt);
 
 void _next_token(ParserOptions *parser_opt);
+
+/**
+ * @brief Skips the function definition. Note that the function should be
+ * syntactically correct. Otherwise this function has undefined behaviour.
+ *
+ * @param parser_opt Pointer to the parser options struct.
+ */
+void _skip_function_definition(ParserOptions *parser_opt);
 
 bool _program(ParserOptions *parser_opt);
 bool _function_definition(ParserOptions *parser_opt);
