@@ -19,7 +19,7 @@ typedef enum {
     ADD,
     SUB,
     ARROW,
-    NEW_LINE,
+    WHITE_SPACE,
     END_OF_FILE,
     MUL,
     EXCL_MARK,
@@ -36,6 +36,7 @@ typedef enum {
     R_CRLY_BRACKET,
     COLON,
     COMA,
+    UNDERSCORE,
     IDENTIF,
     NUM,
     DECIMAL_POINT,
@@ -49,7 +50,9 @@ typedef enum {
     UNICODE_SEQUENCE,
     UNICODE_VALUE,
     QUESTION_MARK,
-    NIL_COALESCING
+    NIL_COALESCING,
+    OR,
+    AND
 } AutomatState;
 
 typedef struct {
@@ -60,11 +63,9 @@ typedef struct {
     StackTokenData *returned_tokens;
 } ScannerOptions;
 
-TokenData is_keyword(char* keyword);
+TokenData is_keyword(char* keyword, bool new_line_before_token);
 
-TokenData is_built_in_function(char* keyword);
-
-void _skip_whitespaces(FILE* input);
+bool _skip_whitespaces(ScannerOptions* opt);
 
 void scanner_opt_free(ScannerOptions *opt);
 
@@ -72,7 +73,8 @@ bool scanner_opt_init(ScannerOptions *opt, FILE *file);
 
 void scanner_rewind_file(ScannerOptions *opt);
 
-TokenData get_next_token(FILE *input, int line_counter);
-// TokenData get_next_token(ScannerOptions opt);
+int get_next_char(ScannerOptions* opt);
+
+TokenData get_next_token(ScannerOptions* opt);
 
 #endif /* LEXICAL_ANALYSIS_H */
