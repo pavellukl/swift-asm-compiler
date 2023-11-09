@@ -29,7 +29,7 @@ bool __param_name(ParserOptions *parser_opt);
 bool _scope_body(ParserOptions *parser_opt);
 bool _command_sequence(ParserOptions *parser_opt);
 bool _command(ParserOptions *parser_opt);
-bool __token_identif(ParserOptions *parser_opt);
+bool __identif(ParserOptions *parser_opt);
 bool _data_type(ParserOptions *parser_opt);
 bool _return_command(ParserOptions *parser_opt);
 bool __return(ParserOptions *parser_opt);
@@ -48,6 +48,5 @@ bool _arg(ParserOptions *parser_opt);
 bool __arg_name(ParserOptions *parser_opt);
 bool __arg_name_colon(ParserOptions *parser_opt);
 bool _arg_val(ParserOptions *parser_opt);
-bool _extended_expression(ParserOptions *parser_opt);
 
 #endif /* RECURSIVE_PARSER_H */

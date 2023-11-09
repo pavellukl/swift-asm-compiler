@@ -6,9 +6,9 @@
 
 /**
  * @brief Operation that occurs in precedence parsing.
- * Operations stand for `=`, `<`, `>`, `err` in their defined order.
+ * Operations stand for `=`, `<`, `>`, `ERR` in their defined order.
  */
-typedef enum { PP_SHIFT, PP_SHIFT_HANDLE, PP_REDUCE, PP_ERROR } PPOperation;
+typedef enum { PP_SHIFT_REDUCE, PP_HANDLE_SHIFT, PP_REDUCE, PP_ERROR } PPOperation;
 
 /// @brief List item variant.
 typedef enum { PP_TERMINAL, PP_NONTERMINAL, PP_HANDLE, PP_START } PPListItemVariant;

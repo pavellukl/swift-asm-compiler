@@ -1,6 +1,6 @@
 #include "recursive_parser.h"
 
-void _skip_function_definition(ParserOptions *parser_opt) {
+void _skip(ParserOptions *parser_opt) {
     // search start of function body
     while (parser_opt->token.type != TOKEN_L_CRLY_BRACKET) {
         _next_token(parser_opt);
@@ -189,7 +189,7 @@ bool _command(ParserOptions *parser_opt) {
     return false;
 }
 
-bool __token_identif(ParserOptions *parser_opt) {
+bool __identif(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_L_BRACKET) {
         _next_token(parser_opt);
 
@@ -206,7 +206,8 @@ bool __token_identif(ParserOptions *parser_opt) {
         return true;
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         _next_token(parser_opt);
-        return _extended_expression(parser_opt);
+        // TODO: expression || function call
+        return true;
     }
     parser_opt->return_code = RP_STX_ERR;
     return false;
@@ -240,7 +241,6 @@ bool _return_command(ParserOptions *parser_opt) {
 bool __return(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_END_OF_FILE
         || parser_opt->token.type == TOKEN_KEYWORD_FUNC
-        || parser_opt->token.type == TOKEN_IDENTIF
         || parser_opt->token.type == TOKEN_R_CRLY_BRACKET
         || parser_opt->token.type == TOKEN_KEYWORD_RETURN
         || parser_opt->token.type == TOKEN_KEYWORD_VAR
@@ -249,7 +249,7 @@ bool __return(ParserOptions *parser_opt) {
         || parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
         return true;
     }
-    // TODO:
+    // TODO: expression || sth else (not function call)
     // else if
     //     _RETURN → EXPRESSION
 
@@ -286,7 +286,8 @@ bool __varlet_identif(ParserOptions *parser_opt) {
         return __varlet_identif_colon_type(parser_opt);
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         _next_token(parser_opt);
-        return _extended_expression(parser_opt);
+        // TODO: expression || function call
+        return true;
     }
     parser_opt->return_code = RP_STX_ERR;
     return false;
@@ -305,7 +306,8 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt) {
         return true;
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         _next_token(parser_opt);
-        return _extended_expression(parser_opt);
+        // TODO: expression || function call
+        return true;
     }
     parser_opt->return_code = RP_STX_ERR;
     return false;
@@ -332,12 +334,10 @@ bool __if(ParserOptions *parser_opt) {
 
         return _scope_body(parser_opt) && __if_let_identif_body(parser_opt);
     }
-    // TODO:
-    // else if 
-    //     _IF → EXPRESSION SCOPE_BODY _IF_LET_IDENTIF_BODY
 
-    parser_opt->return_code = RP_STX_ERR;
-    return false;
+    return parse_check_optimize_generate_expression(parser_opt)
+            && _scope_body(parser_opt)
+            && __if_let_identif_body(parser_opt);
 }
 
 bool __if_let_identif_body(ParserOptions *parser_opt) {
@@ -475,18 +475,6 @@ bool _arg_val(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return true;
     }
-    parser_opt->return_code = RP_STX_ERR;
-    return false;
-}
-
-bool _extended_expression(ParserOptions *parser_opt) {
-    if (parser_opt->token.type == TOKEN_IDENTIF) {
-        return _function_call(parser_opt);
-    }
-    // TODO:
-    // else if
-    //     EXTENDED_EXPRESSION → EXPRESSION
-
     parser_opt->return_code = RP_STX_ERR;
     return false;
 }
