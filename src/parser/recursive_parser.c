@@ -1,6 +1,6 @@
 #include "recursive_parser.h"
 
-void _skip(ParserOptions *parser_opt) {
+void _skip_function_definition(ParserOptions *parser_opt) {
     // search start of function body
     while (parser_opt->token.type != TOKEN_L_CRLY_BRACKET) {
         _next_token(parser_opt);
@@ -28,7 +28,7 @@ bool _program(ParserOptions *parser_opt) {
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
         // skip function definitions because they have already been checked
-        _skip_funcition_definition(parser_opt);
+        _skip_function_definition(parser_opt);
         return _program(parser_opt);
     } else if (parser_opt->token.type == TOKEN_KEYWORD_FUNC
             || parser_opt->token.type == TOKEN_KEYWORD_VAR
@@ -174,7 +174,7 @@ bool _command_sequence(ParserOptions *parser_opt) {
 bool _command(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_IDENTIF) {
         _next_token(parser_opt);
-        return __token_identif(parser_opt);
+        return __identif(parser_opt);
     } else if (parser_opt->token.type == TOKEN_KEYWORD_RETURN) {
         return _return_command(parser_opt);
     } else if (parser_opt->token.type == TOKEN_KEYWORD_VAR 
@@ -207,6 +207,8 @@ bool __identif(ParserOptions *parser_opt) {
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         _next_token(parser_opt);
         // TODO: expression || function call
+        // _IDENTIF → TOKEN_ASSIGN EXPRESSION
+        // _IDENTIF → TOKEN_ASSIGN FUNCTION_CALL
         return true;
     }
     parser_opt->return_code = RP_STX_ERR;
@@ -480,7 +482,7 @@ bool _arg_val(ParserOptions *parser_opt) {
 }
 
 void _next_token(ParserOptions *parser_opt) {
-    parser_opt->token = get_next_token(parser_opt->sc_opt);
+    parser_opt->token = get_next_token(&parser_opt->sc_opt);
 }
 
 void parse_function_definition(ParserOptions *parser_opt) {
