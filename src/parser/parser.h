@@ -9,6 +9,7 @@ typedef enum { RP_OK, RP_LEX_ERR, RP_STX_ERR, RP_DEF_ERR,
                RP_INTER_ERR } RPReturnValue;
 
 typedef struct {
+    bool is_first_run;
     ScannerOptions sc_opt;
     TokenData token;
     FILE *out;

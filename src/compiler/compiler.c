@@ -28,6 +28,7 @@ CompilerReturnValue compile(FILE *in, FILE *out) {
     parser_opt.out = out;
 
     // first run
+    parser_opt.is_first_run = true;
     parse_function_definition(&parser_opt);
     switch (parser_opt.return_code)
     {
@@ -41,6 +42,7 @@ CompilerReturnValue compile(FILE *in, FILE *out) {
     scanner_rewind_file(&parser_opt.sc_opt);
 
     // second run
+    parser_opt.is_first_run = false;
     parse_check_optimize_generate(&parser_opt);
 
     scanner_opt_free(&parser_opt.sc_opt);

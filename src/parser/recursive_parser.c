@@ -1,35 +1,11 @@
 #include "recursive_parser.h"
 
-void _skip_function_definition(ParserOptions *parser_opt) {
-    // search start of function body
-    while (parser_opt->token.type != TOKEN_L_CRLY_BRACKET) {
-        _next_token(parser_opt);
-    }
-    _next_token(parser_opt);
-
-    // skip function body
-    int left_brackets_cnt = 1;
-    while (left_brackets_cnt != 0) {
-        while (parser_opt->token.type != TOKEN_L_CRLY_BRACKET
-            || parser_opt->token.type != TOKEN_R_CRLY_BRACKET) {
-            _next_token(parser_opt);
-        }
-        if (parser_opt->token.type == TOKEN_L_CRLY_BRACKET) {
-            left_brackets_cnt++;
-        } else {
-            left_brackets_cnt--;
-        }
-    }
-}
-
 bool _program(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_END_OF_FILE) {
         _next_token(parser_opt);
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
-        // skip function definitions because they have already been checked
-        _skip_function_definition(parser_opt);
-        return _program(parser_opt);
+        return _function_definition(parser_opt) && _program(parser_opt);
     } else if (parser_opt->token.type == TOKEN_KEYWORD_FUNC
             || parser_opt->token.type == TOKEN_KEYWORD_VAR
             || parser_opt->token.type == TOKEN_KEYWORD_LET
@@ -43,6 +19,9 @@ bool _program(ParserOptions *parser_opt) {
 }
 
 bool _function_definition(ParserOptions *parser_opt) {
+    //! in first run only generate function (do not check)
+    //! in second run only semantically check function (do not generate)
+    //! view 'parser_opt->is_first_run' for info about run
     if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
         return _function_head(parser_opt) && _scope_body(parser_opt);
     }
