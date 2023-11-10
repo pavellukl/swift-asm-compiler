@@ -1,5 +1,9 @@
-#ifndef LIST_ELEMENT_H
-#define LIST_ELEMENT_H
+#ifndef SYMTABLE_TYPES_H
+#define SYMTABLE_TYPES_H
+
+#include <stdbool.h>
+
+#define HASH_SIZE 109
 
 typedef enum{T_INT, T_FLOAT, T_STRING, T_BOOL}Type;
 
@@ -40,4 +44,4 @@ typedef struct ListElement{
     LSTElement** local_table;    //hash table
 }ListElement;
 
-#endif /* LIST_ELEMENT_H */
+#endif /* SYMTABLE_TYPES_H */

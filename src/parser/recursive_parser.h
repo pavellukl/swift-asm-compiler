@@ -2,7 +2,7 @@
 #define RECURSIVE_PARSER_H
 
 #include "parser.h"
-#include "precedence_parser.h"
+#include "precedence_parser_func.h"
 
 void parse_function_definition(ParserOptions *parser_opt);
 

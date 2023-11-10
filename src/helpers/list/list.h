@@ -4,8 +4,8 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#include "../../parser/precedence_parser.h"
-#include "../../symtable/list_element.h"
+#include "../../parser/precedence_parser_types.h"
+#include "../../symtable/symtable_types.h"
 
 /// @brief Return value from some functions operating upon list.
 typedef enum { LIST_OK, LIST_NOT_ACTIVE, LIST_ALLOC_ERR } ListReturnCode;

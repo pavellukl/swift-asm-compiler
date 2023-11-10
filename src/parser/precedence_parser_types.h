@@ -1,11 +1,14 @@
-#ifndef PRECEDENCE_TABLE_H
-#define PRECEDENCE_TABLE_H
+#ifndef PRECEDENCE_PARSER_TYPES_H
+#define PRECEDENCE_PARSER_TYPES_H
+
+#include "parser.h"
 
 /**
  * @brief Operation that occurs in precedence parsing.
  * Operations stand for `=`, `<`, `>`, `ERR` in their defined order.
  */
-typedef enum { PP_SHIFT_REDUCE, PP_HANDLE_SHIFT, PP_REDUCE, PP_ERROR } PPOperation;
+typedef enum {
+    PP_SHIFT_REDUCE, PP_HANDLE_SHIFT, PP_REDUCE, PP_ERROR } PPOperation;
 
 /** 
  * @brief List item type. Some of those values are used for indexing in
@@ -27,8 +30,22 @@ typedef enum {
  * The table is of size [m][n], where m represents terminal and n represents
  * token.
  */
-typedef const PPOperation *PrecedenceTable[][NONTERMINAL_EXPRESSION];
+typedef const PPOperation PrecedenceTable[][NONTERMINAL_EXPRESSION];
 
+/** @brief Represents an item in the precedence list. */
+typedef struct {
+  PPListItemType type;
+  TokenNumberType num_type;
+  union {
+      char* string;
+      int int_;
+      double float_;
+      bool bool_;
+  } value;
+} PPListItem;
+
+
+/** @brief Precedence table written in format to easily initialize a variable. */
 #define PRECEDENCE_TABLE                                                       \
 {                                                                              \
    [TERMINAL_ADD][TERMINAL_ADD]=PP_REDUCE,                                     \
@@ -630,6 +647,6 @@ typedef const PPOperation *PrecedenceTable[][NONTERMINAL_EXPRESSION];
    [FLAG_EMPTY][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                    \
    [FLAG_EMPTY][TERMINAL_R_BRACKET]      = PP_ERROR,                           \
    [FLAG_EMPTY][FLAG_EMPTY]              = PP_ERROR,                           \
-};
+}
 
-#endif /* PRECEDENCE_TABLE_H */
+#endif /* PRECEDENCE_PARSER_TYPES_H */

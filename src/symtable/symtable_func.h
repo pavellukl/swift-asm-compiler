@@ -1,13 +1,10 @@
-#ifndef SYMTABLE_H
-#define SYMTABLE_H
+#ifndef SYMTABLE_FUNC_H
+#define SYMTABLE_FUNC_H
 
 #include <stdio.h>
-#include <stdbool.h>
 
-#include "list_element.h"
 #include "../helpers/list/list.h"
-
-#define HASH_SIZE 109
+#include "symtable_types.h"
 
 /**
  * Creates list
@@ -98,4 +95,4 @@ int st_remove_global_func(ListST* list, char* identifier);
 
 int st_remove_global_var(ListST* list, char* identifier);
 
-#endif /* SYMTABLE_H */
+#endif /* SYMTABLE_FUNC_H */

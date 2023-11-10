@@ -1,4 +1,4 @@
-#include "symtable.h"
+#include "symtable_func.h"
 
 unsigned int _get_hash(char* str){
 	long long p = 29791, m = 1e9 + 7;
