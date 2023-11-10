@@ -18,7 +18,7 @@
 | `make test_build`         | `make build` + Compiles test files                        |
 | `make test_run`           | Runs test binaries                                        |
 |||
-| `make deploy`             | Creates a deploynment zip file and performs content check |
+| `make deploy`             | Creates a deployment zip file and performs content check |
 |||
 | `make clean`              | Removes generated folders                                 |
 
