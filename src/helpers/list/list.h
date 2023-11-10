@@ -5,8 +5,9 @@
 #include <stdlib.h>
 
 #include "../../parser/precedence_parser.h"
+#include "../../symtable/list_element.h"
 
-/// @brief Retrun value from some functions operating upon list.
+/// @brief Return value from some functions operating upon list.
 typedef enum { LIST_OK, LIST_NOT_ACTIVE, LIST_ALLOC_ERR } ListReturnCode;
 
 /*
@@ -151,5 +152,6 @@ typedef enum { LIST_OK, LIST_NOT_ACTIVE, LIST_ALLOC_ERR } ListReturnCode;
     void list_##TNAME_SNAKE##_dispose(List##TNAME_PASCAL *list);
 
 LIST_DEC(PPListItem, PP, pp)
+LIST_DEC(ListElement*, ST, st)
 
 #endif /* LIST_H */

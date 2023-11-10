@@ -142,3 +142,4 @@ void list_##TNAME_SNAKE##_dispose(List##TNAME_PASCAL *list) {				   \
 }
 
 LIST_DEF(PPListItem, PP, pp)
+LIST_DEF(ListElement*, ST, st)

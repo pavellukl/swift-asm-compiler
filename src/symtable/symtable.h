@@ -1,53 +1,13 @@
 #ifndef SYMTABLE_H
 #define SYMTABLE_H
 
-#include "../helpers/list/list.h"
-
+#include <stdio.h>
 #include <stdbool.h>
 
+#include "list_element.h"
+#include "../helpers/list/list.h"
+
 #define HASH_SIZE 109
-
-typedef enum{T_INT, T_FLOAT, T_STRING, T_BOOL}Type;
-
-typedef enum{CONSTANT, VARIABLE, FUNCTION}Variant;
-
-typedef enum{E_ALLOC, E_OK}Error;
-
-typedef struct Parameter{
-    char* name;
-    char* identifier;
-    Type par_type;
-}Parameter;
-
-typedef struct Parameters{
-    bool infinite;
-    int size;
-    Parameter* parameters_arr;
-}Parameters;
-
-typedef union {
-        int int_value;
-        char* string_value;
-        float float_value;
-        bool bool_value;
-        Parameters parameters;
-}Value;
-
-typedef struct LSTElement{
-    char* identifier;
-    Type return_type;
-    Variant variant;
-    bool defined_value;
-    Value value;
-}LSTElement;
-
-
-typedef struct ListElement{
-    char* identifier;
-    LSTElement** local_table;    //hash table
-}ListElement;
-
-LIST_DEC(ListElement*, ST, st)
 
 /**
  * Creates list
@@ -138,5 +98,4 @@ int st_remove_global_func(ListST* list, char* identifier);
 
 int st_remove_global_var(ListST* list, char* identifier);
 
-
-#endif
+#endif /* SYMTABLE_H */

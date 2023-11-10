@@ -1,9 +1,4 @@
 #include "symtable.h"
-#include "../helpers/list/list.c"
-
-#include <stdio.h>
-
-LIST_DEF(ListElement*, ST, st);
 
 unsigned int _get_hash(char* str){
 	long long p = 29791, m = 1e9 + 7;
