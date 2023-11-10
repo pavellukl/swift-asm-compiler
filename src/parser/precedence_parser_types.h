@@ -48,7 +48,7 @@ typedef struct {
 /** @brief Precedence table written in format to easily initialize a variable. */
 #define PRECEDENCE_TABLE                                                       \
 {                                                                              \
-   [TERMINAL_ADD][TERMINAL_ADD]=PP_REDUCE,                                     \
+   [TERMINAL_ADD][TERMINAL_ADD]            = PP_REDUCE,                        \
    [TERMINAL_ADD][TERMINAL_SUB]            = PP_REDUCE,                        \
    [TERMINAL_ADD][TERMINAL_MUL]            = PP_HANDLE_SHIFT,                  \
    [TERMINAL_ADD][TERMINAL_DIV]            = PP_HANDLE_SHIFT,                  \
