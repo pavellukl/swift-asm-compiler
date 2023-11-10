@@ -1,0 +1,7 @@
+// error
+
+var multiline = """
+
+"""
+
+"""

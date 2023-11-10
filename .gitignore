@@ -3,3 +3,4 @@ _debug_build
 _tests_build
 _deploy
 .vscode
+.todo

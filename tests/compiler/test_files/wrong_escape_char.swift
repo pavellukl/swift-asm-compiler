@@ -1,0 +1,4 @@
+// lex error
+
+let x = "\'"
+
