@@ -1,0 +1,3 @@
+// error
+
+while true {}
