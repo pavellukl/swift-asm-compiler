@@ -11,7 +11,7 @@ unsigned int _get_hash(char* str){
 	return hash;
 }
 
-int _new_global_scope(ListST* list, char* identifier){
+STError _new_global_scope(ListST* list, char* identifier){
     ListElement* new = malloc(sizeof(ListElement));
     if(new == NULL)
         return false;
@@ -28,6 +28,8 @@ int _new_global_scope(ListST* list, char* identifier){
 
     new->identifier = identifier;
     new->local_table = hash_table;
+    new->max_size = HASH_SIZE;
+    new->size = 0;
 
     list_st_insert_first(list, new);
 
@@ -47,7 +49,10 @@ ListST* st_create_list(void){
     return list;
 }
 
-int st_push_scope(ListST* list, char* identifier){
+STError st_push_scope(ListST* list, char* identifier){
+    if(list == NULL)
+        return E_LIST;
+
     ListElement* new = malloc(sizeof(ListElement));
     if(new == NULL)
         return E_ALLOC;
@@ -64,6 +69,8 @@ int st_push_scope(ListST* list, char* identifier){
 
     new->identifier = identifier;
     new->local_table = hash_table;
+    new->max_size = HASH_SIZE;
+    new->size = 0;
    
     if(list_st_insert_before(list, new) != LIST_OK){
         free(new->local_table);
@@ -76,23 +83,70 @@ int st_push_scope(ListST* list, char* identifier){
     return E_OK;
 }
 
+STError _st_realloc(ListItemST* scope){
+    LSTElement** new = malloc(scope->data->max_size*2*sizeof(LSTElement*));
+    if(new == NULL)
+        return E_ALLOC;
+    
+    for(int i = 0; i < scope->data->max_size*2; i++){
+        new[i] = NULL;
+    }
+     
+    unsigned int hash;
+    int index, step;
+    
+    for(int i = 0; i < scope->data->max_size; i++){
+        if(scope->data->local_table[i] != NULL){
+            hash = _get_hash(scope->data->local_table[i]->identifier);
+            index = hash % (scope->data->max_size*2);
+            step = hash % ((scope->data->max_size*2) - 1) + 1;
+
+            while(new[index] != NULL){   
+                if((index + step) >= (scope->data->max_size)*2){
+			        index = index + step - ((scope->data->max_size)*2);
+		        }
+		        else
+			        index += step;
+            }
+            new[index] = scope->data->local_table[i];
+            // printf("%d %d %s\n", i, index, new[index]->identifier);
+        }
+    }
+
+    free(scope->data->local_table);
+    scope->data->local_table = new;
+    scope->data->max_size = scope->data->max_size*2;
+
+    return E_OK;
+}
+
 void _st_insert_element(ListItemST* scope, LSTElement* element){
     unsigned int hash = _get_hash(element->identifier);
-    int index = hash % HASH_SIZE;
-    int step = hash % (HASH_SIZE - 1) + 1;
+    int index = hash % scope->data->max_size;
+    int step = hash % (scope->data->max_size - 1) + 1;
+
+    int count = 0;
 
     while(scope->data->local_table[index] != NULL){
-        if((index + step) >= HASH_SIZE){
-			index = index + step - HASH_SIZE;
+        if(count >= scope->data->max_size){
+            _st_realloc(scope);
+            hash = _get_hash(element->identifier);
+            index = hash % scope->data->max_size;
+            step = hash % (scope->data->max_size - 1) + 1;
+            count = 0;
+        }
+        if((index + step) >= scope->data->max_size){
+			index = index + step - scope->data->max_size;
 		}
 		else
 			index += step;
+        count ++;
     }
      
     scope->data->local_table[index] = element;
 }
 
-LSTElement* _create_element(char* identifier, Type return_type, Variant variant, LSTElementValue* value){
+LSTElement* _create_element(char* identifier, Type return_type, Variant variant, Value* value){
     LSTElement* new = malloc(sizeof(LSTElement));
     if(new == NULL)
         return NULL;
@@ -111,127 +165,95 @@ LSTElement* _create_element(char* identifier, Type return_type, Variant variant,
     return new;
 }
 
-int st_global_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, LSTElementValue* value){
+STError st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, Value* value){
+    if(list == NULL)
+        return E_LIST;
+    if(list->firstItem == NULL)
+        return E_LIST;
 
     LSTElement* new = _create_element(identifier, return_type, variant, value);
 
     if(new == NULL)
         return E_ALLOC;
-
-    ListItemST* tmp = list->firstItem;
-    while(tmp->nextItem != NULL)
-        tmp = tmp->nextItem;
     
-
-    _st_insert_element(tmp, new);
-
-    return E_OK;
-}
-
-int st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, LSTElementValue* value){
-    LSTElement* new = _create_element(identifier, return_type, variant, value);
-
-    if(new == NULL)
-        return E_ALLOC;
+    if(list->firstItem->data->size >= (list->firstItem->data->max_size - 1)){
+        if(_st_realloc(list->firstItem) != E_OK)
+            return E_ALLOC;     
+    }
 
     _st_insert_element(list->firstItem, new);
+    list->firstItem->data->size += 1;
 
     return E_OK;
 }
 
-LSTElement* st_search(ListST* list, char* identifier){
-    unsigned hash = _get_hash(identifier);
-    int index = hash % HASH_SIZE;
-    int step = hash % (HASH_SIZE - 1) + 1;
+LSTElement* st_search_var(ListST* list, char* identifier){
+    if(list == NULL)
+        return NULL;
+    if(list->firstItem == NULL)
+        return NULL;
 
-    while(list->activeItem->data->local_table[index] != NULL){
-        if(strcmp(list->activeItem->data->local_table[index]->identifier, identifier) == 0)
+    unsigned hash = _get_hash(identifier);
+    int index = hash % list->activeItem->data->max_size;
+    int step = hash % (list->activeItem->data->max_size - 1) + 1;
+
+    int count = 0;
+
+    while(list->activeItem->data->local_table[index] != NULL){  
+        if(count >= list->activeItem->data->max_size)
+            return NULL;
+        if((strcmp(list->activeItem->data->local_table[index]->identifier, identifier) == 0) && (list->activeItem->data->local_table[index]->variant != FUNCTION))
             return list->activeItem->data->local_table[index];
 
-        if((index + step) >= HASH_SIZE){
-			index = index + step - HASH_SIZE;
+        if((index + step) >= list->activeItem->data->max_size){
+			index = index + step - list->activeItem->data->max_size;
 		}
 		else
 			index += step;
+        
+        count ++;
     } 
 
     return NULL;
 }
 
-LSTElement* st_search_global_func(ListST* list, char* identifier){
-    unsigned hash = _get_hash(identifier);
-    int index = hash % HASH_SIZE;
-    int step = hash % (HASH_SIZE - 1) + 1; 
-
-    ListItemST* tmp = list->firstItem;
-
-    while(tmp->nextItem != NULL)
-        tmp = tmp->nextItem;
-    
-
-    while(tmp->data->local_table[index] != NULL){
-        if((strcmp(tmp->data->local_table[index]->identifier, identifier) == 0) && (tmp->data->local_table[index]->variant == FUNCTION)){
-            return tmp->data->local_table[index];
-        }
-
-        if((index + step) >= HASH_SIZE){
-			index = index + step - HASH_SIZE;
-		}
-		else
-			index += step;
-    } 
-
-    return NULL;    
-}
-
 LSTElement* st_search_func(ListST* list, char* identifier){
-   unsigned hash = _get_hash(identifier);
-    int index = hash % HASH_SIZE;
-    int step = hash % (HASH_SIZE - 1) + 1; 
+    if(list == NULL)
+        return NULL;
+    if(list->firstItem == NULL)
+        return NULL;
 
+    unsigned hash = _get_hash(identifier);
+    int index = hash % list->activeItem->data->max_size;
+    int step = hash % (list->activeItem->data->max_size - 1) + 1; 
+
+    int count = 0;
     while(list->activeItem->data->local_table[index] != NULL){
+        if(count >= list->activeItem->data->max_size)
+            return NULL;
         if((strcmp(list->activeItem->data->local_table[index]->identifier, identifier) == 0) && (list->activeItem->data->local_table[index]->variant == FUNCTION)){
             return list->activeItem->data->local_table[index];
         }
 
-        if((index + step) >= HASH_SIZE){
-			index = index + step - HASH_SIZE;
+        if((index + step) >= list->activeItem->data->max_size){
+			index = index + step - list->activeItem->data->max_size;
 		}
 		else
 			index += step;
+
+        count ++;
     } 
 
     return NULL;   
 }
 
-LSTElement* st_search_global_var(ListST* list, char* identifier){
-   unsigned hash = _get_hash(identifier);
-    int index = hash % HASH_SIZE;
-    int step = hash % (HASH_SIZE - 1) + 1; 
-
-    ListItemST* tmp = list->firstItem;
-
-    while(tmp->nextItem != NULL)
-        tmp = tmp->nextItem;
-    
-
-    while(tmp->data->local_table[index] != NULL){
-        if((strcmp(tmp->data->local_table[index]->identifier, identifier) == 0) && (tmp->data->local_table[index]->variant != FUNCTION)){
-            return tmp->data->local_table[index];
-        }
-
-        if((index + step) >= HASH_SIZE){
-			index = index + step - HASH_SIZE;
-		}
-		else
-			index += step;
-    } 
-
-    return NULL;  
-}
-
 void st_pop_scope(ListST* list){
-    for(int i = 0; i < HASH_SIZE; i++){
+    if(list == NULL)
+        return;
+    if(list->firstItem == NULL)
+        return;
+
+    for(int i = 0; i < list->firstItem->data->max_size; i++){
         if(list->firstItem->data->local_table[i] != NULL){
             if(list->firstItem->data->local_table[i]->variant == FUNCTION){
                 if(list->firstItem->data->local_table[i]->value.parameters.parameters_arr != NULL)
@@ -249,19 +271,19 @@ void st_pop_scope(ListST* list){
     list_st_delete_first(list);
 }
 
-void _rehash(LSTElement** hash_table, LSTElement** new){
+void _rehash(LSTElement** hash_table, LSTElement** new, int size){
     unsigned hash;
     int index, step;
 
-    for(int i = 0; i < HASH_SIZE; i++){
+    for(int i = 0; i < size; i++){
         if(hash_table[i] != NULL){
             hash = _get_hash(hash_table[i]->identifier);
-            index = hash % HASH_SIZE;
-            step = hash % (HASH_SIZE - 1) + 1; 
+            index = hash % size;
+            step = hash % (size - 1) + 1; 
 
             while(new[index] != NULL){
-                if((index + step) >= HASH_SIZE){
-			        index = index + step - HASH_SIZE;
+                if((index + step) >= size){
+			        index = index + step - size;
 		        }
 		        else
 		        	index += step;
@@ -272,21 +294,37 @@ void _rehash(LSTElement** hash_table, LSTElement** new){
     free(hash_table);
 }
 
-int st_remove_var(ListST* list, char* identifier){
+STError st_remove_var(ListST* list, char* identifier){
+    if(list == NULL)
+        return E_LIST;
+    if(list->firstItem == NULL)
+        return E_LIST;
+
     unsigned hash = _get_hash(identifier);
-    int index = hash % HASH_SIZE;
-    int step = hash % (HASH_SIZE - 1) + 1;
+    int index = hash % list->activeItem->data->max_size;
+    int step = hash % (list->activeItem->data->max_size - 1) + 1;
+
+    if(!list_st_is_active(list))
+        return E_LIST;
+    
+    if(list->activeItem->data->local_table == NULL)
+        return E_SEARCH;
+    
+    int count = 0;
 
     while((list->activeItem->data->local_table[index] != NULL)){
+        if(count >= list->activeItem->data->max_size)
+            return E_SEARCH;
         if((strcmp(list->activeItem->data->local_table[index]->identifier, identifier) == 0) && (list->activeItem->data->local_table[index]->variant != FUNCTION)){
             break;
         }else{
-            if((index + step) >= HASH_SIZE){
-			    index = index + step - HASH_SIZE;
+            if((index + step) >= list->activeItem->data->max_size){
+			    index = index + step - list->activeItem->data->max_size;
 		    }
 		    else
 			    index += step;
         }
+        count ++;
     }  
 
     if(list->activeItem->data->local_table[index] == NULL || list->activeItem->data->local_table[index]->variant == FUNCTION)
@@ -295,127 +333,187 @@ int st_remove_var(ListST* list, char* identifier){
     free(list->activeItem->data->local_table[index]);
     list->activeItem->data->local_table[index] = NULL;
 
-    LSTElement** new = malloc(HASH_SIZE*sizeof(LSTElement*));
+    LSTElement** new = malloc(list->activeItem->data->max_size*sizeof(LSTElement*));
     if(new == NULL)
         return E_ALLOC;
+    
+    for(int i = 0; i < list->activeItem->data->max_size; i++){
+        new[i] = NULL;
+    }
 
-    _rehash(list->activeItem->data->local_table, new);
+    _rehash(list->activeItem->data->local_table, new, list->activeItem->data->max_size);
 
     list->activeItem->data->local_table = new;
 
     return E_OK;
 }
 
-int st_remove_global_var(ListST* list, char* identifier){
+STError st_remove_element(ListST* list, char* identifier){
+    if(list == NULL)
+        return E_LIST;
+    if(list->firstItem == NULL)
+        return E_LIST;
+
+    ListItemST* tmp = list->firstItem;
+
     unsigned hash = _get_hash(identifier);
-    int index = hash % HASH_SIZE;
-    int step = hash % (HASH_SIZE - 1) + 1;
+    int index;
+    int step;
 
-    ListItemST* tmp = list->firstItem;
-    while(tmp->nextItem != NULL)
+    int count = 0;
+
+    while(tmp != NULL){
+        index = hash % tmp->data->max_size;
+        step = hash % (tmp->data->max_size - 1) + 1;
+        while((tmp->data->local_table[index] != NULL) && (count < tmp->data->max_size)){
+            if((strcmp(tmp->data->local_table[index]->identifier, identifier) == 0)){
+                break;
+            }
+            else{
+                if((index + step) >= tmp->data->max_size){
+                    index = index + step - tmp->data->max_size;
+                }
+                else
+                    index += step;
+            }
+            count ++;
+        } 
+
+        if((tmp->data->local_table[index] != NULL) && (strcmp(tmp->data->local_table[index]->identifier, identifier) == 0)){
+           break; 
+        } 
+
         tmp = tmp->nextItem;
+        count = 0;
+    }
 
-    while((tmp->data->local_table[index] != NULL)){
-        if((strcmp(tmp->data->local_table[index]->identifier, identifier) == 0) && (tmp->data->local_table[index]->variant != FUNCTION)){
-            break;
-        }else{
-            if((index + step) >= HASH_SIZE){
-			    index = index + step - HASH_SIZE;
-		    }
-		    else
-			    index += step;
-        }
-    }  
-
-    if(tmp->data->local_table[index] == NULL || tmp->data->local_table[index]->variant == FUNCTION)
-        return E_OK;
-
+    if(tmp == NULL)
+        return E_SEARCH;
+    
     free(tmp->data->local_table[index]);
     tmp->data->local_table[index] = NULL;
 
-    LSTElement** new = malloc(HASH_SIZE*sizeof(LSTElement*));
+    LSTElement** new = malloc(tmp->data->max_size*sizeof(LSTElement*));
     if(new == NULL)
         return E_ALLOC;
 
-    _rehash(tmp->data->local_table, new);
+    for(int i = 0; i < tmp->data->max_size; i++){
+        new[i] = NULL;
+    }
 
+    _rehash(tmp->data->local_table, new, tmp->data->max_size);
     tmp->data->local_table = new;
 
     return E_OK;
 }
 
-int st_remove_global_func(ListST* list, char* identifier){
-   unsigned hash = _get_hash(identifier);
-    int index = hash % HASH_SIZE;
-    int step = hash % (HASH_SIZE - 1) + 1;
+STError st_update_element(ListST* list, char* identifier, Value* value){
+    if(list == NULL)
+        return E_LIST;
+    if(list->firstItem == NULL)
+        return E_LIST;
 
-    ListItemST* tmp = list->firstItem;
+    LSTElement* element = st_search_element(list, identifier);
+    if(element == NULL)
+        return E_SEARCH;
 
-    while(tmp->nextItem != NULL)
-        tmp = tmp->nextItem;
+    if(element->variant == FUNCTION || element->variant == CONSTANT)
+        return E_SEARCH;
 
-    while((tmp->data->local_table[index] != NULL)){
-        if((strcmp(tmp->data->local_table[index]->identifier, identifier) == 0) && (tmp->data->local_table[index]->variant == FUNCTION)){
-            break;
-        }else{
-            if((index + step) >= HASH_SIZE){
-			    index = index + step - HASH_SIZE;
-		    }
-		    else
-			    index += step;
-        }
-    } 
-
-    if(tmp->data->local_table[index] == NULL)
-        return E_OK;
-
-    free(tmp->data->local_table[index]);
-    tmp->data->local_table[index] = NULL;
-
-    LSTElement** new = malloc(HASH_SIZE*sizeof(LSTElement*));
-    if(new == NULL)
-        return E_ALLOC;
-
-    _rehash(tmp->data->local_table, new);
-    tmp->data->local_table = new;
+    element->value = *value;
+    if(value != NULL)
+        element->defined_value = true;
 
     return E_OK;
 }
 
-int st_remove_func(ListST* list, char* identifier){
-   unsigned hash = _get_hash(identifier);
-    int index = hash % HASH_SIZE;
-    int step = hash % (HASH_SIZE - 1) + 1;
+STError st_remove_func(ListST* list, char* identifier){
+    if(list == NULL)
+        return E_LIST;
+    if(list->firstItem == NULL)
+        return E_LIST;
+
+    unsigned hash = _get_hash(identifier);
+    int index = hash % list->activeItem->data->max_size;
+    int step = hash % (list->activeItem->data->max_size - 1) + 1;
+
+    if(!list_st_is_active(list))
+        return E_LIST;
+
+    int count = 0;
 
     while((list->activeItem->data->local_table[index] != NULL)){
+        if(count >= list->activeItem->data->max_size)
+            return E_SEARCH;
         if((strcmp(list->activeItem->data->local_table[index]->identifier, identifier) == 0) && (list->activeItem->data->local_table[index]->variant == FUNCTION)){
             break;
         }else{
-            if((index + step) >= HASH_SIZE){
-			    index = index + step - HASH_SIZE;
+            if((index + step) >= list->activeItem->data->max_size){
+			    index = index + step - list->activeItem->data->max_size;
 		    }
 		    else
 			    index += step;
         }
+        count ++;
     } 
 
     if(list->activeItem->data->local_table[index] == NULL)
-        return E_OK;
+        return E_SEARCH;
 
     free(list->activeItem->data->local_table[index]);
     list->activeItem->data->local_table[index] = NULL;
 
-    LSTElement** new = malloc(HASH_SIZE*sizeof(LSTElement*));
+    LSTElement** new = malloc(list->activeItem->data->max_size*sizeof(LSTElement*));
     if(new == NULL)
         return E_ALLOC;
+    
+    for(int i = 0; i < list->activeItem->data->max_size; i++){
+        new[i] = NULL;
+    }
 
-    _rehash(list->activeItem->data->local_table, new);
+    _rehash(list->activeItem->data->local_table, new, list->activeItem->data->max_size);
     list->activeItem->data->local_table = new;
 
     return E_OK; 
 }
 
+LSTElement* st_search_element(ListST* list, char* identifier){
+    if(list == NULL)
+        return NULL;
+    if(list->firstItem == NULL)
+        return NULL;
+
+    ListItemST* tmp = list->firstItem;
+
+    unsigned hash = _get_hash(identifier);
+    int index; 
+    int step;
+
+    int count = 0;
+    while(tmp != NULL){
+        index = hash % tmp->data->max_size;
+        step = hash % (tmp->data->max_size - 1) + 1;
+        while((tmp->data->local_table[index] != NULL) && (count < tmp->data->max_size)){
+            if((strcmp(tmp->data->local_table[index]->identifier, identifier) == 0)){
+                return tmp->data->local_table[index];
+            }else{
+                if((index + step) >= tmp->data->max_size){
+                    index = index + step - tmp->data->max_size;
+                }
+                else
+                    index += step;
+            }
+            count ++;
+        } 
+        tmp = tmp->nextItem;
+        count = 0;
+    }
+    return NULL;
+}
+
 void st_destroy_list(ListST* list){
+    if(list == NULL)
+        return;
     while(list->firstItem != NULL){
         st_pop_scope(list);
     }

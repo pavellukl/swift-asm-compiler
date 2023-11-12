@@ -18,6 +18,11 @@ typedef enum{E_ALLOC, E_OK}Error;
 */
 ListST* st_create_list(void);
 
+/**
+ * Destroys list
+ * 
+ * @param ListST*   pointer to list
+*/
 void st_destroy_list(ListST* list);
 
 /**
@@ -29,38 +34,40 @@ void st_destroy_list(ListST* list);
  * @param Variant       variant of the element
  * @param Value*        pointer to the value of the element of the function
  * 
- * @return int          result of the operation    
+ * @return enum          result of the operation    
 */
-int st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, LSTElementValue* value);
+STError st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, Value* value);
 
 /**
- * Searches element in active scope
+ * Searches element in all scopes
  * 
- * @param ListST*   pointer to list
- * @param char*     identifier of searched element
-*/
-LSTElement* st_search(ListST* list, char* identifier);
-
-/**
- * Searches function declaration in active scope
-*/
-LSTElement* st_search_func(ListST* list, char* identifier);
-
-/**
- * Searches function declaration in global scope
+ * @param ListST*       pointer to list
+ * @param char*         identifier of searched element
  * 
- * @param ListST*   pointer to list
- * @param char*     identifier of searched element
+ * @return LSTElement*  pointer to the element
 */
-LSTElement* st_search_global_func(ListST* list, char* identifier);
+LSTElement* st_search_element(ListST* list, char* identifier);
 
 /**
- * Searches variable in global scope
+ * Removes first element with the same identifier in all scopes
  * 
- * @param ListST*   pointer to the list
- * @param char*     identifier of searched element 
+ * @param ListST*       pointer to list
+ * @param char*         identifier of searched element
+ * 
+ * @return STError      result of the operation
 */
-LSTElement* st_search_global_var(ListST* list, char* identifier);
+STError st_remove_element(ListST* list, char* identifier);
+
+/**
+ * Updates value of the element
+ * 
+ * @param ListST*       pointer to list
+ * @param char*         identifier of searched element
+ * @param Value*        pointer to the new value
+ * 
+ * @return STError      result of the operation
+*/
+STError st_update_element(ListST* list, char* identifier, Value* value);
 
 /**
  * Adds new scope to the list
@@ -68,7 +75,7 @@ LSTElement* st_search_global_var(ListST* list, char* identifier);
  * @param ListST*   pointer to the list
  * @param char*     identifier of the scope
 */
-int st_push_scope(ListST* list, char* identifier);
+STError st_push_scope(ListST* list, char* identifier);
 
 /**
  * Pops actual (first) scope
@@ -83,21 +90,29 @@ void st_pop_scope(ListST* list);
  * @param ListST*   pointer to the list
  * @param char*     identifier
 */
-int st_remove_var(ListST* list, char* identifier);
+STError st_remove_var(ListST* list, char* identifier);
 
 /**
  * Removes function declaration in active scope
 */
-int st_remove_func(ListST* list, char* identifier);
+STError st_remove_func(ListST* list, char* identifier);
 
 /**
- * Removes function declaration in global scope
+ * Searches element in active scope
  * 
- * @param ListST*   pointer to the list
- * @param char*     identifier of the function
+ * @param ListST*   pointer to list
+ * @param char*     identifier of searched element
 */
-int st_remove_global_func(ListST* list, char* identifier);
+LSTElement* st_search_var(ListST* list, char* identifier);
 
-int st_remove_global_var(ListST* list, char* identifier);
+/**
+ * Searches function declaration in active scope
+ * 
+ * @param ListST*       pointer to list
+ * @param char*         identifier of searched element
+ * 
+ * @return LSTElement*  pointer to the element
+*/
+LSTElement* st_search_func(ListST* list, char* identifier);
 
 #endif /* SYMTABLE_H */
