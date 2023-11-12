@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "token.h"
 #include "../helpers/stack/stack.h"
+#include "token.h"
 
 typedef enum {
     START,
@@ -63,9 +63,9 @@ typedef struct {
     StackTokenData *returned_tokens;
 } ScannerOptions;
 
-TokenData is_keyword(char* keyword, bool new_line_before_token);
+TokenData is_keyword(char *keyword, bool new_line_before_token);
 
-bool _skip_whitespaces(ScannerOptions* opt);
+bool _skip_whitespaces(ScannerOptions *opt);
 
 void scanner_opt_free(ScannerOptions *opt);
 
@@ -73,8 +73,8 @@ bool scanner_opt_init(ScannerOptions *opt, FILE *file);
 
 void scanner_rewind_file(ScannerOptions *opt);
 
-int get_next_char(ScannerOptions* opt);
+int get_next_char(ScannerOptions *opt);
 
-TokenData get_next_token(ScannerOptions* opt);
+TokenData get_next_token(ScannerOptions *opt);
 
 #endif /* LEXICAL_ANALYSIS_H */

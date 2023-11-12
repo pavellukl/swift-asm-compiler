@@ -4,7 +4,7 @@
 // test them separately, mount them together in modules, test them,
 // and do only command line service here
 
-int main(int argc, char *argv[]) {
+int main(int argc, char* argv[]) {
     printf("Hello world!\n");
     fprintf(stdout, "Running %s with %d arguments\n", *argv, argc);
 
@@ -15,7 +15,12 @@ int main(int argc, char *argv[]) {
         "This is a yellow debug log to stderr. It is compiled only"
         "in the debug mode.\n");
 
-    switch (compile(stdin, stdout)) {
+    // for debugging purposes
+    //  FILE* in =
+    //     fopen("./tests/compiler/test_files/undeclared_type_nil.swift", "r");
+    FILE* in = stdin;
+
+    switch (compile(in, stdout)) {
         case COMP_OK:
             return 0;
         case COMP_LEX_ERR:
