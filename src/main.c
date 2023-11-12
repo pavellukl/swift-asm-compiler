@@ -18,6 +18,13 @@ int main(int argc, char* argv[]) {
     // for debugging purposes
     //  FILE* in =
     //     fopen("./tests/compiler/test_files/undeclared_type_nil.swift", "r");
+    //  FILE* in =
+    //     fopen("./tests/compiler/test_files/wrong_variable_type3.swift", "r");
+    //  FILE* in =
+    //     fopen("./tests/compiler/test_files/wrong_variable_type3.swift", "r");
+    //  FILE* in =
+    //     fopen("./tests/compiler/test_files/same_scope_redeclaration.swift",
+    //     "r");
     FILE* in = stdin;
 
     switch (compile(in, stdout)) {
