@@ -67,7 +67,7 @@ STError st_remove_element(ListST* list, char* identifier);
  * 
  * @return STError      result of the operation
 */
-STError st_update_element(ListST* list, char* identifier, LSTElementValue value);
+STError st_update_element(ListST* list, char* identifier, LSTElementValue* value);
 
 /**
  * Adds new scope to the list

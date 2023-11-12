@@ -146,7 +146,7 @@ void _st_insert_element(ListItemST* scope, LSTElement* element){
     scope->data->local_table[index] = element;
 }
 
-LSTElement* _create_element(char* identifier, Type return_type, Variant variant, Value* value){
+LSTElement* _create_element(char* identifier, Type return_type, Variant variant, LSTElementValue* value){
     LSTElement* new = malloc(sizeof(LSTElement));
     if(new == NULL)
         return NULL;
@@ -165,7 +165,7 @@ LSTElement* _create_element(char* identifier, Type return_type, Variant variant,
     return new;
 }
 
-STError st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, Value* value){
+STError st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, LSTElementValue* value){
     if(list == NULL)
         return E_LIST;
     if(list->firstItem == NULL)
@@ -407,7 +407,7 @@ STError st_remove_element(ListST* list, char* identifier){
     return E_OK;
 }
 
-STError st_update_element(ListST* list, char* identifier, Value* value){
+STError st_update_element(ListST* list, char* identifier, LSTElementValue* value){
     if(list == NULL)
         return E_LIST;
     if(list->firstItem == NULL)
