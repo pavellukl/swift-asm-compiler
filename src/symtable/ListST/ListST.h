@@ -39,6 +39,8 @@ typedef struct LSTElement{
 typedef struct ListElement{
     char* identifier;
     LSTElement** local_table;    //hash table
+    int size;
+    int max_size;
 }ListElement;
 
 LIST_DEC(ListElement*, ST, st)
