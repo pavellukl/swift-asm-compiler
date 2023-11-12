@@ -15,8 +15,7 @@ Test(compile, general) {
 
     while ((subdirPtr = readdir(dir)) != NULL) {
         if (!strcmp(subdirPtr->d_name, ".") ||
-            !strcmp(subdirPtr->d_name, "..") ||
-            !strcmp(subdirPtr->d_name, "same_scope_redeclaration.swift")) {
+            !strcmp(subdirPtr->d_name, "..")) {
             continue;
         }
 
