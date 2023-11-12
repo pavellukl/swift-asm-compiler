@@ -1,4 +1,4 @@
-// error
+// 4
 
 var x: = true
 

@@ -1,18 +1,27 @@
 #ifndef COMPILER_H
 #define COMPILER_H
 
-#include <stdio.h>
-#include <stdbool.h>
 #include <assert.h>
+#include <stdbool.h>
+#include <stdio.h>
 
 #include "../parser/parser.h"
 #include "../parser/recursive_parser.h"
 
 /// @brief Possible return values of compiler.
-typedef enum { COMP_OK, COMP_LEX_ERR, COMP_STX_ERR, COMP_DEF_ERR,
-               COMP_UNDEFVAR_ERR, COMP_FNCALL_ERR, COMP_FNRET_ERR,
-               COMP_EXPRTYPE_ERR, COMP_UNDEFTYPE_ERR, COMP_OTHER_ERR,
-               COMP_INTER_ERR } CompilerReturnValue;
+typedef enum {
+    COMP_OK,
+    COMP_LEX_ERR,
+    COMP_STX_ERR,
+    COMP_DEF_ERR,
+    COMP_FNCALL_ERR,
+    COMP_UNDEFVAR_ERR,
+    COMP_FNRET_ERR,
+    COMP_EXPRTYPE_ERR,
+    COMP_UNDEFTYPE_ERR,
+    COMP_OTHER_ERR,
+    COMP_INTER_ERR
+} CompilerReturnValue;
 
 /**
  * @brief Compiles the source code in file \p in to file \p out.

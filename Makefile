@@ -103,7 +103,7 @@ debug_run:
 test: test_build test_run
 test_build: build $(TESTS_BIN)
 test_run:
-	@ for test in $(TESTS_BIN) ; do ./$$test ; done
+	@ for test in $(TESTS_BIN) ; do ./$$test --verbose=1; done
 
 deploy: | $(DEPLOY_BASE_DIR).dir
 	@ rm -rf $(DEPLOY_BASE_DIR)/*

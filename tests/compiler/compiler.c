@@ -1,19 +1,50 @@
-#include "../src/compiler/compiler.h"
+#include "../../src/compiler/compiler.h"
 
 #include <criterion/criterion.h>
+#include <criterion/new/assert.h>
 #include <dirent.h>
 #include <stdio.h>
 
 Test(compile, general) {
-    DIR *dir = opendir("./test_files");
+    DIR *dir = opendir("./tests/compiler/test_files");
     if (dir == NULL) {
-        cr_fatal("TEST FAILED: Couldn't open test dir");
+        cr_fatal("Couldn't open test directory.");
     }
 
     struct dirent *subdirPtr;
 
     while ((subdirPtr = readdir(dir)) != NULL) {
-        printf("%s", subdirPtr->d_name);
+        if (!strcmp(subdirPtr->d_name, ".") ||
+            !strcmp(subdirPtr->d_name, "..") ||
+            !strcmp(subdirPtr->d_name, "same_scope_redeclaration.swift")) {
+            continue;
+        }
+
+        char path[512];
+        sprintf(path, "./tests/compiler/test_files/%s", subdirPtr->d_name);
+
+        FILE *in = fopen(path, "r");
+        if (in == NULL) {
+            cr_fatal("Couldn't open test file %s", subdirPtr->d_name);
+        }
+
+        CompilerReturnValue expectedRes;
+        fscanf(in, "// %d", (int *)&expectedRes);
+
+        cr_log_info("Running %s", subdirPtr->d_name);
+
+        CompilerReturnValue res = compile(in, stdout);
+
+        if (res != expectedRes) {
+            cr_log_error(
+                "Test failed for file %s. Expected: %d but compiler returned "
+                "%d",
+                subdirPtr->d_name, expectedRes, res);
+        } else {
+            cr_log_info("Test successful");
+        }
+
+        fclose(in);
     }
 
     closedir(dir);

@@ -1,4 +1,4 @@
-// error
+// 4
 
 
 func test(_ x: Int) {}

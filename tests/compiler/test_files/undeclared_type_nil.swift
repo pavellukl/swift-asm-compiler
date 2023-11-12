@@ -1,3 +1,3 @@
-// error 8
+// 8
 
 var sus = nil

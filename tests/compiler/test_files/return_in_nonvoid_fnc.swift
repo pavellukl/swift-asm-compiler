@@ -1,6 +1,6 @@
-// error 6
+// 6
 
-func test() {
+func test() -> Int {
     var x = 9
     return
 }

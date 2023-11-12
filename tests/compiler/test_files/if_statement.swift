@@ -1,5 +1,4 @@
-// OK
-
+// 0
 
 func test(_ a: Int) -> Int {
     return 2 * a

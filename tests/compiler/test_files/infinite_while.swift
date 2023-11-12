@@ -1,3 +1,3 @@
-// error
+// 9
 
 while true {}

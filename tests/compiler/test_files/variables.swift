@@ -1,4 +1,4 @@
-// OK
+// 0
 
 func test3(with x: Int) -> Int {
     return x / 2

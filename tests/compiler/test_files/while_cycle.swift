@@ -1,4 +1,4 @@
-// OK
+// 0
  
 var num = 1
 var cnt = 10

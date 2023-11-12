@@ -1,3 +1,3 @@
-// error
+// 1
 
 let Double = 2
