@@ -4,7 +4,7 @@
 // #include "../scanner/scanner.h"
 // #include "../helpers/list/list.h"
 #include "../parser.h"
-#include "../../helpers/list/ListPP/ListPP.h"
+#include "ListPP/ListPP.h"
 #include "precedence_table.h"
 
 bool parse_check_optimize_generate_expression(ParserOptions *parser_opt);

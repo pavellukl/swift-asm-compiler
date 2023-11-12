@@ -1,8 +1,8 @@
 #ifndef LIST_PP_H
 #define LIST_PP_H
 
-#include "../list.h"
-#include "../../stack/StackTokenData/StackTokenData.h"
+#include "../../../helpers/list.h"
+#include "../../../scanner/StackTokenData/StackTokenData.h"
 
 /** 
  * @brief List item type. Some of those values are used for indexing in

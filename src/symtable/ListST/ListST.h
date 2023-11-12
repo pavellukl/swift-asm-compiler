@@ -1,13 +1,12 @@
 #ifndef LIST_ST_H
 #define LIST_ST_H
 
-#include "../list.h"
+#include "../../helpers/list.h"
 
 typedef enum{T_INT, T_FLOAT, T_STRING, T_BOOL}Type;
 
 typedef enum{CONSTANT, VARIABLE, FUNCTION}Variant;
 
-typedef enum{E_ALLOC, E_SEARCH, E_LIST, E_OK} STError;
 
 typedef struct Parameter{
     char* name;

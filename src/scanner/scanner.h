@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "../helpers/stack/StackTokenData/StackTokenData.h"
+#include "StackTokenData/StackTokenData.h"
 #include "token.h"
 
 typedef enum {

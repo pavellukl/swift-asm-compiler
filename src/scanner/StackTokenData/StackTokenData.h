@@ -7,8 +7,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "../stack.h"
-#include "../../../scanner/token.h"
+#include "../../helpers/stack.h"
+#include "../token.h"
 
 STACK_DEC(TokenData, TokenData, token_data)
 

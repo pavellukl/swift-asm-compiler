@@ -1,7 +1,7 @@
 #ifndef PRECEDENCE_TABLE_H
 #define PRECEDENCE_TABLE_H
 
-#include "../../helpers/list/ListPP/ListPP.h"
+#include "ListPP/ListPP.h"
 
 /**
  * @brief Operation that occurs in precedence parsing.

@@ -5,11 +5,11 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "../helpers/list/ListST/ListST.h"
+#include "ListST/ListST.h"
 
 #define HASH_SIZE 109
 
-typedef enum{E_ALLOC, E_OK}Error;
+typedef enum{E_ALLOC, E_SEARCH, E_LIST, E_OK} STError;
 
 /**
  * Creates list
@@ -36,7 +36,7 @@ void st_destroy_list(ListST* list);
  * 
  * @return enum          result of the operation    
 */
-STError st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, Value* value);
+STError st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, LSTElementValue* value);
 
 /**
  * Searches element in all scopes
@@ -67,7 +67,7 @@ STError st_remove_element(ListST* list, char* identifier);
  * 
  * @return STError      result of the operation
 */
-STError st_update_element(ListST* list, char* identifier, Value* value);
+STError st_update_element(ListST* list, char* identifier, LSTElementValue value);
 
 /**
  * Adds new scope to the list
