@@ -7,6 +7,7 @@
  * @param TNAME_PASCAL Any name for chosen data type in pascal case.
  * @param TNAME_SNAKE Any name for chosen data type in snake case.
  */
+
 #define LIST_DEF(T, TNAME_PASCAL, TNAME_SNAKE)                                 \
 																			   \
 void list_##TNAME_SNAKE##_init(List##TNAME_PASCAL *list) {					   \

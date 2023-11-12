@@ -17,6 +17,7 @@ typedef enum { LIST_OK, LIST_NOT_ACTIVE, LIST_ALLOC_ERR } ListReturnCode;
  * @param TNAME_PASCAL Any name for chosen data type in pascal case.
  * @param TNAME_SNAKE Any name for chosen data type in snake case.
  */
+
 #define LIST_DEC(T, TNAME_PASCAL, TNAME_SNAKE)                                 \
                                                                                \
     /** An item of the list. */                                                \

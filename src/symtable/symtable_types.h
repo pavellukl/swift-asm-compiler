@@ -29,14 +29,14 @@ typedef union {
         float float_value;
         bool bool_value;
         Parameters parameters;
-}Value;
+}LSTElementValue;
 
 typedef struct LSTElement{
     char* identifier;
     Type return_type;
     Variant variant;
     bool defined_value;
-    Value value;
+    LSTElementValue value;
 }LSTElement;
 
 typedef struct ListElement{

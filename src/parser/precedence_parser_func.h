@@ -7,14 +7,12 @@
 
 bool parse_check_optimize_generate_expression(ParserOptions *parser_opt);
 
-/**
- * @brief Converts token type (enum) to terminal (enum).
- * 
- * @param token_type Token to be converted.
- * @param terminal Pointer to variable where conversion result is stored.
- * @return true If conversion exists.
- * @return false If conversion doesn't exist.
- */
-bool _token_type_to_terminal(TokenType token_type, PPListItemType *terminal);
+PPListItem _token_to_list_item(TokenData token);
+bool _list_contains_done_sequence(ListPP *list);
+PPListItem _get_first_terminal(ListPP *list);
+bool _is_simple_expression(PPListItem item);
+bool _is_binary_operator(PPListItem item);
+bool _match_rule(ParserOptions *parser_opt, ListPP *list);
+bool _apply_rule(ParserOptions *parser_opt, ListPP *list);
 
 #endif /* PRECEDENCE_PARSER_FUNC_H */

@@ -57,18 +57,19 @@ typedef enum {
     FLOAT
 }TokenNumberType;
 
+typedef union {                    //TODO: malloc error check
+    char* string;          //TODO: lex errors
+    int int_value;         //TODO: free(token)
+    double float_value;
+    bool boolean;
+} TokenValue;
+
 typedef struct {
     TokenType type;
     TokenNumberType num_type;
     int line_index;
     bool eol_before;
-    
-    union {                    //TODO: malloc error check
-        char* string;          //TODO: lex errors
-        int int_value;         //TODO: free(token)
-        double float_value;
-        bool boolean;
-    } value;
+    TokenValue value;
 } TokenData;
 
 #endif /* TOKEN_H */

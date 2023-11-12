@@ -92,7 +92,7 @@ void _st_insert_element(ListItemST* scope, LSTElement* element){
     scope->data->local_table[index] = element;
 }
 
-LSTElement* _create_element(char* identifier, Type return_type, Variant variant, Value* value){
+LSTElement* _create_element(char* identifier, Type return_type, Variant variant, LSTElementValue* value){
     LSTElement* new = malloc(sizeof(LSTElement));
     if(new == NULL)
         return NULL;
@@ -111,7 +111,7 @@ LSTElement* _create_element(char* identifier, Type return_type, Variant variant,
     return new;
 }
 
-int st_global_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, Value* value){
+int st_global_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, LSTElementValue* value){
 
     LSTElement* new = _create_element(identifier, return_type, variant, value);
 
@@ -128,7 +128,7 @@ int st_global_add_element(ListST* list,  char* identifier, Type return_type, Var
     return E_OK;
 }
 
-int st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, Value* value){
+int st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, LSTElementValue* value){
     LSTElement* new = _create_element(identifier, return_type, variant, value);
 
     if(new == NULL)

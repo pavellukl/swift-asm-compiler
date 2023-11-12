@@ -26,7 +26,7 @@ void st_destroy_list(ListST* list);
  * 
  * @return int          result of the operation    
 */
-int st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, Value* value);
+int st_add_element(ListST* list,  char* identifier, Type return_type, Variant variant, LSTElementValue* value);
 
 /**
  * Searches element in active scope

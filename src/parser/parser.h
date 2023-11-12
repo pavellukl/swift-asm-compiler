@@ -3,10 +3,10 @@
 
 #include "../scanner/scanner.h"
 
-typedef enum { RP_OK, RP_LEX_ERR, RP_STX_ERR, RP_DEF_ERR,
-               RP_UNDEFVAR_ERR, RP_FNCALL_ERR, RP_FNRET_ERR,
-               RP_EXPRTYPE_ERR, RP_UNDEFTYPE_ERR, RP_OTHER_ERR,
-               RP_INTER_ERR } RPReturnValue;
+typedef enum { OK, LEX_ERR, STX_ERR, DEF_ERR,
+               UNDEFVAR_ERR, FNCALL_ERR, FNRET_ERR,
+               EXPRTYPE_ERR, UNDEFTYPE_ERR, OTHER_ERR,
+               INTER_ERR } RPReturnValue;
 
 typedef struct {
     bool is_first_run;
@@ -15,5 +15,7 @@ typedef struct {
     FILE *out;
     RPReturnValue return_code;
 } ParserOptions;
+
+void _next_token(ParserOptions *parser_opt);
 
 #endif /* PARSER_H */

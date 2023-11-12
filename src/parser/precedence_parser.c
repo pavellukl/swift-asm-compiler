@@ -1,42 +1,241 @@
 #include "precedence_parser_func.h"
 
-bool _token_type_to_terminal(TokenType token_type, PPListItemType *terminal) {
-    switch (token_type)
+PPListItem _token_to_list_item(TokenData token) {
+    PPListItem item;
+    switch (token.type)
     {
-        case TOKEN_ADD: *terminal = TERMINAL_ADD; break;
-        case TOKEN_SUB: *terminal = TERMINAL_SUB; break;
-        case TOKEN_MUL: *terminal = TERMINAL_MUL; break;
-        case TOKEN_DIV: *terminal = TERMINAL_DIV; break;
-        case TOKEN_EQUAL: *terminal = TERMINAL_EQUAL; break;
-        case TOKEN_NOT_EQUAL: *terminal = TERMINAL_NOT_EQUAL; break;
-        case TOKEN_LESSER: *terminal = TERMINAL_LESSER; break;
-        case TOKEN_LESSER_EQUAL: *terminal = TERMINAL_LESSER_EQUAL; break;
-        case TOKEN_GREATER: *terminal = TERMINAL_GREATER; break;
-        case TOKEN_GREATER_EQUAL: *terminal = TERMINAL_GREATER_EQUAL; break;
-        case TOKEN_AND: *terminal = TERMINAL_AND; break;
-        case TOKEN_OR: *terminal = TERMINAL_OR; break;
-        case TOKEN_EXCL_MARK: *terminal = TERMINAL_EXCL_MARK; break;
-        case TOKEN_NOT: *terminal = TERMINAL_NOT; break;
-        case TOKEN_NIL_COALESCING: *terminal = TERMINAL_NIL_COALESCING; break;
-        case TOKEN_KEYWORD_TRUE: *terminal = TERMINAL_KEYWORD_TRUE; break;
-        case TOKEN_KEYWORD_FALSE: *terminal = TERMINAL_KEYWORD_FALSE; break;
-        case TOKEN_IDENTIF: *terminal = TERMINAL_IDENTIF; break;
-        case TOKEN_NUMBER: *terminal = TERMINAL_NUMBER; break;
-        case TOKEN_STRING: *terminal = TERMINAL_STRING; break;
-        case TOKEN_KEYWORD_NIL: *terminal = TERMINAL_KEYWORD_NIL; break;
-        case TOKEN_L_BRACKET: *terminal = TERMINAL_L_BRACKET; break;
-        case TOKEN_R_BRACKET: *terminal = TERMINAL_R_BRACKET; break;
-        default: return false;
+        case TOKEN_ADD: item.type = TERMINAL_ADD; break;
+        case TOKEN_SUB: item.type = TERMINAL_SUB; break;
+        case TOKEN_MUL: item.type = TERMINAL_MUL; break;
+        case TOKEN_DIV: item.type = TERMINAL_DIV; break;
+        case TOKEN_EQUAL: item.type = TERMINAL_EQUAL; break;
+        case TOKEN_NOT_EQUAL: item.type = TERMINAL_NOT_EQUAL; break;
+        case TOKEN_LESSER: item.type = TERMINAL_LESSER; break;
+        case TOKEN_LESSER_EQUAL: item.type = TERMINAL_LESSER_EQUAL; break;
+        case TOKEN_GREATER: item.type = TERMINAL_GREATER; break;
+        case TOKEN_GREATER_EQUAL: item.type = TERMINAL_GREATER_EQUAL; break;
+        case TOKEN_AND: item.type = TERMINAL_AND; break;
+        case TOKEN_OR: item.type = TERMINAL_OR; break;
+        case TOKEN_EXCL_MARK: item.type = TERMINAL_EXCL_MARK; break;
+        case TOKEN_NOT: item.type = TERMINAL_NOT; break;
+        case TOKEN_NIL_COALESCING: item.type = TERMINAL_NIL_COALESCING; break;
+        case TOKEN_KEYWORD_TRUE: item.type = TERMINAL_KEYWORD_TRUE; break;
+        case TOKEN_KEYWORD_FALSE: item.type = TERMINAL_KEYWORD_FALSE; break;
+        case TOKEN_IDENTIF: 
+            item.type = TERMINAL_IDENTIF;
+            item.value.string = token.value.string;
+            break;
+        case TOKEN_NUMBER:
+            item.type = TERMINAL_NUMBER;
+            item.num_type = token.num_type;
+            item.value = token.value;
+            break;
+        case TOKEN_STRING:
+            item.type = TERMINAL_STRING;
+            item.value.string = token.value.string;
+            break;
+        case TOKEN_KEYWORD_NIL: item.type = TERMINAL_KEYWORD_NIL; break;
+        case TOKEN_L_BRACKET: item.type = TERMINAL_L_BRACKET; break;
+        case TOKEN_R_BRACKET: item.type = TERMINAL_R_BRACKET; break;
+        default: item.type = TERMINAL_EMPTY;
     }
+    return item;
+}
+
+bool _list_contains_done_sequence(ListPP *list) {
+    PPListItem item;
+
+    // first item should be EXPRESSION
+    list_pp_first(list);
+    list_pp_get_value(list, &item);
+    if (item.type != NONTERMINAL_EXPRESSION) return false;
+
+    // second item should be bottom of the list
+    list_pp_next(list);
+    list_pp_get_value(list, &item);
+    if (item.type != TERMINAL_EMPTY) return false;
+
+    // third item shouldn't exist
+    list_pp_next(list);
+    if (list_pp_is_active(list)) return false;
+
+    return true;
+}
+
+PPListItem _get_first_terminal(ListPP *list) {
+    PPListItem item;
+
+    list_pp_first(list);
+    list_pp_get_value(list, &item);
+    while (item.type == NONTERMINAL_EXPRESSION || item.type == FLAG_HANDLE ) {
+        list_pp_next(list);
+        list_pp_get_value(list, &item);
+    }
+
+    return item;
+}
+
+bool _is_simple_expression(PPListItem item) {
+    return (item.type == TERMINAL_IDENTIF
+           || item.type == TERMINAL_NUMBER
+           || item.type == TERMINAL_STRING
+           || item.type == TERMINAL_KEYWORD_NIL
+           || item.type == TERMINAL_KEYWORD_TRUE
+           || item.type == TERMINAL_KEYWORD_FALSE);
+}
+
+bool _is_binary_operator(PPListItem item) {
+    return (item.type == TERMINAL_ADD
+           || item.type == TERMINAL_SUB
+           || item.type == TERMINAL_MUL
+           || item.type == TERMINAL_DIV
+           || item.type == TERMINAL_EQUAL
+           || item.type == TERMINAL_NOT_EQUAL
+           || item.type == TERMINAL_LESSER
+           || item.type == TERMINAL_LESSER_EQUAL
+           || item.type == TERMINAL_GREATER
+           || item.type == TERMINAL_GREATER_EQUAL
+           || item.type == TERMINAL_AND
+           || item.type == TERMINAL_OR
+           || item.type == TERMINAL_NIL_COALESCING);
+}
+
+bool _match_rule(ParserOptions *parser_opt, ListPP *list) {
+    PPListItem last_item;
+
+    // calculate the size of the right side of the rule
+    int rule_right_side_size = 0;
+    list_pp_first(list);
+    list_pp_get_value(list, &last_item);
+    while (last_item.type != FLAG_HANDLE && last_item.type != TERMINAL_EMPTY ) {
+        rule_right_side_size++;
+        list_pp_next(list);
+        list_pp_get_value(list, &last_item);
+    }
+
+    // if no handle was found -> return failure
+    if (last_item.type == TERMINAL_EMPTY) {
+        parser_opt->return_code = STX_ERR;
+        return false;
+    }
+
+    // if the size doesn't match with any rule -> return failure
+    if (rule_right_side_size < 0 || rule_right_side_size > 3) {
+        parser_opt->return_code = STX_ERR;
+        return false;
+    }
+
+    // match rule and build abstract syntax tree
+    list_pp_first(list);
+    list_pp_get_value(list, &last_item);
+    PPListItem item0;
+    PPListItem item1;
+    switch (rule_right_side_size)
+    {
+        case 1:
+            if (!_is_simple_expression(last_item)) {
+                parser_opt->return_code = STX_ERR;
+                return false;
+            }
+            break;
+        case 2:
+            list_pp_next(list);
+            list_pp_get_value(list, &item0);
+            if ((item0.type != NONTERMINAL_EXPRESSION
+                    || last_item.type != TERMINAL_EXCL_MARK)
+                && (item0.type != TERMINAL_NOT
+                    || last_item.type != NONTERMINAL_EXPRESSION)) {
+                parser_opt->return_code = STX_ERR;
+                return false;
+            }
+            break;
+        case 3:
+            list_pp_next(list);
+            list_pp_get_value(list, &item1);
+            list_pp_next(list);
+            list_pp_get_value(list, &item0);
+            if ((item0.type != TERMINAL_L_BRACKET
+                    || item1.type != NONTERMINAL_EXPRESSION
+                    || last_item.type != TERMINAL_R_BRACKET)
+                && (item0.type != NONTERMINAL_EXPRESSION
+                    || !_is_binary_operator(item1)
+                    || last_item.type != NONTERMINAL_EXPRESSION)) {
+                parser_opt->return_code = STX_ERR;
+                return false;
+            }
+            break;
+    }
+
+    return true;
+}
+
+bool _apply_rule(ParserOptions *parser_opt, ListPP *list) {
+    // match rule and build abstract syntax tree
+    if (!_match_rule(parser_opt, list)) return false;
+
+    // pop rule with handle
+    PPListItem item;
+    list_pp_get_first(list, &item);
+    while (item.type != FLAG_HANDLE) {
+        list_pp_delete_first(list);
+        list_pp_get_first(list, &item);
+    }
+    list_pp_delete_first(list); // deletes handle
+
+    // add expression nonterminal
+    PPListItem expression_item = { .type = NONTERMINAL_EXPRESSION };
+    list_pp_insert_first(list, expression_item);
+
     return true;
 }
 
 bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
-    parser_opt->return_code = parser_opt->return_code;
+    PrecedenceTable pp_table = PRECEDENCE_TABLE;
 
-    // PrecedenceTable pp_table = PRECEDENCE_TABLE;
+    // initialization
     ListPP list;
     list_pp_init(&list);
+    PPListItem empty_item = { .type = TERMINAL_EMPTY };
+    PPListItem handle_item = { .type = FLAG_HANDLE };
+    list_pp_insert_first(&list, empty_item);
 
+    // parse expression, build abstract syntax tree
+    // TODO: build abstract syntax tree
+    PPListItem terminal = _token_to_list_item(parser_opt->token);
+    while (terminal.type != TERMINAL_EMPTY
+           || !_list_contains_done_sequence(&list))
+    {
+        switch (pp_table[_get_first_terminal(&list).type][terminal.type])
+        {
+            case PP_HANDLE_SHIFT: // <
+                list_pp_insert_before(&list, handle_item);
+                list_pp_insert_first(&list, terminal);
+                break;
+            case PP_REDUCE: // >
+                if (!_apply_rule(parser_opt, &list)) {
+                    list_pp_dispose(&list);
+                    return false;
+                }
+                continue;
+            case PP_SHIFT_REDUCE: // =
+                list_pp_insert_first(&list, terminal);
+                break;
+            case PP_ERROR: // ERR
+                parser_opt->return_code = STX_ERR;
+                list_pp_dispose(&list);
+                return false;
+        }
+
+        _next_token(parser_opt);
+        terminal = _token_to_list_item(parser_opt->token);
+    }
+
+    // semantically check expression
+    // TODO: semantically check expression
+
+    // generate expression
+    // TODO: generate expression from abstract syntax tree
+    
+    list_pp_dispose(&list);
     return true;
 }

@@ -14,7 +14,7 @@ bool _program(ParserOptions *parser_opt) {
     ) {
         return _command(parser_opt) && _program(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -25,23 +25,23 @@ bool _function_definition(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
         return _function_head(parser_opt) && _scope_body(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
 bool _function_head(ParserOptions *parser_opt) {
     if (parser_opt->token.type != TOKEN_KEYWORD_FUNC) {
-        parser_opt->return_code = RP_STX_ERR;
+        parser_opt->return_code = STX_ERR;
         return false;
     }
     _next_token(parser_opt);
     if (parser_opt->token.type != TOKEN_IDENTIF) {
-        parser_opt->return_code = RP_STX_ERR;
+        parser_opt->return_code = STX_ERR;
         return false;
     }
     _next_token(parser_opt);
     if (parser_opt->token.type != TOKEN_L_BRACKET) {
-        parser_opt->return_code = RP_STX_ERR;
+        parser_opt->return_code = STX_ERR;
         return false;
     }
     _next_token(parser_opt);
@@ -49,7 +49,7 @@ bool _function_head(ParserOptions *parser_opt) {
         return false;
     }
     if (parser_opt->token.type != TOKEN_R_BRACKET) {
-        parser_opt->return_code = RP_STX_ERR;
+        parser_opt->return_code = STX_ERR;
         return false;
     }
     _next_token(parser_opt);
@@ -64,7 +64,7 @@ bool __func_identif_lbracket_arglist_rbracket(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return _data_type(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -75,7 +75,7 @@ bool _param_list(ParserOptions *parser_opt) {
         || parser_opt->token.type == TOKEN_UNDERSCORE) {
         return _param(parser_opt) && _comma_param(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -86,7 +86,7 @@ bool _comma_param(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return _param(parser_opt) && _comma_param(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -96,7 +96,7 @@ bool _param(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return __param_name(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -105,19 +105,19 @@ bool __param_name(ParserOptions *parser_opt) {
         || parser_opt->token.type == TOKEN_UNDERSCORE) {
         _next_token(parser_opt);
         if (parser_opt->token.type != TOKEN_COLON) {
-            parser_opt->return_code = RP_STX_ERR;
+            parser_opt->return_code = STX_ERR;
             return false;
         }
         _next_token(parser_opt);
         return _data_type(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
 bool _scope_body(ParserOptions *parser_opt) {
     if (parser_opt->token.type != TOKEN_L_CRLY_BRACKET) {
-        parser_opt->return_code = RP_STX_ERR;
+        parser_opt->return_code = STX_ERR;
         return false;
     }
     _next_token(parser_opt);
@@ -127,7 +127,7 @@ bool _scope_body(ParserOptions *parser_opt) {
     }
 
     if (parser_opt->token.type != TOKEN_R_CRLY_BRACKET) {
-        parser_opt->return_code = RP_STX_ERR;
+        parser_opt->return_code = STX_ERR;
         return false;
     }
     _next_token(parser_opt);
@@ -146,7 +146,7 @@ bool _command_sequence(ParserOptions *parser_opt) {
             || parser_opt->token.type == TOKEN_KEYWORD_WHILE ) {
         return _command(parser_opt) && _command_sequence(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -164,7 +164,7 @@ bool _command(ParserOptions *parser_opt) {
     } else if (parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
         return _while_command(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -177,7 +177,7 @@ bool __identif(ParserOptions *parser_opt) {
         }
 
         if (parser_opt->token.type != TOKEN_R_BRACKET) {
-            parser_opt->return_code = RP_STX_ERR;
+            parser_opt->return_code = STX_ERR;
             return false;
         }
         _next_token(parser_opt);
@@ -190,7 +190,7 @@ bool __identif(ParserOptions *parser_opt) {
         // _IDENTIF → TOKEN_ASSIGN FUNCTION_CALL
         return true;
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -207,7 +207,7 @@ bool _data_type(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return true;
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 bool _return_command(ParserOptions *parser_opt) {
@@ -215,7 +215,7 @@ bool _return_command(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return __return(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -234,7 +234,7 @@ bool __return(ParserOptions *parser_opt) {
     // else if
     //     _RETURN → EXPRESSION
 
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -244,14 +244,14 @@ bool _variable_def(ParserOptions *parser_opt) {
         _next_token(parser_opt);
 
         if (parser_opt->token.type != TOKEN_IDENTIF) {
-            parser_opt->return_code = RP_STX_ERR;
+            parser_opt->return_code = STX_ERR;
             return false;
         }
         _next_token(parser_opt);
 
         return __varlet_identif(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -260,7 +260,7 @@ bool __varlet_identif(ParserOptions *parser_opt) {
         _next_token(parser_opt);
 
         if (!_data_type(parser_opt)) {
-            parser_opt->return_code = RP_STX_ERR;
+            parser_opt->return_code = STX_ERR;
             return false;
         }
 
@@ -270,7 +270,7 @@ bool __varlet_identif(ParserOptions *parser_opt) {
         // TODO: expression || function call
         return true;
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -290,7 +290,7 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt) {
         // TODO: expression || function call
         return true;
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -299,7 +299,7 @@ bool _conditional_command(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return __if(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -308,7 +308,7 @@ bool __if(ParserOptions *parser_opt) {
         _next_token(parser_opt);
 
         if (parser_opt->token.type != TOKEN_IDENTIF) {
-            parser_opt->return_code = RP_STX_ERR;
+            parser_opt->return_code = STX_ERR;
             return false;
         }
         _next_token(parser_opt);
@@ -336,7 +336,7 @@ bool __if_let_identif_body(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return __if_let_identif_body_else(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -346,7 +346,7 @@ bool __if_let_identif_body_else(ParserOptions *parser_opt) {
     } else if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
         return _conditional_command(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -356,19 +356,19 @@ bool _while_command(ParserOptions *parser_opt) {
         return parse_check_optimize_generate_expression(parser_opt)
                 && _scope_body(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
 bool _function_call(ParserOptions *parser_opt) {
     if (parser_opt->token.type != TOKEN_IDENTIF) {
-        parser_opt->return_code = RP_STX_ERR;
+        parser_opt->return_code = STX_ERR;
         return false;
     }
     _next_token(parser_opt);
 
     if (parser_opt->token.type != TOKEN_L_BRACKET) {
-        parser_opt->return_code = RP_STX_ERR;
+        parser_opt->return_code = STX_ERR;
         return false;
     }
     _next_token(parser_opt);
@@ -379,7 +379,7 @@ bool _function_call(ParserOptions *parser_opt) {
     _next_token(parser_opt);
 
     if (parser_opt->token.type != TOKEN_R_BRACKET) {
-        parser_opt->return_code = RP_STX_ERR;
+        parser_opt->return_code = STX_ERR;
         return false;
     }
     _next_token(parser_opt);
@@ -396,7 +396,7 @@ bool _arg_list(ParserOptions *parser_opt) {
             || parser_opt->token.type == TOKEN_KEYWORD_NIL) {
         return _arg(parser_opt) && _comma_arg(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -407,7 +407,7 @@ bool _comma_arg(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return _arg(parser_opt) && _comma_arg(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -420,7 +420,7 @@ bool _arg(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return __arg_name(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -432,7 +432,7 @@ bool __arg_name(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return __arg_name_colon(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -445,7 +445,7 @@ bool __arg_name_colon(ParserOptions *parser_opt) {
             || parser_opt->token.type == TOKEN_KEYWORD_NIL) {
         return _arg_val(parser_opt);
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
 }
 
@@ -456,12 +456,8 @@ bool _arg_val(ParserOptions *parser_opt) {
         _next_token(parser_opt);
         return true;
     }
-    parser_opt->return_code = RP_STX_ERR;
+    parser_opt->return_code = STX_ERR;
     return false;
-}
-
-void _next_token(ParserOptions *parser_opt) {
-    parser_opt->token = get_next_token(&parser_opt->sc_opt);
 }
 
 void parse_function_definition(ParserOptions *parser_opt) {
@@ -475,7 +471,7 @@ void parse_function_definition(ParserOptions *parser_opt) {
         }
         // if EOF -> end with success
         if (parser_opt->token.type == TOKEN_END_OF_FILE) {
-            parser_opt->return_code = RP_OK;
+            parser_opt->return_code = OK;
             return;
         };
 
@@ -483,7 +479,7 @@ void parse_function_definition(ParserOptions *parser_opt) {
         _function_definition(parser_opt);
         switch (parser_opt->return_code)
         {
-            case RP_OK: break;
+            case OK: break;
             default: return;
         } 
     }

@@ -21,7 +21,7 @@ typedef enum {
     TERMINAL_EXCL_MARK, TERMINAL_NOT, TERMINAL_NIL_COALESCING,
     TERMINAL_KEYWORD_TRUE, TERMINAL_KEYWORD_FALSE, TERMINAL_IDENTIF,
     TERMINAL_NUMBER, TERMINAL_STRING, TERMINAL_KEYWORD_NIL, TERMINAL_L_BRACKET,
-    TERMINAL_R_BRACKET, FLAG_EMPTY, NONTERMINAL_EXPRESSION, FLAG_HANDLE
+    TERMINAL_R_BRACKET, TERMINAL_EMPTY, NONTERMINAL_EXPRESSION, FLAG_HANDLE
 } PPListItemType;
 
 /**
@@ -36,16 +36,10 @@ typedef const PPOperation PrecedenceTable[][NONTERMINAL_EXPRESSION];
 typedef struct {
   PPListItemType type;
   TokenNumberType num_type;
-  union {
-      char* string;
-      int int_;
-      double float_;
-      bool bool_;
-  } value;
+  TokenValue value;
 } PPListItem;
 
-
-/** @brief Precedence table written in format to easily initialize a variable. */
+/** @brief Precedence table written in format to easily initialize a variable.*/
 #define PRECEDENCE_TABLE                                                       \
 {                                                                              \
    [TERMINAL_ADD][TERMINAL_ADD]            = PP_REDUCE,                        \
@@ -71,7 +65,7 @@ typedef struct {
    [TERMINAL_ADD][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                  \
    [TERMINAL_ADD][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                  \
    [TERMINAL_ADD][TERMINAL_R_BRACKET]      = PP_REDUCE,                        \
-   [TERMINAL_ADD][FLAG_EMPTY]              = PP_REDUCE,                        \
+   [TERMINAL_ADD][TERMINAL_EMPTY]          = PP_REDUCE,                        \
                                                                                \
    [TERMINAL_SUB][TERMINAL_ADD]            = PP_REDUCE,                        \
    [TERMINAL_SUB][TERMINAL_SUB]            = PP_REDUCE,                        \
@@ -96,7 +90,7 @@ typedef struct {
    [TERMINAL_SUB][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                  \
    [TERMINAL_SUB][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                  \
    [TERMINAL_SUB][TERMINAL_R_BRACKET]      = PP_REDUCE,                        \
-   [TERMINAL_SUB][FLAG_EMPTY]              = PP_REDUCE,                        \
+   [TERMINAL_SUB][TERMINAL_EMPTY]          = PP_REDUCE,                        \
                                                                                \
    [TERMINAL_MUL][TERMINAL_ADD]            = PP_REDUCE,                        \
    [TERMINAL_MUL][TERMINAL_SUB]            = PP_REDUCE,                        \
@@ -121,7 +115,7 @@ typedef struct {
    [TERMINAL_MUL][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                  \
    [TERMINAL_MUL][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                  \
    [TERMINAL_MUL][TERMINAL_R_BRACKET]      = PP_REDUCE,                        \
-   [TERMINAL_MUL][FLAG_EMPTY]              = PP_REDUCE,                        \
+   [TERMINAL_MUL][TERMINAL_EMPTY]          = PP_REDUCE,                        \
                                                                                \
    [TERMINAL_DIV][TERMINAL_ADD]            = PP_REDUCE,                        \
    [TERMINAL_DIV][TERMINAL_SUB]            = PP_REDUCE,                        \
@@ -146,7 +140,7 @@ typedef struct {
    [TERMINAL_DIV][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                  \
    [TERMINAL_DIV][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                  \
    [TERMINAL_DIV][TERMINAL_R_BRACKET]      = PP_REDUCE,                        \
-   [TERMINAL_DIV][FLAG_EMPTY]              = PP_REDUCE,                        \
+   [TERMINAL_DIV][TERMINAL_EMPTY]          = PP_REDUCE,                        \
                                                                                \
    [TERMINAL_EQUAL][TERMINAL_ADD]            = PP_HANDLE_SHIFT,                \
    [TERMINAL_EQUAL][TERMINAL_SUB]            = PP_HANDLE_SHIFT,                \
@@ -171,7 +165,7 @@ typedef struct {
    [TERMINAL_EQUAL][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                \
    [TERMINAL_EQUAL][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                \
    [TERMINAL_EQUAL][TERMINAL_R_BRACKET]      = PP_REDUCE,                      \
-   [TERMINAL_EQUAL][FLAG_EMPTY]              = PP_REDUCE,                      \
+   [TERMINAL_EQUAL][TERMINAL_EMPTY]          = PP_REDUCE,                      \
                                                                                \
    [TERMINAL_NOT_EQUAL][TERMINAL_ADD]            = PP_HANDLE_SHIFT,            \
    [TERMINAL_NOT_EQUAL][TERMINAL_SUB]            = PP_HANDLE_SHIFT,            \
@@ -196,7 +190,7 @@ typedef struct {
    [TERMINAL_NOT_EQUAL][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,            \
    [TERMINAL_NOT_EQUAL][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,            \
    [TERMINAL_NOT_EQUAL][TERMINAL_R_BRACKET]      = PP_REDUCE,                  \
-   [TERMINAL_NOT_EQUAL][FLAG_EMPTY]              = PP_REDUCE,                  \
+   [TERMINAL_NOT_EQUAL][TERMINAL_EMPTY]          = PP_REDUCE,                  \
                                                                                \
    [TERMINAL_LESSER][TERMINAL_ADD]            = PP_HANDLE_SHIFT,               \
    [TERMINAL_LESSER][TERMINAL_SUB]            = PP_HANDLE_SHIFT,               \
@@ -221,7 +215,7 @@ typedef struct {
    [TERMINAL_LESSER][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,               \
    [TERMINAL_LESSER][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,               \
    [TERMINAL_LESSER][TERMINAL_R_BRACKET]      = PP_REDUCE,                     \
-   [TERMINAL_LESSER][FLAG_EMPTY]              = PP_REDUCE,                     \
+   [TERMINAL_LESSER][TERMINAL_EMPTY]          = PP_REDUCE,                     \
                                                                                \
    [TERMINAL_LESSER_EQUAL][TERMINAL_ADD]            = PP_HANDLE_SHIFT,         \
    [TERMINAL_LESSER_EQUAL][TERMINAL_SUB]            = PP_HANDLE_SHIFT,         \
@@ -246,7 +240,7 @@ typedef struct {
    [TERMINAL_LESSER_EQUAL][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,         \
    [TERMINAL_LESSER_EQUAL][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,         \
    [TERMINAL_LESSER_EQUAL][TERMINAL_R_BRACKET]      = PP_REDUCE,               \
-   [TERMINAL_LESSER_EQUAL][FLAG_EMPTY]              = PP_REDUCE,               \
+   [TERMINAL_LESSER_EQUAL][TERMINAL_EMPTY]          = PP_REDUCE,               \
                                                                                \
    [TERMINAL_GREATER][TERMINAL_ADD]            = PP_HANDLE_SHIFT,              \
    [TERMINAL_GREATER][TERMINAL_SUB]            = PP_HANDLE_SHIFT,              \
@@ -271,7 +265,7 @@ typedef struct {
    [TERMINAL_GREATER][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,              \
    [TERMINAL_GREATER][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,              \
    [TERMINAL_GREATER][TERMINAL_R_BRACKET]      = PP_REDUCE,                    \
-   [TERMINAL_GREATER][FLAG_EMPTY]              = PP_REDUCE,                    \
+   [TERMINAL_GREATER][TERMINAL_EMPTY]          = PP_REDUCE,                    \
                                                                                \
    [TERMINAL_GREATER_EQUAL][TERMINAL_ADD]            = PP_HANDLE_SHIFT,        \
    [TERMINAL_GREATER_EQUAL][TERMINAL_SUB]            = PP_HANDLE_SHIFT,        \
@@ -296,7 +290,7 @@ typedef struct {
    [TERMINAL_GREATER_EQUAL][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,        \
    [TERMINAL_GREATER_EQUAL][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,        \
    [TERMINAL_GREATER_EQUAL][TERMINAL_R_BRACKET]      = PP_REDUCE,              \
-   [TERMINAL_GREATER_EQUAL][FLAG_EMPTY]              = PP_REDUCE,              \
+   [TERMINAL_GREATER_EQUAL][TERMINAL_EMPTY]          = PP_REDUCE,              \
                                                                                \
    [TERMINAL_AND][TERMINAL_ADD]            = PP_HANDLE_SHIFT,                  \
    [TERMINAL_AND][TERMINAL_SUB]            = PP_HANDLE_SHIFT,                  \
@@ -321,7 +315,7 @@ typedef struct {
    [TERMINAL_AND][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                  \
    [TERMINAL_AND][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                  \
    [TERMINAL_AND][TERMINAL_R_BRACKET]      = PP_REDUCE,                        \
-   [TERMINAL_AND][FLAG_EMPTY]              = PP_REDUCE,                        \
+   [TERMINAL_AND][TERMINAL_EMPTY]          = PP_REDUCE,                        \
                                                                                \
    [TERMINAL_OR][TERMINAL_ADD]            = PP_HANDLE_SHIFT,                   \
    [TERMINAL_OR][TERMINAL_SUB]            = PP_HANDLE_SHIFT,                   \
@@ -346,7 +340,7 @@ typedef struct {
    [TERMINAL_OR][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                   \
    [TERMINAL_OR][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                   \
    [TERMINAL_OR][TERMINAL_R_BRACKET]      = PP_REDUCE,                         \
-   [TERMINAL_OR][FLAG_EMPTY]              = PP_REDUCE,                         \
+   [TERMINAL_OR][TERMINAL_EMPTY]          = PP_REDUCE,                         \
                                                                                \
    [TERMINAL_EXCL_MARK][TERMINAL_ADD]            = PP_REDUCE,                  \
    [TERMINAL_EXCL_MARK][TERMINAL_SUB]            = PP_REDUCE,                  \
@@ -371,7 +365,7 @@ typedef struct {
    [TERMINAL_EXCL_MARK][TERMINAL_KEYWORD_NIL]    = PP_ERROR,                   \
    [TERMINAL_EXCL_MARK][TERMINAL_L_BRACKET]      = PP_ERROR,                   \
    [TERMINAL_EXCL_MARK][TERMINAL_R_BRACKET]      = PP_REDUCE,                  \
-   [TERMINAL_EXCL_MARK][FLAG_EMPTY]              = PP_REDUCE,                  \
+   [TERMINAL_EXCL_MARK][TERMINAL_EMPTY]          = PP_REDUCE,                  \
                                                                                \
    [TERMINAL_NOT][TERMINAL_ADD]            = PP_REDUCE,                        \
    [TERMINAL_NOT][TERMINAL_SUB]            = PP_REDUCE,                        \
@@ -396,7 +390,7 @@ typedef struct {
    [TERMINAL_NOT][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                  \
    [TERMINAL_NOT][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                  \
    [TERMINAL_NOT][TERMINAL_R_BRACKET]      = PP_REDUCE,                        \
-   [TERMINAL_NOT][FLAG_EMPTY]              = PP_REDUCE,                        \
+   [TERMINAL_NOT][TERMINAL_EMPTY]          = PP_REDUCE,                        \
                                                                                \
    [TERMINAL_NIL_COALESCING][TERMINAL_ADD]            = PP_HANDLE_SHIFT,       \
    [TERMINAL_NIL_COALESCING][TERMINAL_SUB]            = PP_HANDLE_SHIFT,       \
@@ -421,7 +415,7 @@ typedef struct {
    [TERMINAL_NIL_COALESCING][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,       \
    [TERMINAL_NIL_COALESCING][TERMINAL_L_BRACKET]      = PP_ERROR,              \
    [TERMINAL_NIL_COALESCING][TERMINAL_R_BRACKET]      = PP_REDUCE,             \
-   [TERMINAL_NIL_COALESCING][FLAG_EMPTY]              = PP_REDUCE,             \
+   [TERMINAL_NIL_COALESCING][TERMINAL_EMPTY]          = PP_REDUCE,             \
                                                                                \
    [TERMINAL_KEYWORD_TRUE][TERMINAL_ADD]            = PP_REDUCE,               \
    [TERMINAL_KEYWORD_TRUE][TERMINAL_SUB]            = PP_REDUCE,               \
@@ -446,7 +440,7 @@ typedef struct {
    [TERMINAL_KEYWORD_TRUE][TERMINAL_KEYWORD_NIL]    = PP_ERROR,                \
    [TERMINAL_KEYWORD_TRUE][TERMINAL_L_BRACKET]      = PP_ERROR,                \
    [TERMINAL_KEYWORD_TRUE][TERMINAL_R_BRACKET]      = PP_REDUCE,               \
-   [TERMINAL_KEYWORD_TRUE][FLAG_EMPTY]              = PP_REDUCE,               \
+   [TERMINAL_KEYWORD_TRUE][TERMINAL_EMPTY]          = PP_REDUCE,               \
                                                                                \
    [TERMINAL_KEYWORD_FALSE][TERMINAL_ADD]            = PP_REDUCE,              \
    [TERMINAL_KEYWORD_FALSE][TERMINAL_SUB]            = PP_REDUCE,              \
@@ -471,7 +465,7 @@ typedef struct {
    [TERMINAL_KEYWORD_FALSE][TERMINAL_KEYWORD_NIL]    = PP_ERROR,               \
    [TERMINAL_KEYWORD_FALSE][TERMINAL_L_BRACKET]      = PP_ERROR,               \
    [TERMINAL_KEYWORD_FALSE][TERMINAL_R_BRACKET]      = PP_REDUCE,              \
-   [TERMINAL_KEYWORD_FALSE][FLAG_EMPTY]              = PP_REDUCE,              \
+   [TERMINAL_KEYWORD_FALSE][TERMINAL_EMPTY]          = PP_REDUCE,              \
                                                                                \
    [TERMINAL_IDENTIF][TERMINAL_ADD]            = PP_REDUCE,                    \
    [TERMINAL_IDENTIF][TERMINAL_SUB]            = PP_REDUCE,                    \
@@ -496,7 +490,7 @@ typedef struct {
    [TERMINAL_IDENTIF][TERMINAL_KEYWORD_NIL]    = PP_ERROR,                     \
    [TERMINAL_IDENTIF][TERMINAL_L_BRACKET]      = PP_ERROR,                     \
    [TERMINAL_IDENTIF][TERMINAL_R_BRACKET]      = PP_REDUCE,                    \
-   [TERMINAL_IDENTIF][FLAG_EMPTY]              = PP_REDUCE,                    \
+   [TERMINAL_IDENTIF][TERMINAL_EMPTY]          = PP_REDUCE,                    \
                                                                                \
    [TERMINAL_NUMBER][TERMINAL_ADD]            = PP_REDUCE,                     \
    [TERMINAL_NUMBER][TERMINAL_SUB]            = PP_REDUCE,                     \
@@ -521,7 +515,7 @@ typedef struct {
    [TERMINAL_NUMBER][TERMINAL_KEYWORD_NIL]    = PP_ERROR,                      \
    [TERMINAL_NUMBER][TERMINAL_L_BRACKET]      = PP_ERROR,                      \
    [TERMINAL_NUMBER][TERMINAL_R_BRACKET]      = PP_REDUCE,                     \
-   [TERMINAL_NUMBER][FLAG_EMPTY]              = PP_REDUCE,                     \
+   [TERMINAL_NUMBER][TERMINAL_EMPTY]          = PP_REDUCE,                     \
                                                                                \
    [TERMINAL_STRING][TERMINAL_ADD]            = PP_REDUCE,                     \
    [TERMINAL_STRING][TERMINAL_SUB]            = PP_REDUCE,                     \
@@ -546,7 +540,7 @@ typedef struct {
    [TERMINAL_STRING][TERMINAL_KEYWORD_NIL]    = PP_ERROR,                      \
    [TERMINAL_STRING][TERMINAL_L_BRACKET]      = PP_ERROR,                      \
    [TERMINAL_STRING][TERMINAL_R_BRACKET]      = PP_REDUCE,                     \
-   [TERMINAL_STRING][FLAG_EMPTY]              = PP_REDUCE,                     \
+   [TERMINAL_STRING][TERMINAL_EMPTY]          = PP_REDUCE,                     \
                                                                                \
    [TERMINAL_KEYWORD_NIL][TERMINAL_ADD]            = PP_REDUCE,                \
    [TERMINAL_KEYWORD_NIL][TERMINAL_SUB]            = PP_REDUCE,                \
@@ -571,7 +565,7 @@ typedef struct {
    [TERMINAL_KEYWORD_NIL][TERMINAL_KEYWORD_NIL]    = PP_ERROR,                 \
    [TERMINAL_KEYWORD_NIL][TERMINAL_L_BRACKET]      = PP_ERROR,                 \
    [TERMINAL_KEYWORD_NIL][TERMINAL_R_BRACKET]      = PP_REDUCE,                \
-   [TERMINAL_KEYWORD_NIL][FLAG_EMPTY]              = PP_REDUCE,                \
+   [TERMINAL_KEYWORD_NIL][TERMINAL_EMPTY]          = PP_REDUCE,                \
                                                                                \
    [TERMINAL_L_BRACKET][TERMINAL_ADD]            = PP_HANDLE_SHIFT,            \
    [TERMINAL_L_BRACKET][TERMINAL_SUB]            = PP_HANDLE_SHIFT,            \
@@ -596,7 +590,7 @@ typedef struct {
    [TERMINAL_L_BRACKET][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,            \
    [TERMINAL_L_BRACKET][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,            \
    [TERMINAL_L_BRACKET][TERMINAL_R_BRACKET]      = PP_SHIFT_REDUCE,            \
-   [TERMINAL_L_BRACKET][FLAG_EMPTY]              = PP_ERROR,                   \
+   [TERMINAL_L_BRACKET][TERMINAL_EMPTY]          = PP_ERROR,                   \
                                                                                \
    [TERMINAL_R_BRACKET][TERMINAL_ADD]            = PP_REDUCE,                  \
    [TERMINAL_R_BRACKET][TERMINAL_SUB]            = PP_REDUCE,                  \
@@ -621,32 +615,32 @@ typedef struct {
    [TERMINAL_R_BRACKET][TERMINAL_KEYWORD_NIL]    = PP_ERROR,                   \
    [TERMINAL_R_BRACKET][TERMINAL_L_BRACKET]      = PP_ERROR,                   \
    [TERMINAL_R_BRACKET][TERMINAL_R_BRACKET]      = PP_REDUCE,                  \
-   [TERMINAL_R_BRACKET][FLAG_EMPTY]              = PP_REDUCE,                  \
+   [TERMINAL_R_BRACKET][TERMINAL_EMPTY]          = PP_REDUCE,                  \
                                                                                \
-   [FLAG_EMPTY][TERMINAL_ADD]            = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_SUB]            = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_MUL]            = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_DIV]            = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_EQUAL]          = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_NOT_EQUAL]      = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_LESSER]         = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_LESSER_EQUAL]   = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_GREATER]        = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_GREATER_EQUAL]  = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_AND]            = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_OR]             = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_EXCL_MARK]      = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_NOT]            = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_NIL_COALESCING] = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_KEYWORD_TRUE]   = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_KEYWORD_FALSE]  = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_IDENTIF]        = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_NUMBER]         = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_STRING]         = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                    \
-   [FLAG_EMPTY][TERMINAL_R_BRACKET]      = PP_ERROR,                           \
-   [FLAG_EMPTY][FLAG_EMPTY]              = PP_ERROR,                           \
+   [TERMINAL_EMPTY][TERMINAL_ADD]            = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_SUB]            = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_MUL]            = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_DIV]            = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_EQUAL]          = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_NOT_EQUAL]      = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_LESSER]         = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_LESSER_EQUAL]   = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_GREATER]        = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_GREATER_EQUAL]  = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_AND]            = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_OR]             = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_EXCL_MARK]      = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_NOT]            = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_NIL_COALESCING] = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_KEYWORD_TRUE]   = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_KEYWORD_FALSE]  = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_IDENTIF]        = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_NUMBER]         = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_STRING]         = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_KEYWORD_NIL]    = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_L_BRACKET]      = PP_HANDLE_SHIFT,                \
+   [TERMINAL_EMPTY][TERMINAL_R_BRACKET]      = PP_ERROR,                       \
+   [TERMINAL_EMPTY][TERMINAL_EMPTY]          = PP_ERROR,                       \
 }
 
 #endif /* PRECEDENCE_PARSER_TYPES_H */
