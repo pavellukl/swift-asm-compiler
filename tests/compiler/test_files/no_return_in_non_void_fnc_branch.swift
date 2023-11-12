@@ -1,4 +1,4 @@
-// SEM ERROR
+// 6
 
 func test(with x: Bool) -> Int {
     if(x) {

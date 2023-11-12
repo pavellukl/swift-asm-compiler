@@ -1,3 +1,3 @@
-// STX error
+// 2
 
 var type

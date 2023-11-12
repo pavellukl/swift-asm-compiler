@@ -1,4 +1,4 @@
-// COMP_UNDEFVAR_ERR
+// 5
 
 var x: Int!
 

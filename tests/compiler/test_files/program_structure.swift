@@ -1,4 +1,4 @@
-// STX error
+// 2
 
 {
     let x = 0

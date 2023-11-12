@@ -1,4 +1,4 @@
-// SEM error
+// 4
 
 func test() -> Int {
     return x

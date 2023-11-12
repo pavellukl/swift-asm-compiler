@@ -1,3 +1,3 @@
-// error
+// 1
 
 var func = 5

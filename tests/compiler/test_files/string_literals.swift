@@ -1,4 +1,4 @@
-// OK
+// 0
 
 let empty = ""
 let deadly = "\" \\n \\r \\t \\t \\r  \" \" \\\\n"

@@ -1,3 +1,3 @@
-// error 7
+// 7
 
 let x: String = nil

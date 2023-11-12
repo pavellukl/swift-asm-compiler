@@ -1,4 +1,4 @@
-// OK
+// 0
 
 func decrement(of n: Int, by m: Int) -> Int {
     return n - m
@@ -29,10 +29,15 @@ func test() -> Int {
     if(true) {
         return 0
     } else {
-
+        return 1
     }
 }
 
 func print() {
     let x = "xxx"
+}
+
+func test() {
+    var x = 9
+    return
 }
