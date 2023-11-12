@@ -6,7 +6,7 @@
 #include <stdio.h>
 
 #include "../parser/parser.h"
-#include "../parser/recursive_parser.h"
+#include "../parser/recursive_parser/recursive_parser.h"
 
 /// @brief Possible return values of compiler.
 typedef enum {
@@ -21,7 +21,7 @@ typedef enum {
     COMP_UNDEFTYPE_ERR,
     COMP_OTHER_ERR,
     COMP_INTER_ERR
-} CompilerReturnValue;
+} CompilerReturnCode;
 
 /**
  * @brief Compiles the source code in file \p in to file \p out.
@@ -30,8 +30,8 @@ typedef enum {
  * @param out pointer to the output file.
  * @return see documnetation of the task
  */
-CompilerReturnValue compile(FILE *in, FILE *out);
+CompilerReturnCode compile(FILE *in, FILE *out);
 
-CompilerReturnValue _get_return_code(RPReturnValue rp_retrun_value);
+CompilerReturnCode _get_return_code(ParserReturnCode rp_retrun_value);
 
 #endif /* COMPILER_H */

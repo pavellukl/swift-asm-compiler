@@ -1,7 +1,7 @@
-#ifndef PRECEDENCE_PARSER_TYPES_H
-#define PRECEDENCE_PARSER_TYPES_H
+#ifndef PRECEDENCE_TABLE_H
+#define PRECEDENCE_TABLE_H
 
-#include "parser.h"
+#include "../../helpers/list/ListPP/ListPP.h"
 
 /**
  * @brief Operation that occurs in precedence parsing.
@@ -9,20 +9,6 @@
  */
 typedef enum {
     PP_SHIFT_REDUCE, PP_HANDLE_SHIFT, PP_REDUCE, PP_ERROR } PPOperation;
-
-/** 
- * @brief List item type. Some of those values are used for indexing in
- * the precedence table.
- */
-typedef enum { 
-    TERMINAL_ADD, TERMINAL_SUB, TERMINAL_MUL, TERMINAL_DIV,
-    TERMINAL_EQUAL, TERMINAL_NOT_EQUAL, TERMINAL_LESSER, TERMINAL_LESSER_EQUAL,
-    TERMINAL_GREATER,TERMINAL_GREATER_EQUAL, TERMINAL_AND, TERMINAL_OR,
-    TERMINAL_EXCL_MARK, TERMINAL_NOT, TERMINAL_NIL_COALESCING,
-    TERMINAL_KEYWORD_TRUE, TERMINAL_KEYWORD_FALSE, TERMINAL_IDENTIF,
-    TERMINAL_NUMBER, TERMINAL_STRING, TERMINAL_KEYWORD_NIL, TERMINAL_L_BRACKET,
-    TERMINAL_R_BRACKET, TERMINAL_EMPTY, NONTERMINAL_EXPRESSION, FLAG_HANDLE
-} PPListItemType;
 
 /**
  * @brief Precedence table type.
@@ -32,12 +18,6 @@ typedef enum {
  */
 typedef const PPOperation PrecedenceTable[][NONTERMINAL_EXPRESSION];
 
-/** @brief Represents an item in the precedence list. */
-typedef struct {
-  PPListItemType type;
-  TokenNumberType num_type;
-  TokenValue value;
-} PPListItem;
 
 /** @brief Precedence table written in format to easily initialize a variable.*/
 #define PRECEDENCE_TABLE                                                       \
@@ -643,4 +623,4 @@ typedef struct {
    [TERMINAL_EMPTY][TERMINAL_EMPTY]          = PP_ERROR,                       \
 }
 
-#endif /* PRECEDENCE_PARSER_TYPES_H */
+#endif /* PRECEDENCE_TABLE_H */

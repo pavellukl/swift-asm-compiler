@@ -55,7 +55,7 @@ typedef enum {
 typedef enum {
     INT,
     FLOAT
-}TokenNumberType;
+} TokenNumberType;
 
 typedef union {                    //TODO: malloc error check
     char* string;          //TODO: lex errors

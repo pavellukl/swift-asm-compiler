@@ -1,10 +1,15 @@
-#ifndef SYMTABLE_FUNC_H
-#define SYMTABLE_FUNC_H
+#ifndef SYMTABLE_H
+#define SYMTABLE_H
 
 #include <stdio.h>
+#include <stdbool.h>
+#include <string.h>
 
-#include "../helpers/list/list.h"
-#include "symtable_types.h"
+#include "../helpers/list/ListST/ListST.h"
+
+#define HASH_SIZE 109
+
+typedef enum{E_ALLOC, E_OK}Error;
 
 /**
  * Creates list
@@ -95,4 +100,4 @@ int st_remove_global_func(ListST* list, char* identifier);
 
 int st_remove_global_var(ListST* list, char* identifier);
 
-#endif /* SYMTABLE_FUNC_H */
+#endif /* SYMTABLE_H */

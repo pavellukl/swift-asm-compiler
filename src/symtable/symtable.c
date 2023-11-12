@@ -1,4 +1,4 @@
-#include "symtable_func.h"
+#include "symtable.h"
 
 unsigned int _get_hash(char* str){
 	long long p = 29791, m = 1e9 + 7;
@@ -422,4 +422,3 @@ void st_destroy_list(ListST* list){
     free(list);
     list = NULL;
 }
-

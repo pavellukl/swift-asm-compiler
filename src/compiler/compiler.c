@@ -1,6 +1,6 @@
 #include "compiler.h"
 
-CompilerReturnValue _get_return_code(RPReturnValue rp_return_value) {
+CompilerReturnCode _get_return_code(ParserReturnCode rp_return_value) {
     switch (rp_return_value)
     {
       case OK: return COMP_OK;
@@ -18,13 +18,18 @@ CompilerReturnValue _get_return_code(RPReturnValue rp_return_value) {
     }
 }
 
-CompilerReturnValue compile(FILE *in, FILE *out) {
+CompilerReturnCode compile(FILE *in, FILE *out) {
     assert(in != NULL);
     assert(out != NULL);
 
     // property init
     ParserOptions parser_opt;
     if(!scanner_opt_init(&parser_opt.sc_opt, in)) return COMP_INTER_ERR;
+    parser_opt.symtable = st_create_list();
+    if (parser_opt.symtable == NULL) {
+      scanner_opt_free(&parser_opt.sc_opt);
+      return COMP_INTER_ERR;
+    }
     parser_opt.out = out;
 
     // first run
@@ -35,6 +40,7 @@ CompilerReturnValue compile(FILE *in, FILE *out) {
       case OK: break;
       default: 
         scanner_opt_free(&parser_opt.sc_opt);
+        st_destroy_list(parser_opt.symtable);
         return _get_return_code(parser_opt.return_code);
     }
 
@@ -46,5 +52,6 @@ CompilerReturnValue compile(FILE *in, FILE *out) {
     parse_check_optimize_generate(&parser_opt);
 
     scanner_opt_free(&parser_opt.sc_opt);
+    st_destroy_list(parser_opt.symtable);
     return _get_return_code(parser_opt.return_code);
 }

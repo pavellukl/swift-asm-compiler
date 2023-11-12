@@ -1,14 +1,7 @@
-#ifndef LEXICAL_ANALYSIS_H
-#define LEXICAL_ANALYSIS_H
+#ifndef SCANNER_H
+#define SCANNER_H
 
-#include <ctype.h>
-#include <stdbool.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
-
-#include "token.h"
-#include "../helpers/stack/stack.h"
+#include "../helpers/stack/StackTokenData/StackTokenData.h"
 
 typedef enum {
     START,
@@ -77,4 +70,4 @@ int get_next_char(ScannerOptions* opt);
 
 TokenData get_next_token(ScannerOptions* opt);
 
-#endif /* LEXICAL_ANALYSIS_H */
+#endif /* SCANNER_H */

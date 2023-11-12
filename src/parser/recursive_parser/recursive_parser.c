@@ -315,7 +315,7 @@ bool __if(ParserOptions *parser_opt) {
 
         return _scope_body(parser_opt) && __if_let_identif_body(parser_opt);
     }
-
+    
     return parse_check_optimize_generate_expression(parser_opt)
             && _scope_body(parser_opt)
             && __if_let_identif_body(parser_opt);

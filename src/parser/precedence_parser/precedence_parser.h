@@ -1,9 +1,11 @@
-#ifndef PRECEDENCE_PARSER_FUNC_H
-#define PRECEDENCE_PARSER_FUNC_H
+#ifndef PRECEDENCE_PARSER_H
+#define PRECEDENCE_PARSER_H
 
-#include "parser.h"
-#include "precedence_parser_types.h"
-#include "../helpers/list/list.h"
+// #include "../scanner/scanner.h"
+// #include "../helpers/list/list.h"
+#include "../parser.h"
+#include "../../helpers/list/ListPP/ListPP.h"
+#include "precedence_table.h"
 
 bool parse_check_optimize_generate_expression(ParserOptions *parser_opt);
 
@@ -15,4 +17,4 @@ bool _is_binary_operator(PPListItem item);
 bool _match_rule(ParserOptions *parser_opt, ListPP *list);
 bool _apply_rule(ParserOptions *parser_opt, ListPP *list);
 
-#endif /* PRECEDENCE_PARSER_FUNC_H */
+#endif /* PRECEDENCE_PARSER_H */

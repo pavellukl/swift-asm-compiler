@@ -1,15 +1,11 @@
-#ifndef SYMTABLE_TYPES_H
-#define SYMTABLE_TYPES_H
+#ifndef LIST_ST_H
+#define LIST_ST_H
 
-#include <stdbool.h>
-
-#define HASH_SIZE 109
+#include "../list.h"
 
 typedef enum{T_INT, T_FLOAT, T_STRING, T_BOOL}Type;
 
 typedef enum{CONSTANT, VARIABLE, FUNCTION}Variant;
-
-typedef enum{E_ALLOC, E_OK}Error;
 
 typedef struct Parameter{
     char* name;
@@ -44,4 +40,6 @@ typedef struct ListElement{
     LSTElement** local_table;    //hash table
 }ListElement;
 
-#endif /* SYMTABLE_TYPES_H */
+LIST_DEC(ListElement*, ST, st)
+
+#endif /* LIST_ST_H */

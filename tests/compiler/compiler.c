@@ -27,12 +27,12 @@ Test(compile, general) {
             cr_fatal("Couldn't open test file %s", subdirPtr->d_name);
         }
 
-        CompilerReturnValue expectedRes;
+        CompilerReturnCode expectedRes;
         fscanf(in, "// %d", (int *)&expectedRes);
 
         cr_log_info("Running %s", subdirPtr->d_name);
 
-        CompilerReturnValue res = compile(in, stdout);
+        CompilerReturnCode res = compile(in, stdout);
 
         if (res != expectedRes) {
             cr_log_error(
