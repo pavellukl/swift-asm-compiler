@@ -1,5 +1,28 @@
 #include "recursive_parser.h"
 
+bool _look_ahead_for_fn(ParserOptions *parser_opt, bool *is_function) {
+    if (parser_opt->token.type != TOKEN_IDENTIF) {
+        *is_function = false;
+        return true;
+    }
+
+    LSTElement* el = 
+        st_search_element(parser_opt->symtable, parser_opt->token.value.string);
+
+    if (el == NULL) {
+        parser_opt->return_code = UNDEFVAR_ERR;
+        return false;
+    }
+
+    if (el->variant == FUNCTION) {
+        *is_function = true;
+        return true;
+    }
+
+    *is_function = false;
+    return true;
+}
+
 bool _program(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_END_OF_FILE) {
         _next_token(parser_opt);
@@ -184,10 +207,15 @@ bool __identif(ParserOptions *parser_opt) {
         return true;
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         _next_token(parser_opt);
-        // TODO: expression || function call
-        // _IDENTIF → TOKEN_ASSIGN EXPRESSION
-        // _IDENTIF → TOKEN_ASSIGN FUNCTION_CALL
-        return true;
+
+        bool is_function;
+        if (!_look_ahead_for_fn(parser_opt, &is_function)) return false;
+
+        if (is_function) {
+            return _function_call(parser_opt);
+        } else {
+            return parse_check_optimize_generate_expression(parser_opt);
+        }
     }
     parser_opt->return_code = STX_ERR;
     return false;
@@ -229,12 +257,8 @@ bool __return(ParserOptions *parser_opt) {
         parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
         return true;
     }
-    // TODO: expression || sth else (not function call)
-    // else if
-    //     _RETURN → EXPRESSION
 
-    parser_opt->return_code = STX_ERR;
-    return false;
+    return parse_check_optimize_generate_expression(parser_opt);
 }
 
 bool _variable_def(ParserOptions *parser_opt) {
@@ -266,8 +290,15 @@ bool __varlet_identif(ParserOptions *parser_opt) {
         return __varlet_identif_colon_type(parser_opt);
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         _next_token(parser_opt);
-        // TODO: expression || function call
-        return true;
+        
+        bool is_function;
+        if (!_look_ahead_for_fn(parser_opt, &is_function)) return false;
+
+        if (is_function) {
+            return _function_call(parser_opt);
+        } else {
+            return parse_check_optimize_generate_expression(parser_opt);
+        }
     }
     parser_opt->return_code = STX_ERR;
     return false;
@@ -286,8 +317,15 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt) {
         return true;
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         _next_token(parser_opt);
-        // TODO: expression || function call
-        return true;
+
+        bool is_function;
+        if (!_look_ahead_for_fn(parser_opt, &is_function)) return false;
+
+        if (is_function) {
+            return _function_call(parser_opt);
+        } else {
+            return parse_check_optimize_generate_expression(parser_opt);
+        }
     }
     parser_opt->return_code = STX_ERR;
     return false;
