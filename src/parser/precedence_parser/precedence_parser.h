@@ -9,7 +9,8 @@
 
 bool parse_check_optimize_generate_expression(ParserOptions *parser_opt);
 
-PPListItem _token_to_list_item(TokenData token);
+bool _token_to_list_item(ParserOptions *parser_opt, TokenData token,
+                         ASTNode *left, ASTNode *right, PPListItem *item);
 bool _list_contains_done_sequence(ListPP *list);
 PPListItem _get_first_terminal(ListPP *list);
 bool _is_simple_expression(PPListItem item);
