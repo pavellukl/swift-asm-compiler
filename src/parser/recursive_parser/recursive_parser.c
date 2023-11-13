@@ -41,8 +41,8 @@ bool _program(ParserOptions *parser_opt) {
 }
 
 bool _function_definition(ParserOptions *parser_opt) {
-    //! in first run only generate function (do not check)
-    //! in second run only semantically check function (do not generate)
+    //! in first run generate function
+    //! in second run do not generate
     //! view 'parser_opt->is_first_run' for info about run
     if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
         return _function_head(parser_opt) && _scope_body(parser_opt);
@@ -497,38 +497,11 @@ bool _arg_val(ParserOptions *parser_opt) {
     return false;
 }
 
-void parse_function_definition(ParserOptions *parser_opt) {
-    // get first token
-    _next_token(parser_opt);
-
-    while (true) {
-        // search functions and EOF
-        while (parser_opt->token.type != TOKEN_KEYWORD_FUNC &&
-               parser_opt->token.type != TOKEN_END_OF_FILE) {
-            _next_token(parser_opt);
-        }
-        // if EOF -> end with success
-        if (parser_opt->token.type == TOKEN_END_OF_FILE) {
-            parser_opt->return_code = OK;
-            return;
-        };
-
-        // operate upon function definition
-        _function_definition(parser_opt);
-        switch (parser_opt->return_code) {
-            case OK:
-                break;
-            default:
-                return;
-        }
-    }
-}
-
 void parse_check_optimize_generate(ParserOptions *parser_opt) {
     // get first token
     _next_token(parser_opt);
 
-    // operate upon code (skip function definitions)
+    // operate upon code
     _program(parser_opt);
 
     return;

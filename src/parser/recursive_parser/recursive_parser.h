@@ -4,8 +4,6 @@
 #include "../parser.h"
 #include "../precedence_parser/precedence_parser.h"
 
-void parse_function_definition(ParserOptions *parser_opt);
-
 void parse_check_optimize_generate(ParserOptions *parser_opt);
 
 bool _program(ParserOptions *parser_opt);

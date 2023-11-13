@@ -7,6 +7,7 @@
 
 #include "../parser/parser.h"
 #include "../parser/recursive_parser/recursive_parser.h"
+#include "../debug.h"
 
 /// @brief Possible return values of compiler.
 typedef enum {

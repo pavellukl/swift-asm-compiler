@@ -30,11 +30,11 @@ CompilerReturnCode _get_return_code(ParserReturnCode rp_return_value) {
 }
 
 CompilerReturnCode compile(FILE *in, FILE *out) {
-    printf("run\n");
+    PRINTF_STDDEBUG("run\n");
     assert(in != NULL);
     assert(out != NULL);
 
-    printf("pass asserts\n");
+    PRINTF_STDDEBUG("pass asserts\n");
 
     // property init
     ParserOptions parser_opt;
@@ -46,15 +46,13 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     }
     parser_opt.out = out;
 
-    printf("running compiler\n");
+    PRINTF_STDDEBUG("running compiler\n");
 
     // first run
     parser_opt.is_first_run = true;
-    printf("running compiler2\n");
-
-    parse_function_definition(&parser_opt);
-    printf("running compiler3\n");
-
+    PRINTF_STDDEBUG("running compiler2\n");
+    parse_check_optimize_generate(&parser_opt);
+    PRINTF_STDDEBUG("running compiler3\n");
     switch (parser_opt.return_code)
     {
       case OK:
@@ -65,7 +63,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
         return _get_return_code(parser_opt.return_code);
     }
 
-    printf("running second run\n");
+    PRINTF_STDDEBUG("running second run\n");
 
     // file rewind
     scanner_rewind_file(&parser_opt.sc_opt);
@@ -74,7 +72,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     parser_opt.is_first_run = false;
     parse_check_optimize_generate(&parser_opt);
 
-    printf("second run done\n");
+    PRINTF_STDDEBUG("second run done\n");
 
     scanner_opt_free(&parser_opt.sc_opt);
     st_destroy_list(parser_opt.symtable);
