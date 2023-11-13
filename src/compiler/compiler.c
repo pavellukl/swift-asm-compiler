@@ -10,10 +10,10 @@ CompilerReturnCode _get_return_code(ParserReturnCode rp_return_value) {
             return COMP_STX_ERR;
         case DEF_ERR:
             return COMP_DEF_ERR;
-        case FNCALL_ERR:
-            return COMP_FNCALL_ERR;
         case UNDEFVAR_ERR:
             return COMP_UNDEFVAR_ERR;
+        case FNCALL_ERR:
+            return COMP_FNCALL_ERR;
         case FNRET_ERR:
             return COMP_FNRET_ERR;
         case EXPRTYPE_ERR:
@@ -38,11 +38,11 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
 
     // property init
     ParserOptions parser_opt;
-    if(!scanner_opt_init(&parser_opt.sc_opt, in)) return COMP_INTER_ERR;
+    if (!scanner_opt_init(&parser_opt.sc_opt, in)) return COMP_INTER_ERR;
     parser_opt.symtable = st_create_list();
     if (parser_opt.symtable == NULL) {
-      scanner_opt_free(&parser_opt.sc_opt);
-      return COMP_INTER_ERR;
+        scanner_opt_free(&parser_opt.sc_opt);
+        return COMP_INTER_ERR;
     }
     parser_opt.out = out;
 
@@ -53,14 +53,13 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     PRINTF_STDDEBUG("running compiler2\n");
     parse_check_optimize_generate(&parser_opt);
     PRINTF_STDDEBUG("running compiler3\n");
-    switch (parser_opt.return_code)
-    {
-      case OK:
-        break;
-      default: 
-        scanner_opt_free(&parser_opt.sc_opt);
-        st_destroy_list(parser_opt.symtable);
-        return _get_return_code(parser_opt.return_code);
+    switch (parser_opt.return_code) {
+        case OK:
+            break;
+        default:
+            scanner_opt_free(&parser_opt.sc_opt);
+            st_destroy_list(parser_opt.symtable);
+            return _get_return_code(parser_opt.return_code);
     }
 
     PRINTF_STDDEBUG("running second run\n");

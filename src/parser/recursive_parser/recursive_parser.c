@@ -6,7 +6,7 @@ bool _look_ahead_for_fn(ParserOptions *parser_opt, bool *is_function) {
         return true;
     }
 
-    LSTElement* el = 
+    LSTElement *el =
         st_search_element(parser_opt->symtable, parser_opt->token.value.string);
 
     if (el == NULL) {
@@ -45,8 +45,29 @@ bool _function_definition(ParserOptions *parser_opt) {
     //! in second run do not generate
     //! view 'parser_opt->is_first_run' for info about run
     if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
-        return _function_head(parser_opt) && _scope_body(parser_opt);
+        if (_function_head(parser_opt) && _scope_body(parser_opt)) {
+            // check symtable for identif
+            LSTElement *el = st_search_func(parser_opt->symtable,
+                                            parser_opt->token.value.string);
+
+            // if identif already defined on first run
+            if (el != NULL && parser_opt->is_first_run) {
+                parser_opt->return_code = DEF_ERR;
+                return false;
+            }
+
+            // define function if identif is not in symtable and on first run
+            if (parser_opt->is_first_run) {
+                // check completed function semantically
+                // add indetif (function) to symtable
+            }
+
+            return true;
+        };
+
+        return false;
     }
+
     parser_opt->return_code = STX_ERR;
     return false;
 }
@@ -290,7 +311,7 @@ bool __varlet_identif(ParserOptions *parser_opt) {
         return __varlet_identif_colon_type(parser_opt);
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         _next_token(parser_opt);
-        
+
         bool is_function;
         if (!_look_ahead_for_fn(parser_opt, &is_function)) return false;
 
@@ -352,10 +373,9 @@ bool __if(ParserOptions *parser_opt) {
 
         return _scope_body(parser_opt) && __if_let_identif_body(parser_opt);
     }
-    
-    return parse_check_optimize_generate_expression(parser_opt)
-            && _scope_body(parser_opt)
-            && __if_let_identif_body(parser_opt);
+
+    return parse_check_optimize_generate_expression(parser_opt) &&
+           _scope_body(parser_opt) && __if_let_identif_body(parser_opt);
 }
 
 bool __if_let_identif_body(ParserOptions *parser_opt) {

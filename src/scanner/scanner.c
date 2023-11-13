@@ -149,21 +149,21 @@ void scanner_rewind_file(ScannerOptions* opt) {
 }
 
 int get_next_char(ScannerOptions* opt) {
-    printf("INDEX: %d   ", opt->i);
+    PRINTF_STDDEBUG("INDEX: %d   ", opt->i);
     if (opt->i < opt->size) {
-        printf("RETURNING CHAR: %c(%d)\n", opt->file[opt->i],
-               opt->file[opt->i]);
+        PRINTF_STDDEBUG("RETURNING CHAR: %c(%d)\n", opt->file[opt->i],
+                        opt->file[opt->i]);
 
         return opt->file[opt->i++];
     } else {
-        printf("RETURNING CHAR: EOF\n");
+        PRINTF_STDDEBUG("RETURNING CHAR: EOF\n");
 
         return EOF;
     }
 }
 
 TokenData get_next_token(ScannerOptions* opt) {
-    printf("CALL\n");
+    PRINTF_STDDEBUG("CALL\n");
     TokenData token;
     AutomatState current_state = START;
 
@@ -181,8 +181,8 @@ TokenData get_next_token(ScannerOptions* opt) {
     bool new_line_before_token = false;
 
     while (true) {
-        printf("STATE: %d, working with CHAR: %c(%d)\n ", current_state,
-               current_char, current_char);
+        PRINTF_STDDEBUG("STATE: %d, working with CHAR: %c(%d)\n ",
+                        current_state, current_char, current_char);
 
         switch (current_state) {
             case START:
