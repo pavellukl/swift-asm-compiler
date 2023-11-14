@@ -45,22 +45,43 @@ bool _function_definition(ParserOptions *parser_opt) {
     //! in second run do not generate
     //! view 'parser_opt->is_first_run' for info about run
     if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
+        // initialize parameter array
+        parser_opt->variables.new_identif.value.parameters.parameters_arr =
+            malloc(PARAM_ARR_INITIAL_N_ITEMS * sizeof(struct Parameter));
+        if (parser_opt->variables.new_identif.value.parameters.parameters_arr ==
+            NULL) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
+        parser_opt->variables.new_identif.value.parameters.size = 0;
+        parser_opt->variables.new_identif.value.parameters.capacity =
+            PARAM_ARR_INITIAL_N_ITEMS;
+        parser_opt->variables.new_identif.value.parameters.infinite = false;
+
         if (_function_head(parser_opt) && _scope_body(parser_opt)) {
-            // check symtable for identif
-            LSTElement *el = st_search_func(parser_opt->symtable,
-                                            parser_opt->token.value.string);
-
-            // if identif already defined on first run
-            if (el != NULL && parser_opt->is_first_run) {
-                parser_opt->return_code = DEF_ERR;
-                return false;
-            }
-
             // define function if identif is not in symtable and on first run
             if (parser_opt->is_first_run) {
-                // check completed function semantically
-                // add indetif (function) to symtable
+                parser_opt->variables.new_identif.defined_value = true;
+                parser_opt->variables.new_identif.variant = FUNCTION;
+
+                // TODO check completed function semantically
+
+                // add function to symtable
+                STError res = st_add_element(
+                    parser_opt->symtable,
+                    parser_opt->variables.new_identif.identifier,
+                    parser_opt->variables.new_identif.return_type,
+                    parser_opt->variables.new_identif.variant,
+                    &(parser_opt->variables.new_identif.value));
+
+                if (res != E_OK) {
+                    parser_opt->return_code = INTER_ERR;
+                    return false;
+                }
             }
+
+            // TODO generate function in target code
 
             return true;
         };
@@ -82,6 +103,21 @@ bool _function_head(ParserOptions *parser_opt) {
         parser_opt->return_code = STX_ERR;
         return false;
     }
+
+    // check symtable for identif
+    LSTElement *el =
+        st_search_func(parser_opt->symtable, parser_opt->token.value.string);
+
+    // if identif already defined on first run
+    if (el != NULL && parser_opt->is_first_run) {
+        parser_opt->return_code = DEF_ERR;
+        return false;
+    }
+
+    // save new function name
+    parser_opt->variables.new_identif.identifier =
+        parser_opt->token.value.string;
+
     _next_token(parser_opt);
     if (parser_opt->token.type != TOKEN_L_BRACKET) {
         parser_opt->return_code = STX_ERR;
@@ -102,10 +138,22 @@ bool _function_head(ParserOptions *parser_opt) {
 
 bool __func_identif_lbracket_arglist_rbracket(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_L_CRLY_BRACKET) {
+        // save function type as void when return type omitted
+        parser_opt->variables.new_identif.return_type = T_VOID;
         return true;
     } else if (parser_opt->token.type == TOKEN_ARROW) {
         _next_token(parser_opt);
-        return _data_type(parser_opt);
+
+        // if data type grammar check passes
+        if (_data_type(parser_opt)) {
+            // save function type
+            parser_opt->variables.new_identif.return_type =
+                parser_opt->variables.new_type;
+            return true;
+        }
+
+        // if data type grammar check fails
+        return false;
     }
     parser_opt->return_code = STX_ERR;
     return false;
@@ -113,6 +161,10 @@ bool __func_identif_lbracket_arglist_rbracket(ParserOptions *parser_opt) {
 
 bool _param_list(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_R_BRACKET) {
+        // save that function has no parameters
+        parser_opt->variables.new_identif.value.parameters.size = 0;
+        parser_opt->variables.new_identif.value.parameters.parameters_arr;
+
         return true;
     } else if (parser_opt->token.type == TOKEN_IDENTIF ||
                parser_opt->token.type == TOKEN_UNDERSCORE) {
@@ -136,6 +188,19 @@ bool _comma_param(ParserOptions *parser_opt) {
 bool _param(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_IDENTIF ||
         parser_opt->token.type == TOKEN_UNDERSCORE) {
+        // save parameter name to new parameter
+        switch (parser_opt->token.type) {
+            case TOKEN_IDENTIF:
+                parser_opt->variables.new_param.name = "_";
+                break;
+            case TOKEN_UNDERSCORE:
+                parser_opt->variables.new_param.name =
+                    parser_opt->token.value.string;
+                break;
+            default:
+                break;
+        }
+
         _next_token(parser_opt);
         return __param_name(parser_opt);
     }
@@ -146,13 +211,66 @@ bool _param(ParserOptions *parser_opt) {
 bool __param_name(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_IDENTIF ||
         parser_opt->token.type == TOKEN_UNDERSCORE) {
+        // save parameter identifier to new parameter
+        switch (parser_opt->token.type) {
+            case TOKEN_IDENTIF:
+                parser_opt->variables.new_param.identifier = "_";
+                break;
+            case TOKEN_UNDERSCORE:
+                parser_opt->variables.new_param.identifier =
+                    parser_opt->token.value.string;
+                break;
+            default:
+                break;
+        }
+
         _next_token(parser_opt);
         if (parser_opt->token.type != TOKEN_COLON) {
             parser_opt->return_code = STX_ERR;
             return false;
         }
         _next_token(parser_opt);
-        return _data_type(parser_opt);
+
+        // if data type grammar check passes
+        if (_data_type(parser_opt)) {
+            // save function type
+            parser_opt->variables.new_param.par_type =
+                parser_opt->variables.new_type;
+
+            // check if parameter array is out of capacity and reallocate
+            if (parser_opt->variables.new_identif.value.parameters.size ==
+                parser_opt->variables.new_identif.value.parameters.capacity) {
+                Parameter *buffer = realloc(
+                    parser_opt->variables.new_identif.value.parameters
+                        .parameters_arr,
+                    parser_opt->variables.new_identif.value.parameters.size *
+                        2 * sizeof(struct Parameter));
+                if (buffer == NULL) {
+                    free(parser_opt->variables.new_identif.value.parameters
+                             .parameters_arr);
+
+                    parser_opt->return_code = INTER_ERR;
+                    return false;
+                }
+
+                parser_opt->variables.new_identif.value.parameters
+                    .parameters_arr = buffer;
+                parser_opt->variables.new_identif.value.parameters.capacity *=
+                    2;
+            }
+
+            // add new param to param array
+            parser_opt->variables.new_identif.value.parameters.parameters_arr
+                [parser_opt->variables.new_identif.value.parameters.size] =
+                parser_opt->variables.new_param;
+
+            parser_opt->variables.new_identif.value.parameters.size++;
+
+            return true;
+        }
+
+        // if grammar check fails
+        return false;
     }
     parser_opt->return_code = STX_ERR;
     return false;
@@ -243,18 +361,44 @@ bool __identif(ParserOptions *parser_opt) {
 }
 
 bool _data_type(ParserOptions *parser_opt) {
-    if (parser_opt->token.type == TOKEN_KEYWORD_INT ||
-        parser_opt->token.type == TOKEN_KEYWORD_INT_NIL ||
-        parser_opt->token.type == TOKEN_KEYWORD_DOUBLE ||
-        parser_opt->token.type == TOKEN_KEYWORD_DOUBLE_NIL ||
-        parser_opt->token.type == TOKEN_KEYWORD_STRING ||
-        parser_opt->token.type == TOKEN_KEYWORD_STRING_NIL ||
-        parser_opt->token.type == TOKEN_KEYWORD_BOOL ||
-        parser_opt->token.type == TOKEN_KEYWORD_BOOL_NIL) {
-        // *data_type = parser_opt->token.type;
-        _next_token(parser_opt);
-        return true;
+    switch (parser_opt->token.type) {
+        case TOKEN_KEYWORD_INT:
+            parser_opt->variables.new_type = T_INT;
+            _next_token(parser_opt);
+            return true;
+        case TOKEN_KEYWORD_INT_NIL:
+            parser_opt->variables.new_type = T_INT_NIL;
+            _next_token(parser_opt);
+            return true;
+        case TOKEN_KEYWORD_DOUBLE:
+            parser_opt->variables.new_type = T_FLOAT;
+            _next_token(parser_opt);
+            return true;
+        case TOKEN_KEYWORD_DOUBLE_NIL:
+            parser_opt->variables.new_type = T_FLOAT_NIL;
+            _next_token(parser_opt);
+            return true;
+        case TOKEN_KEYWORD_STRING:
+            parser_opt->variables.new_type = T_STRING;
+            _next_token(parser_opt);
+            return true;
+        case TOKEN_KEYWORD_STRING_NIL:
+            parser_opt->variables.new_type = T_STRING_NIL;
+            _next_token(parser_opt);
+            return true;
+        case TOKEN_KEYWORD_BOOL:
+            parser_opt->variables.new_type = T_BOOL;
+            _next_token(parser_opt);
+            return true;
+        case TOKEN_KEYWORD_BOOL_NIL:
+            parser_opt->variables.new_type = T_BOOL_NIL;
+            _next_token(parser_opt);
+            return true;
+
+        default:
+            break;
     }
+
     parser_opt->return_code = STX_ERR;
     return false;
 }

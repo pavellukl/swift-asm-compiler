@@ -18,6 +18,14 @@ typedef enum {
     INTER_ERR
 } ParserReturnCode;
 
+#define PARAM_ARR_INITIAL_N_ITEMS 4
+
+typedef struct {
+    LSTElement new_identif;
+    Parameter new_param;
+    Type new_type;
+} ParserVariables;
+
 typedef struct {
     bool is_first_run;
     ScannerOptions sc_opt;
@@ -25,6 +33,8 @@ typedef struct {
     FILE *out;
     ListST *symtable;
     ParserReturnCode return_code;
+    // for easily passing data for semantic analysis between functions
+    ParserVariables variables;
 } ParserOptions;
 
 void _next_token(ParserOptions *parser_opt);
