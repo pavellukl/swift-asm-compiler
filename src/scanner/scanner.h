@@ -8,6 +8,7 @@
 #include <string.h>
 #include "StackTokenData/StackTokenData.h"
 #include "token.h"
+#include "../debug.h"
 
 typedef enum {
     START,

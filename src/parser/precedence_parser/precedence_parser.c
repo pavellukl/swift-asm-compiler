@@ -4,6 +4,7 @@ bool _token_to_list_item(ParserOptions *parser_opt, TokenData token, ASTNode *le
     // TODO: remove after usage
     parser_opt = parser_opt;
 
+    item->type = NONTERMINAL_EXPRESSION;
     item->node.token = token;
 
     item->node.left = left;
@@ -87,38 +88,6 @@ bool _token_to_list_item(ParserOptions *parser_opt, TokenData token, ASTNode *le
     return item;
 }
 
-bool _list_contains_done_sequence(ListPP *list) {
-    PPListItem item;
-
-    // first item should be EXPRESSION
-    list_pp_first(list);
-    list_pp_get_value(list, &item);
-    if (item.type != NONTERMINAL_EXPRESSION) return false;
-
-    // second item should be bottom of the list
-    list_pp_next(list);
-    list_pp_get_value(list, &item);
-    if (item.type != TERMINAL_EMPTY) return false;
-
-    // third item shouldn't exist
-    list_pp_next(list);
-    if (list_pp_is_active(list)) return false;
-
-    return true;
-}
-
-PPListItem _get_first_terminal(ListPP *list) {
-    PPListItem item;
-
-    list_pp_first(list);
-    list_pp_get_value(list, &item);
-    while (item.type == NONTERMINAL_EXPRESSION || item.type == FLAG_HANDLE ) {
-        list_pp_next(list);
-        list_pp_get_value(list, &item);
-    }
-
-    return item;
-}
 
 bool _is_simple_expression(PPListItem item) {
     return (item.type == TERMINAL_IDENTIF
@@ -251,6 +220,39 @@ bool _apply_rule(ParserOptions *parser_opt, ListPP *list) {
     list_pp_insert_first(list, new_item);
 
     return true;
+}
+
+bool _list_contains_done_sequence(ListPP *list) {
+    PPListItem item;
+
+    // first item should be EXPRESSION
+    list_pp_first(list);
+    list_pp_get_value(list, &item);
+    if (item.type != NONTERMINAL_EXPRESSION) return false;
+
+    // second item should be bottom of the list
+    list_pp_next(list);
+    list_pp_get_value(list, &item);
+    if (item.type != TERMINAL_EMPTY) return false;
+
+    // third item shouldn't exist
+    list_pp_next(list);
+    if (list_pp_is_active(list)) return false;
+
+    return true;
+}
+
+PPListItem _get_first_terminal(ListPP *list) {
+    PPListItem item;
+
+    list_pp_first(list);
+    list_pp_get_value(list, &item);
+    while (item.type == NONTERMINAL_EXPRESSION || item.type == FLAG_HANDLE ) {
+        list_pp_next(list);
+        list_pp_get_value(list, &item);
+    }
+
+    return item;
 }
 
 bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
