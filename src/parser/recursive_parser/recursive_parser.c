@@ -671,7 +671,8 @@ bool __arg_name_colon(ParserOptions *parser_opt) {
 }
 
 bool _arg_val(ParserOptions *parser_opt) {
-    if (parser_opt->token.type == TOKEN_NUMBER ||
+    if (parser_opt->token.type == TOKEN_INT ||
+        parser_opt->token.type == TOKEN_FLOAT ||
         parser_opt->token.type == TOKEN_STRING ||
         parser_opt->token.type == TOKEN_KEYWORD_NIL) {
         _next_token(parser_opt);
