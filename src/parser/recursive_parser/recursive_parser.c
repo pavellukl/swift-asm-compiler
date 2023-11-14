@@ -76,6 +76,8 @@ bool _function_definition(ParserOptions *parser_opt) {
                     &(parser_opt->variables.new_identif.value));
 
                 if (res != E_OK) {
+                    free(parser_opt->variables.new_identif.value.parameters
+                             .parameters_arr);
                     parser_opt->return_code = INTER_ERR;
                     return false;
                 }
@@ -83,8 +85,15 @@ bool _function_definition(ParserOptions *parser_opt) {
 
             // TODO generate function in target code
 
+            // free helper parameter array
+            free(parser_opt->variables.new_identif.value.parameters
+                     .parameters_arr);
+
             return true;
         };
+
+        // free helper parameter array
+        free(parser_opt->variables.new_identif.value.parameters.parameters_arr);
 
         return false;
     }
@@ -163,7 +172,6 @@ bool _param_list(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_R_BRACKET) {
         // save that function has no parameters
         parser_opt->variables.new_identif.value.parameters.size = 0;
-        parser_opt->variables.new_identif.value.parameters.parameters_arr;
 
         return true;
     } else if (parser_opt->token.type == TOKEN_IDENTIF ||
@@ -352,6 +360,9 @@ bool __identif(ParserOptions *parser_opt) {
 
         if (is_function) {
             return _function_call(parser_opt);
+        } else if (parser_opt->token.type == TOKEN_KEYWORD_NIL) {
+            _next_token(parser_opt);
+            return true;
         } else {
             return parse_check_optimize_generate_expression(parser_opt);
         }
@@ -402,6 +413,7 @@ bool _data_type(ParserOptions *parser_opt) {
     parser_opt->return_code = STX_ERR;
     return false;
 }
+
 bool _return_command(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_KEYWORD_RETURN) {
         _next_token(parser_opt);
@@ -420,6 +432,11 @@ bool __return(ParserOptions *parser_opt) {
         parser_opt->token.type == TOKEN_KEYWORD_LET ||
         parser_opt->token.type == TOKEN_KEYWORD_IF ||
         parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
+        return true;
+    }
+
+    if (parser_opt->token.type == TOKEN_KEYWORD_NIL) {
+        _next_token(parser_opt);
         return true;
     }
 
@@ -461,6 +478,9 @@ bool __varlet_identif(ParserOptions *parser_opt) {
 
         if (is_function) {
             return _function_call(parser_opt);
+        } else if (parser_opt->token.type == TOKEN_KEYWORD_NIL) {
+            _next_token(parser_opt);
+            return true;
         } else {
             return parse_check_optimize_generate_expression(parser_opt);
         }
