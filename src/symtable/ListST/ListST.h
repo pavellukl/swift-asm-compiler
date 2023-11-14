@@ -3,7 +3,17 @@
 
 #include "../../helpers/list.h"
 
-typedef enum { T_VOID, T_INT, T_FLOAT, T_STRING, T_BOOL } Type;
+typedef enum {
+    T_VOID,
+    T_INT,
+    T_INT_NIL,
+    T_FLOAT,
+    T_FLOAT_NIL,
+    T_STRING,
+    T_STRING_NIL,
+    T_BOOL,
+    T_BOOL_NIL
+} Type;
 
 typedef enum { CONSTANT, VARIABLE, FUNCTION } Variant;
 
@@ -16,6 +26,7 @@ typedef struct Parameter {
 typedef struct Parameters {
     bool infinite;
     int size;
+    int capacity;
     Parameter* parameters_arr;
 } Parameters;
 
