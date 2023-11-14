@@ -9,6 +9,7 @@
 #include "StackTokenData/StackTokenData.h"
 #include "token.h"
 #include "../debug.h"
+#include "../parser/parser.h"
 
 typedef enum {
     START,
@@ -60,12 +61,13 @@ typedef struct {
     int i;
     int size;
     int line_counter;
+    int id_counter;
     StackTokenData *returned_tokens;
 } ScannerOptions;
 
-TokenData is_keyword(char *keyword, bool new_line_before_token);
+TokenData is_keyword(char* keyword);
 
-bool _skip_whitespaces(ScannerOptions *opt);
+bool _skip_whitespaces(ScannerOptions* opt);
 
 void scanner_opt_free(ScannerOptions *opt);
 
@@ -73,8 +75,8 @@ bool scanner_opt_init(ScannerOptions *opt, FILE *file);
 
 void scanner_rewind_file(ScannerOptions *opt);
 
-int get_next_char(ScannerOptions *opt);
+int get_next_char(ScannerOptions* opt);
 
-TokenData get_next_token(ScannerOptions *opt);
+bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt);
 
 #endif /* SCANNER_H */
