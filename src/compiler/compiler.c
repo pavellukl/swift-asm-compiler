@@ -44,15 +44,19 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
         scanner_opt_free(&parser_opt.sc_opt);
         return COMP_INTER_ERR;
     }
+    // should be correctly unallocated by hash table
+    init_parameter_array(&parser_opt.variables.new_identif.value.parameters);
     parser_opt.out = out;
-
-    PRINTF_STDDEBUG("running compiler\n");
 
     // first run
     parser_opt.is_first_run = true;
-    PRINTF_STDDEBUG("running compiler2\n");
-    parse_check_optimize_generate(&parser_opt);
+
+    PRINTF_STDDEBUG("running compiler\n");
+
+    parse_function_definition(&parser_opt);
+
     PRINTF_STDDEBUG("running compiler3\n");
+
     switch (parser_opt.return_code) {
         case OK:
             break;

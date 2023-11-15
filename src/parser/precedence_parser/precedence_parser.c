@@ -416,7 +416,7 @@ bool _reduce_list_until_handle(ParserOptions *parser_opt, ListPP *list) {
         list_pp_delete_first(list);
         list_pp_get_first(list, &item);
     }
-    list_pp_delete_first(list); // deletes handle
+    list_pp_delete_first(list);  // deletes handle
 
     // add result of the rule to the list
     if (list_pp_insert_first(list, new_item) == LIST_ALLOC_ERR) return false;
@@ -517,7 +517,7 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
                     return false;
                 }
                 break;
-            case PP_ERROR: // ERR
+            case PP_ERROR:  // ERR
                 parser_opt->return_code = STX_ERR;
                 _free_pp_list(&list);
                 return false;

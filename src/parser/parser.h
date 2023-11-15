@@ -1,7 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../scanner/scanner.h"
+#include "../scanner/scanner_types.h"
 #include "../symtable/symtable.h"
 
 typedef enum {
@@ -18,13 +18,11 @@ typedef enum {
     INTER_ERR
 } ParserReturnCode;
 
-#define PARAM_ARR_INITIAL_N_ITEMS 4
-
 typedef struct {
     LSTElement new_identif;
     Parameter new_param;
     Type new_type;
-} ParserVariables;
+} SemanticVariables;
 
 typedef struct {
     bool is_first_run;
@@ -33,10 +31,12 @@ typedef struct {
     FILE *out;
     ListST *symtable;
     ParserReturnCode return_code;
-    // for easily passing data for semantic analysis between functions
-    ParserVariables variables;
+    // for easily passing data between functions in semantic analysis
+    SemanticVariables variables;
 } ParserOptions;
 
-void _next_token(ParserOptions *parser_opt);
+#include "../scanner/scanner_func.h"
+
+bool _next_token(ParserOptions *parser_opt);
 
 #endif /* PARSER_H */
