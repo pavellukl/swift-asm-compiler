@@ -65,7 +65,9 @@ bool _function_definition(ParserOptions *parser_opt) {
                 parser_opt->variables.new_identif.defined_value = true;
                 parser_opt->variables.new_identif.variant = FUNCTION;
 
-                // TODO check completed function semantically
+                // semantically check function
+                // analyze_function_dec(parser_opt);
+                // TODO check semantic return code
 
                 // add function to symtable
                 STError res = st_add_element(
@@ -612,7 +614,8 @@ bool _arg_list(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_R_BRACKET) {
         return true;
     } else if (parser_opt->token.type == TOKEN_IDENTIF ||
-               parser_opt->token.type == TOKEN_NUMBER ||
+               parser_opt->token.type == TOKEN_FLOAT ||
+               parser_opt->token.type == TOKEN_INT ||
                parser_opt->token.type == TOKEN_STRING ||
                parser_opt->token.type == TOKEN_KEYWORD_NIL) {
         return _arg(parser_opt) && _comma_arg(parser_opt);
@@ -633,7 +636,8 @@ bool _comma_arg(ParserOptions *parser_opt) {
 }
 
 bool _arg(ParserOptions *parser_opt) {
-    if (parser_opt->token.type == TOKEN_NUMBER ||
+    if (parser_opt->token.type == TOKEN_FLOAT ||
+        parser_opt->token.type == TOKEN_INT ||
         parser_opt->token.type == TOKEN_STRING ||
         parser_opt->token.type == TOKEN_KEYWORD_NIL) {
         return true;
@@ -661,7 +665,8 @@ bool __arg_name_colon(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_IDENTIF) {
         _next_token(parser_opt);
         return true;
-    } else if (parser_opt->token.type == TOKEN_NUMBER ||
+    } else if (parser_opt->token.type == TOKEN_FLOAT ||
+               parser_opt->token.type == TOKEN_INT ||
                parser_opt->token.type == TOKEN_STRING ||
                parser_opt->token.type == TOKEN_KEYWORD_NIL) {
         return _arg_val(parser_opt);
