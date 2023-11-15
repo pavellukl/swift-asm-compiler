@@ -57,18 +57,18 @@ bool _token_to_list_item(ParserOptions *parser_opt, TokenData token,
         case TOKEN_NIL_COALESCING:
             item->type = TERMINAL_NIL_COALESCING;
             break;
-        // case TOKEN_KEYWORD_TRUE:
-        //     item->type = TERMINAL_KEYWORD_TRUE;
-        //     break;
-        // case TOKEN_KEYWORD_FALSE:
-        //     item->type = TERMINAL_KEYWORD_FALSE;
-        //     break;
-        // case TOKEN_IDENTIF:
-        //     item->type = TERMINAL_IDENTIF;
-        //     break;
-        // case TOKEN_NUMBER:
-        //     item->type = TERMINAL_NUMBER;
-        //     break;
+        case TOKEN_KEYWORD_TRUE:
+            item->type = TERMINAL_KEYWORD_TRUE;
+            break;
+        case TOKEN_KEYWORD_FALSE:
+            item->type = TERMINAL_KEYWORD_FALSE;
+            break;
+        case TOKEN_IDENTIF:
+            item->type = TERMINAL_IDENTIF;
+            break;
+        case TOKEN_NUMBER:
+            item->type = TERMINAL_NUMBER;
+            break;
         case TOKEN_STRING:
             item->type = TERMINAL_STRING;
             break;
