@@ -51,7 +51,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     // first run
     parser_opt.is_first_run = true;
     PRINTF_STDDEBUG("running compiler2\n");
-    parse_check_optimize_generate(&parser_opt);
+    parse_function_definition(&parser_opt);
     PRINTF_STDDEBUG("running compiler3\n");
     switch (parser_opt.return_code) {
         case OK:

@@ -41,8 +41,8 @@ bool _program(ParserOptions *parser_opt) {
 }
 
 bool _function_definition(ParserOptions *parser_opt) {
-    //! in first run generate function
-    //! in second run do not generate
+    //! in first run generate function and don't run semantic check
+    //! in second run do not generate and run semantic check
     //! view 'parser_opt->is_first_run' for info about run
     if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
         // initialize parameter array
@@ -54,6 +54,7 @@ bool _function_definition(ParserOptions *parser_opt) {
             return false;
         }
 
+        // TODO refactor parameter array into semantic_analyzer
         parser_opt->variables.new_identif.value.parameters.size = 0;
         parser_opt->variables.new_identif.value.parameters.capacity =
             PARAM_ARR_INITIAL_N_ITEMS;
@@ -65,10 +66,6 @@ bool _function_definition(ParserOptions *parser_opt) {
                 parser_opt->variables.new_identif.defined_value = true;
                 parser_opt->variables.new_identif.variant = FUNCTION;
 
-                // semantically check function
-                analyze_function_dec(parser_opt);
-                // TODO check semantic return code
-
                 // add function to symtable
                 STError res = st_add_element(
                     parser_opt->symtable,
@@ -78,15 +75,21 @@ bool _function_definition(ParserOptions *parser_opt) {
                     &(parser_opt->variables.new_identif.value));
 
                 if (res != E_OK) {
+                    // TODO
                     free(parser_opt->variables.new_identif.value.parameters
                              .parameters_arr);
                     parser_opt->return_code = INTER_ERR;
                     return false;
                 }
+            } else {
+                // semantically check function if on second run
+                analyze_function_dec(parser_opt);
+                // TODO check semantic return code
             }
 
             // TODO generate function in target code
 
+            // TODO
             // free helper parameter array
             free(parser_opt->variables.new_identif.value.parameters
                      .parameters_arr);
@@ -94,6 +97,7 @@ bool _function_definition(ParserOptions *parser_opt) {
             return true;
         };
 
+        // TODO
         // free helper parameter array
         free(parser_opt->variables.new_identif.value.parameters.parameters_arr);
 
@@ -685,6 +689,33 @@ bool _arg_val(ParserOptions *parser_opt) {
     }
     parser_opt->return_code = STX_ERR;
     return false;
+}
+
+void parse_function_definition(ParserOptions *parser_opt) {
+    // get first token
+    if (!_next_token(parser_opt)) return;
+
+    while (true) {
+        // search functions and EOF
+        while (parser_opt->token.type != TOKEN_KEYWORD_FUNC &&
+               parser_opt->token.type != TOKEN_END_OF_FILE) {
+            _next_token(parser_opt);
+        }
+        // if EOF -> end with success
+        if (parser_opt->token.type == TOKEN_END_OF_FILE) {
+            parser_opt->return_code = OK;
+            return;
+        };
+
+        // operate upon function definition
+        _function_definition(parser_opt);
+        switch (parser_opt->return_code) {
+            case OK:
+                break;
+            default:
+                return;
+        }
+    }
 }
 
 void parse_check_optimize_generate(ParserOptions *parser_opt) {
