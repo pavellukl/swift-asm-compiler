@@ -12,7 +12,8 @@ typedef enum {
     T_STRING,
     T_STRING_NIL,
     T_BOOL,
-    T_BOOL_NIL
+    T_BOOL_NIL,
+    T_NIL
 } Type;
 
 typedef enum { CONSTANT, VARIABLE, FUNCTION } Variant;

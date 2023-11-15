@@ -3,6 +3,7 @@
 
 #include "../../../helpers/list.h"
 #include "../../../scanner/StackTokenData/StackTokenData.h"
+#include "../../../symtable/ListST/ListST.h"
 
 /** 
  * @brief List item type. Some of those values are used for indexing in
@@ -13,10 +14,10 @@ typedef enum {
     TERMINAL_EQUAL, TERMINAL_NOT_EQUAL, TERMINAL_LESSER, TERMINAL_LESSER_EQUAL,
     TERMINAL_GREATER, TERMINAL_GREATER_EQUAL, TERMINAL_AND, TERMINAL_OR,
     TERMINAL_EXCL_MARK, TERMINAL_NOT, TERMINAL_NIL_COALESCING,
-    TERMINAL_KEYWORD_TRUE, TERMINAL_KEYWORD_FALSE, TERMINAL_IDENTIF,
-    TERMINAL_NUMBER, TERMINAL_STRING, TERMINAL_KEYWORD_NIL, TERMINAL_L_BRACKET,
+    TERMINAL_BOOL, TERMINAL_IDENTIF,TERMINAL_INT, TERMINAL_FLOAT,
+    TERMINAL_STRING, TERMINAL_KEYWORD_NIL, TERMINAL_L_BRACKET,
     TERMINAL_R_BRACKET, TERMINAL_EMPTY, NONTERMINAL_EXPRESSION, FLAG_HANDLE
-} ASTItemType;
+} PPListItemType;
 
 /** @brief Represents an item in the precedence list. */
 typedef struct ASTNode {
@@ -26,8 +27,9 @@ typedef struct ASTNode {
 } ASTNode;
 
 typedef struct {
-    ASTItemType type;
-    ASTNode node;
+    PPListItemType pp_type;
+    Type data_type;
+    ASTNode *node;
 } PPListItem;
 
 LIST_DEC(PPListItem, PP, pp)

@@ -121,7 +121,7 @@ typedef enum { LIST_OK, LIST_NOT_ACTIVE, LIST_ALLOC_ERR } ListReturnCode;
      * @param list Pointer to the list to operate upon.                        \
      * @param data Pointer to the result variable.                             \
      * @return true On success.                                                \
-     * @return false If list is empty.                                         \
+     * @return false If list has no active member.                             \
      */                                                                        \
     bool list_##TNAME_SNAKE##_get_value(List##TNAME_PASCAL *list, T *data);    \
                                                                                \
