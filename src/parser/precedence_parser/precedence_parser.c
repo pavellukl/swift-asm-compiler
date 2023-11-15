@@ -88,7 +88,7 @@ bool _get_token_types(TokenData token, ParserOptions *parser_opt, PPListItemType
             return true;
         case TOKEN_IDENTIF:
             *pp_type = TERMINAL_IDENTIF;
-            LSTElement *el = st_search_element(parser_opt, token.value.string);
+            LSTElement *el = st_search_element(parser_opt->symtable, token.value.string);
             if (el == NULL || (el->variant != FUNCTION && el->defined_value == false)) {
                 parser_opt->return_code = UNDEFVAR_ERR;
                 return false;
@@ -158,8 +158,8 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem *items, int rule_r
             new_item->node->token = items[2].node->token;
             new_item->node->left = NULL;
             new_item->node->right = NULL;
-            if (items[2].pp_type = TERMINAL_IDENTIF) {
-                LSTElement *el = st_search_element(parser_opt, items[2].node->token.value.string);
+            if (items[2].pp_type == TERMINAL_IDENTIF) {
+                LSTElement *el = st_search_element(parser_opt->symtable, items[2].node->token.value.string);
                 if (el == NULL) {
                     parser_opt->return_code = UNDEFVAR_ERR;
                     return false;
@@ -188,7 +188,7 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem *items, int rule_r
                 // no data type tests (every data type is ok)
                 // build new_item
                 *new_item = items[1];
-                _remove_nillable(&new_item->data_type);
+                _remove_nilable(&new_item->data_type);
             }
             break;
         case 3:
@@ -245,13 +245,20 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem *items, int rule_r
                         // both should be of the same type (int and float are same)
                         // operands can't be nilable type (not nil as well)
                         // operands can't be bool
-                        if (_is_nilable_type(items[0].data_type) ||
-                            _is_nilable_type(items[2].data_type ||
-                            items[0].data_type == T_BOOL)) {
+                        if ((items[0].data_type != items[2].data_type)
+                            &&
+                            (!_is_number_type(items[0].data_type) ||
+                            !_is_number_type(items[2].data_type))) {
                             parser_opt->return_code = EXPRTYPE_ERR;
                             return false;
                         }
-                        // rest of the checks is done by following tokens
+                        if (_is_nilable_type(items[0].data_type) ||
+                            _is_nilable_type(items[2].data_type) ||
+                            items[0].data_type == T_BOOL) {
+                            parser_opt->return_code = EXPRTYPE_ERR;
+                            return false;
+                        }
+                        break;
                     case TOKEN_EQUAL:
                     case TOKEN_NOT_EQUAL:
                         // both should be of the same type (int and float are same)
@@ -281,12 +288,15 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem *items, int rule_r
                         // operands can't be nil
                         if (items[0].data_type == T_NIL ||
                             items[0].data_type !=
-                                _remove_nilable(items[2].data_type)) {
+                                _remove_nilable(&items[2].data_type)) {
                             parser_opt->return_code = EXPRTYPE_ERR;
                             return false;
                         }
                         new_item->data_type = items[2].data_type;
                         break;
+                    default:
+                        parser_opt->return_code = STX_ERR;
+                        return false;
                 }
 
                 // build new_item (data type already set)
@@ -372,7 +382,7 @@ int _calculate_rule_r_size(ParserOptions *parser_opt, ListPP *list, int *size) {
     list_pp_first(list);
     list_pp_get_value(list, &item);
     while (item.pp_type != FLAG_HANDLE && item.pp_type != TERMINAL_EMPTY ) {
-        *size++;
+        (*size)++;
         list_pp_next(list);
         list_pp_get_value(list, &item);
     }
@@ -395,10 +405,8 @@ bool _reduce_list_until_handle(ParserOptions *parser_opt, ListPP *list) {
     PPListItem items[3];
     list_pp_first(list);
     list_pp_get_value(list, &items[3]);
-    PPListItem item1;
     list_pp_next(list);
     list_pp_get_value(list, &items[2]);
-    PPListItem item0;
     list_pp_next(list);
     list_pp_get_value(list, &items[2]);
 
@@ -469,6 +477,7 @@ bool _token_to_list_item(ParserOptions *parser_opt, TokenData token, PPListItem 
     item->node->token = token;
     item->node->left = NULL;
     item->node->right = NULL;
+    return true;
 }
 
 bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
