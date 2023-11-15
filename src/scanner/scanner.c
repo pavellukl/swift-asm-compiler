@@ -1,5 +1,3 @@
-#include "scanner.h"
-
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -7,64 +5,66 @@
 #include <string.h>
 #include <unistd.h>
 
+#include "scanner_func.h"
+
 TokenData is_keyword(char* keyword) {
-    if (strcmp(keyword, "Double") == 0){
-        return (TokenData){.type = TOKEN_KEYWORD_DOUBLE,};
+    if (strcmp(keyword, "Double") == 0) {
+        return (TokenData){
+            .type = TOKEN_KEYWORD_DOUBLE,
+        };
     }
-    if (strcmp(keyword, "Double?") == 0){
+    if (strcmp(keyword, "Double?") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_DOUBLE_NIL};
     }
-    if (strcmp(keyword, "else") == 0){
+    if (strcmp(keyword, "else") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_ELSE};
-    }   
-    if (strcmp(keyword, "func") == 0){
+    }
+    if (strcmp(keyword, "func") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_FUNC};
-    }   
-    if (strcmp(keyword, "if") == 0){
+    }
+    if (strcmp(keyword, "if") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_IF};
-    }   
-    if (strcmp(keyword, "Int") == 0){
+    }
+    if (strcmp(keyword, "Int") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_INT};
     }
-    if (strcmp(keyword, "Int?") == 0){
+    if (strcmp(keyword, "Int?") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_INT_NIL};
-    }    
-    if (strcmp(keyword, "let") == 0){
+    }
+    if (strcmp(keyword, "let") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_LET};
-    }   
-    if (strcmp(keyword, "nil") == 0){
+    }
+    if (strcmp(keyword, "nil") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_NIL};
     }
-    if (strcmp(keyword, "return") == 0){
+    if (strcmp(keyword, "return") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_RETURN};
-    }   
-    if (strcmp(keyword, "String") == 0){
+    }
+    if (strcmp(keyword, "String") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_STRING};
-    } 
-    if (strcmp(keyword, "String?") == 0){
+    }
+    if (strcmp(keyword, "String?") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_STRING_NIL};
-    }  
-    if (strcmp(keyword, "var") == 0){
+    }
+    if (strcmp(keyword, "var") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_VAR};
-    }   
-    if (strcmp(keyword, "while") == 0){
+    }
+    if (strcmp(keyword, "while") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_WHILE};
     }
-    if (strcmp(keyword, "true") == 0){
-        return (TokenData){.type = TOKEN_BOOL,
-                           .value.boolean = true};
+    if (strcmp(keyword, "true") == 0) {
+        return (TokenData){.type = TOKEN_BOOL, .value.boolean = true};
     }
-    if (strcmp(keyword, "false") == 0){
-        return (TokenData){.type = TOKEN_BOOL,
-                           .value.boolean = false};
+    if (strcmp(keyword, "false") == 0) {
+        return (TokenData){.type = TOKEN_BOOL, .value.boolean = false};
     }
-    if (strcmp(keyword, "Bool") == 0){
+    if (strcmp(keyword, "Bool") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_BOOL};
     }
-    if (strcmp(keyword, "Bool?") == 0){
+    if (strcmp(keyword, "Bool?") == 0) {
         return (TokenData){.type = TOKEN_KEYWORD_BOOL_NIL};
     }
-        
+
     return (TokenData){.type = TOKEN_IDENTIF};
 }
 
@@ -146,7 +146,7 @@ int get_next_char(ScannerOptions* opt) {
     }
 }
 
-bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
+bool get_next_token(ParserOptions* parser_opt) {
     PRINTF_STDDEBUG("CALL\n");
     TokenData token;
     AutomatState current_state = START;
@@ -157,7 +157,7 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
     char unicode_buf[9];  // Holds up to 8 hexadecimal digits + null terminator.
     int unicode_index = 0;
 
-    char current_char = get_next_char(opt);
+    char current_char = get_next_char(&parser_opt->sc_opt);
     char next_char;
 
     int block_comment_count = 0;
@@ -168,9 +168,9 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
         PRINTF_STDDEBUG("STATE: %d, working with CHAR: %c(%d)\n ",
                         current_state, current_char, current_char);
 
-        switch(current_state){
+        switch (current_state) {
             case START:
-                switch(current_char) {
+                switch (current_char) {
                     case '/':
                         current_state = DIV;
                         break;
@@ -180,23 +180,23 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     case '-':
                         current_state = SUB;
                         break;
-                    
+
                     case '*':
                         current_state = MUL;
                         break;
-                    
+
                     case '!':
                         current_state = EXCL_MARK;
                         break;
-                    
+
                     case '=':
                         current_state = ASSIGN;
                         break;
-                    
+
                     case '>':
                         current_state = GREATER;
                         break;
-                    
+
                     case '<':
                         current_state = LESSER;
                         break;
@@ -204,15 +204,15 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     case '(':
                         current_state = L_BRACKET;
                         break;
-                    
+
                     case ')':
                         current_state = R_BRACKET;
                         break;
-                    
+
                     case '{':
                         current_state = L_CRLY_BRACKET;
                         break;
-                    
+
                     case '}':
                         current_state = R_CRLY_BRACKET;
                         break;
@@ -224,19 +224,19 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     case ',':
                         current_state = COMA;
                         break;
-                    
+
                     case '?':
                         current_state = QUESTION_MARK;
                         break;
-                    
+
                     case '_':
                         current_state = UNDERSCORE;
                         break;
-                    
+
                     case '|':
                         current_state = OR;
                         break;
-                    
+
                     case '&':
                         current_state = AND;
                         break;
@@ -249,25 +249,25 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     case '\r':
                         current_state = WHITE_SPACE;
                         break;
-                    
+
                     case '\n':
                         new_line_before_token = true;
-                        opt->line_counter++;
-                        current_char = get_next_char(opt);
+                        parser_opt->sc_opt.line_counter++;
+                        current_char = get_next_char(&parser_opt->sc_opt);
                         current_state = START;
                         break;
-                    
+
                     case EOF:
                         current_state = END_OF_FILE;
                         break;
 
                     case '"':
-                        current_char = get_next_char(opt);
+                        current_char = get_next_char(&parser_opt->sc_opt);
                         current_state = STRING;
                         break;
 
                     default:
-                        if(isdigit(current_char)) {
+                        if (isdigit(current_char)) {
                             current_state = NUM;
                         } else if (isalpha(current_char)) {
                             current_state = IDENTIF;
@@ -278,9 +278,9 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                         break;
                 }
                 break;
-            
+
             case DIV:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '/') {
                     current_state = LINE_COMMENT;
                 } else if (next_char == '*') {
@@ -288,45 +288,47 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     block_comment_count++;
                 } else {
                     token.type = TOKEN_DIV;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
-                    opt->i--;
+                    token.id = parser_opt->sc_opt.id_counter++;
+                    parser_opt->sc_opt.i--;
                     parser_opt->token = token;
                     return true;
                 }
                 break;
-            
+
             case LINE_COMMENT:
-                while (((next_char = get_next_char(opt)) != '\n') && 
+                while (((next_char = get_next_char(&parser_opt->sc_opt)) !=
+                        '\n') &&
                        (next_char != EOF)) {
-                    //skipping characters
+                    // skipping characters
                 }
                 if (next_char == EOF) {
-                    opt->i--;
+                    parser_opt->sc_opt.i--;
                 }
                 token.type = TOKEN_LINE_COMMENT;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
-            
+
             case BLOCK_COMMENT:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 while (next_char != EOF) {
                     if (next_char == '*') {
                         current_state = BLOCK_COMMENT_END;
                     } else if (next_char == '/') {
-                        char next_char_peek = get_next_char(opt);
+                        char next_char_peek =
+                            get_next_char(&parser_opt->sc_opt);
                         if (next_char_peek == '*') {
                             block_comment_count++;
                         } else {
-                            opt->i--;
+                            parser_opt->sc_opt.i--;
                         }
                     }
                     if (current_state == BLOCK_COMMENT) {
-                        next_char = get_next_char(opt);
+                        next_char = get_next_char(&parser_opt->sc_opt);
                     } else {
                         break;
                     }
@@ -337,21 +339,21 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     return false;
                 }
                 break;
-            
+
             case BLOCK_COMMENT_END:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '/') {
                     block_comment_count--;
                     if (block_comment_count == 0) {
                         token.type = TOKEN_BLOCK_COMMENT;
-                        token.line_index = opt->line_counter;
+                        token.line_index = parser_opt->sc_opt.line_counter;
                         token.eol_before = new_line_before_token;
-                        token.id = opt->id_counter++;
+                        token.id = parser_opt->sc_opt.id_counter++;
                         parser_opt->token = token;
                         return true;
                     } else {
                         current_state = BLOCK_COMMENT;
-                        next_char = get_next_char(opt);
+                        next_char = get_next_char(&parser_opt->sc_opt);
                     }
                 } else {
                     if (next_char != '*') {
@@ -359,64 +361,64 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     }
                 }
                 break;
-            
+
             case ADD:
                 token.type = TOKEN_ADD;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
 
             case SUB:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '>') {
                     current_state = ARROW;
                 } else {
                     token.type = TOKEN_SUB;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
-                    opt->i--;
+                    token.id = parser_opt->sc_opt.id_counter++;
+                    parser_opt->sc_opt.i--;
                     parser_opt->token = token;
                     return true;
                 }
                 break;
-            
+
             case ARROW:
                 token.type = TOKEN_ARROW;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
-            
+
             case MUL:
                 token.type = TOKEN_MUL;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
-            
+
             case EXCL_MARK:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '=') {
                     current_state = NOT_EQUAL;
-                } else if (isalpha(next_char) || next_char == '_'){
+                } else if (isalpha(next_char) || next_char == '_') {
                     token.type = TOKEN_NOT;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
-                    opt->i--;
+                    token.id = parser_opt->sc_opt.id_counter++;
+                    parser_opt->sc_opt.i--;
                     parser_opt->token = token;
                     return true;
                 } else {
                     token.type = TOKEN_EXCL_MARK;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
-                    opt->i--;
+                    token.id = parser_opt->sc_opt.id_counter++;
+                    parser_opt->sc_opt.i--;
                     parser_opt->token = token;
                     return true;
                 }
@@ -424,22 +426,22 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
 
             case NOT_EQUAL:
                 token.type = TOKEN_NOT_EQUAL;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
 
             case ASSIGN:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '=') {
                     current_state = EQUAL;
                 } else {
                     token.type = TOKEN_ASSIGN;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
-                    opt->i--;
+                    token.id = parser_opt->sc_opt.id_counter++;
+                    parser_opt->sc_opt.i--;
                     parser_opt->token = token;
                     return true;
                 }
@@ -447,126 +449,126 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
 
             case EQUAL:
                 token.type = TOKEN_EQUAL;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
 
             case GREATER:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '=') {
                     current_state = GREATER_EQUAL;
                 } else {
                     token.type = TOKEN_GREATER;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
-                    opt->i--;
+                    token.id = parser_opt->sc_opt.id_counter++;
+                    parser_opt->sc_opt.i--;
                     parser_opt->token = token;
                     return true;
                 }
                 break;
 
             case LESSER:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '=') {
                     current_state = LESSER_EQUAL;
                 } else {
                     token.type = TOKEN_LESSER;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
-                    opt->i--;
+                    token.id = parser_opt->sc_opt.id_counter++;
+                    parser_opt->sc_opt.i--;
                     parser_opt->token = token;
                     return true;
                 }
                 break;
-            
+
             case GREATER_EQUAL:
                 token.type = TOKEN_GREATER_EQUAL;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
-            
+
             case LESSER_EQUAL:
                 token.type = TOKEN_LESSER_EQUAL;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
-            
+
             case L_BRACKET:
                 token.type = TOKEN_L_BRACKET;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
 
             case R_BRACKET:
                 token.type = TOKEN_R_BRACKET;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
 
             case L_CRLY_BRACKET:
                 token.type = TOKEN_L_CRLY_BRACKET;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
 
             case R_CRLY_BRACKET:
                 token.type = TOKEN_R_CRLY_BRACKET;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
 
             case COLON:
                 token.type = TOKEN_COLON;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
 
             case COMA:
                 token.type = TOKEN_COMA;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
-            
+
             case UNDERSCORE:
-                next_char = get_next_char(opt);
-                if (next_char == ' ' || next_char == ':'){
+                next_char = get_next_char(&parser_opt->sc_opt);
+                if (next_char == ' ' || next_char == ':') {
                     token.type = TOKEN_UNDERSCORE;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
+                    token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
                     return true;
                 } else {
-                    opt->i--;
+                    parser_opt->sc_opt.i--;
                     current_state = IDENTIF;
                 }
                 break;
-            
+
             case IDENTIF:
-                while (isalpha(current_char) || current_char == '_' || 
+                while (isalpha(current_char) || current_char == '_' ||
                        isdigit(current_char)) {
                     b_buffer[buffer_index++] = current_char;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 }
                 b_buffer[buffer_index] = '\0';
 
@@ -575,72 +577,72 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     b_buffer[buffer_index] = '\0';
                     token = is_keyword(b_buffer);
                     if (token.type != TOKEN_IDENTIF) {
-                        token.line_index = opt->line_counter;
+                        token.line_index = parser_opt->sc_opt.line_counter;
                         token.eol_before = new_line_before_token;
-                        token.id = opt->id_counter++;
+                        token.id = parser_opt->sc_opt.id_counter++;
                         parser_opt->token = token;
                         return true;
-                    } else {  
+                    } else {
                         // ERROR: identifier (not keyword) with '?' suffix
                         parser_opt->return_code = LEX_ERR;
                         return false;
                     }
                 }
 
-                opt->i--;
+                parser_opt->sc_opt.i--;
                 token = is_keyword(b_buffer);
                 if (token.type != TOKEN_IDENTIF) {
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
+                    token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
                     return true;
                 } else {
-                    token.value.string = 
+                    token.value.string =
                         (char*)malloc(sizeof(char) * (strlen(b_buffer) + 1));
-                    if (token.value.string == NULL){
+                    if (token.value.string == NULL) {
                         parser_opt->return_code = INTER_ERR;
                         return false;
                     }
                     strcpy(token.value.string, b_buffer);
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
+                    token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
                     return true;
                 }
                 break;
 
-            case NUM: // Whole part
+            case NUM:  // Whole part
                 if (isdigit(current_char)) {
                     b_buffer[buffer_index++] = current_char;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else if (current_char == '.') {
                     b_buffer[buffer_index++] = current_char;
                     current_state = DECIMAL_POINT;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else if (current_char == 'e' || current_char == 'E') {
                     b_buffer[buffer_index++] = current_char;
                     current_state = EXP_MARK;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
                     b_buffer[buffer_index] = '\0';
-                    opt->i--;
+                    parser_opt->sc_opt.i--;
                     token.type = TOKEN_INT;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.value.int_value = strtol(b_buffer, NULL, 10);
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
+                    token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
                     return true;
                 }
                 break;
 
-            case DECIMAL_POINT: // Decimal point
+            case DECIMAL_POINT:  // Decimal point
                 if (isdigit(current_char)) {
                     b_buffer[buffer_index++] = current_char;
                     current_state = DECIMAL_VALUE;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
                     // Error: Decimal point not followed by digits
                     parser_opt->return_code = LEX_ERR;
@@ -648,36 +650,36 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                 }
                 break;
 
-            case DECIMAL_VALUE: // Decimal part
+            case DECIMAL_VALUE:  // Decimal part
                 if (isdigit(current_char)) {
                     b_buffer[buffer_index++] = current_char;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else if (current_char == 'e' || current_char == 'E') {
                     b_buffer[buffer_index++] = current_char;
                     current_state = EXP_MARK;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
                     b_buffer[buffer_index] = '\0';
-                    opt->i--;
+                    parser_opt->sc_opt.i--;
                     token.type = TOKEN_FLOAT;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.value.float_value = strtod(b_buffer, NULL);
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
+                    token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
                     return true;
                 }
                 break;
 
-            case EXP_MARK: // Exponent marker e/E
+            case EXP_MARK:  // Exponent marker e/E
                 if (current_char == '+' || current_char == '-') {
                     b_buffer[buffer_index++] = current_char;
                     current_state = EXP_SIGN;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else if (isdigit(current_char)) {
                     b_buffer[buffer_index++] = current_char;
                     current_state = EXPONENT;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
                     // Error: Exponent marker not followed by sign or digits
                     parser_opt->return_code = LEX_ERR;
@@ -685,11 +687,11 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                 }
                 break;
 
-            case EXP_SIGN: // Sign after exponent marker +/-
+            case EXP_SIGN:  // Sign after exponent marker +/-
                 if (isdigit(current_char)) {
                     b_buffer[buffer_index++] = current_char;
                     current_state = EXPONENT;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
                     // Error: Exponent sign not followed by digits
                     parser_opt->return_code = LEX_ERR;
@@ -697,23 +699,23 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                 }
                 break;
 
-            case EXPONENT: // Exponent digits
+            case EXPONENT:  // Exponent digits
                 if (isdigit(current_char)) {
                     b_buffer[buffer_index++] = current_char;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
                     b_buffer[buffer_index] = '\0';
-                    opt->i--;
+                    parser_opt->sc_opt.i--;
                     token.type = TOKEN_FLOAT;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.value.float_value = strtod(b_buffer, NULL);
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
+                    token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
                     return true;
                 }
                 break;
-            
+
             case STRING:
                 if (current_char == '"') {
                     current_state = STRING_END;
@@ -723,7 +725,7 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                 } else {
                     b_buffer[buffer_index++] = current_char;
                 }
-                current_char = get_next_char(opt);
+                current_char = get_next_char(&parser_opt->sc_opt);
                 break;
 
             case ESCAPE_SEQUENCE:
@@ -740,7 +742,7 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     parser_opt->return_code = LEX_ERR;
                     return false;
                 }
-                current_char = get_next_char(opt);
+                current_char = get_next_char(&parser_opt->sc_opt);
                 break;
 
             case UNICODE_SEQUENCE:
@@ -751,17 +753,17 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     parser_opt->return_code = LEX_ERR;
                     return false;
                 }
-                current_char = get_next_char(opt);
+                current_char = get_next_char(&parser_opt->sc_opt);
                 break;
-            
+
             case UNICODE_VALUE:
                 while (isxdigit(current_char) && unicode_index < 8) {
                     unicode_buf[unicode_index++] = current_char;
-                    current_char = get_next_char(opt);
+                    current_char = get_next_char(&parser_opt->sc_opt);
                 }
                 unicode_buf[unicode_index] = '\0';
                 if (current_char == '}') {
-                    //to do
+                    // to do
                     strcat(b_buffer, unicode_buf);
                     buffer_index += unicode_index;
                     current_state = STRING;
@@ -770,91 +772,89 @@ bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt) {
                     parser_opt->return_code = LEX_ERR;
                     return false;
                 }
-                current_char = get_next_char(opt);
+                current_char = get_next_char(&parser_opt->sc_opt);
                 break;
-            
+
             case STRING_END:
                 b_buffer[buffer_index] = '\0';
                 token.type = TOKEN_STRING;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.value.string =
                     (char*)malloc(sizeof(char) * (strlen(b_buffer) + 1));
-                if (token.value.string == NULL){
+                if (token.value.string == NULL) {
                     parser_opt->return_code = INTER_ERR;
                     return false;
                 }
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 strcpy(token.value.string, b_buffer);
-                opt->i--;
+                parser_opt->sc_opt.i--;
                 parser_opt->token = token;
                 return true;
 
             case QUESTION_MARK:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '?') {
                     current_state = NIL_COALESCING;
                 } else {
-                    //ERROR: invalid character after ?
+                    // ERROR: invalid character after ?
                     parser_opt->return_code = LEX_ERR;
                     return false;
                 }
                 break;
-            
+
             case OR:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '|') {
                     token.type = TOKEN_OR;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
+                    token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
                     return true;
                 } else {
-                    //ERROR: invalid character after |
+                    // ERROR: invalid character after |
                     parser_opt->return_code = LEX_ERR;
                     return false;
                 }
                 break;
-            
+
             case AND:
-                next_char = get_next_char(opt);
+                next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '&') {
                     token.type = TOKEN_AND;
-                    token.line_index = opt->line_counter;
+                    token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
-                    token.id = opt->id_counter++;
+                    token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
                     return true;
                 } else {
-                    //ERROR: invalid character after &
+                    // ERROR: invalid character after &
                     parser_opt->return_code = LEX_ERR;
                     return false;
                 }
                 break;
-            
+
             case NIL_COALESCING:
                 token.type = TOKEN_NIL_COALESCING;
-                token.line_index = opt->line_counter;
+                token.line_index = parser_opt->sc_opt.line_counter;
                 token.eol_before = new_line_before_token;
-                token.id = opt->id_counter++;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
 
             case WHITE_SPACE:
-                new_line_before_token = _skip_whitespaces(opt);
-                current_char = get_next_char(opt);
+                new_line_before_token = _skip_whitespaces(&parser_opt->sc_opt);
+                current_char = get_next_char(&parser_opt->sc_opt);
                 current_state = START;
                 break;
 
-            
             case END_OF_FILE:
                 token.type = TOKEN_END_OF_FILE;
-                token.line_index = opt->line_counter;
-                token.id = opt->id_counter++;
+                token.line_index = parser_opt->sc_opt.line_counter;
+                token.id = parser_opt->sc_opt.id_counter++;
                 parser_opt->token = token;
                 return true;
-            
         }
     }
 }

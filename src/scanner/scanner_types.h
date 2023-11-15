@@ -1,15 +1,14 @@
-#ifndef SCANNER_H
-#define SCANNER_H
+#ifndef SCANNER_TYPES_H
+#define SCANNER_TYPES_H
 
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
 #include "StackTokenData/StackTokenData.h"
 #include "token.h"
-#include "../debug.h"
-#include "../parser/parser.h"
 
 typedef enum {
     START,
@@ -65,18 +64,4 @@ typedef struct {
     StackTokenData *returned_tokens;
 } ScannerOptions;
 
-TokenData is_keyword(char* keyword);
-
-bool _skip_whitespaces(ScannerOptions* opt);
-
-void scanner_opt_free(ScannerOptions *opt);
-
-bool scanner_opt_init(ScannerOptions *opt, FILE *file);
-
-void scanner_rewind_file(ScannerOptions *opt);
-
-int get_next_char(ScannerOptions* opt);
-
-bool get_next_token(ScannerOptions* opt, ParserOptions* parser_opt);
-
-#endif /* SCANNER_H */
+#endif /* SCANNER_TYPES_H */

@@ -1,7 +1,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
-#include "../scanner/scanner.h"
+#include "../scanner/scanner_types.h"
 #include "../symtable/symtable.h"
 
 typedef enum {
@@ -37,6 +37,8 @@ typedef struct {
     ParserVariables variables;
 } ParserOptions;
 
-void _next_token(ParserOptions *parser_opt);
+#include "../scanner/scanner_func.h"
+
+bool _next_token(ParserOptions *parser_opt);
 
 #endif /* PARSER_H */

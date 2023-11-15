@@ -1,6 +1,7 @@
 #include "precedence_parser.h"
 
-bool _token_to_list_item(ParserOptions *parser_opt, TokenData token, ASTNode *left, ASTNode *right, PPListItem *item) {
+bool _token_to_list_item(ParserOptions *parser_opt, TokenData token,
+                         ASTNode *left, ASTNode *right, PPListItem *item) {
     // TODO: remove after usage
     parser_opt = parser_opt;
 
@@ -10,8 +11,7 @@ bool _token_to_list_item(ParserOptions *parser_opt, TokenData token, ASTNode *le
     item->node.left = left;
     item->node.right = right;
 
-    switch (token.type)
-    {
+    switch (token.type) {
         case TOKEN_ADD:
             item->type = TERMINAL_ADD;
             break;
@@ -88,40 +88,33 @@ bool _token_to_list_item(ParserOptions *parser_opt, TokenData token, ASTNode *le
     return item;
 }
 
-
 bool _is_simple_expression(PPListItem item) {
-    return (item.type == TERMINAL_IDENTIF
-           || item.type == TERMINAL_NUMBER
-           || item.type == TERMINAL_STRING
-           || item.type == TERMINAL_KEYWORD_NIL
-           || item.type == TERMINAL_KEYWORD_TRUE
-           || item.type == TERMINAL_KEYWORD_FALSE);
+    return (item.type == TERMINAL_IDENTIF || item.type == TERMINAL_NUMBER ||
+            item.type == TERMINAL_STRING || item.type == TERMINAL_KEYWORD_NIL ||
+            item.type == TERMINAL_KEYWORD_TRUE ||
+            item.type == TERMINAL_KEYWORD_FALSE);
 }
 
 bool _is_binary_operator(PPListItem item) {
-    return (item.type == TERMINAL_ADD
-           || item.type == TERMINAL_SUB
-           || item.type == TERMINAL_MUL
-           || item.type == TERMINAL_DIV
-           || item.type == TERMINAL_EQUAL
-           || item.type == TERMINAL_NOT_EQUAL
-           || item.type == TERMINAL_LESSER
-           || item.type == TERMINAL_LESSER_EQUAL
-           || item.type == TERMINAL_GREATER
-           || item.type == TERMINAL_GREATER_EQUAL
-           || item.type == TERMINAL_AND
-           || item.type == TERMINAL_OR
-           || item.type == TERMINAL_NIL_COALESCING);
+    return (item.type == TERMINAL_ADD || item.type == TERMINAL_SUB ||
+            item.type == TERMINAL_MUL || item.type == TERMINAL_DIV ||
+            item.type == TERMINAL_EQUAL || item.type == TERMINAL_NOT_EQUAL ||
+            item.type == TERMINAL_LESSER ||
+            item.type == TERMINAL_LESSER_EQUAL ||
+            item.type == TERMINAL_GREATER ||
+            item.type == TERMINAL_GREATER_EQUAL || item.type == TERMINAL_AND ||
+            item.type == TERMINAL_OR || item.type == TERMINAL_NIL_COALESCING);
 }
 
-bool _get_rule_result(ParserOptions *parser_opt, ListPP *list, PPListItem *new_item) {
+bool _get_rule_result(ParserOptions *parser_opt, ListPP *list,
+                      PPListItem *new_item) {
     PPListItem last_item;
 
     // calculate the size of the right side of the rule
     int rule_right_side_size = 0;
     list_pp_first(list);
     list_pp_get_value(list, &last_item);
-    while (last_item.type != FLAG_HANDLE && last_item.type != TERMINAL_EMPTY ) {
+    while (last_item.type != FLAG_HANDLE && last_item.type != TERMINAL_EMPTY) {
         rule_right_side_size++;
         list_pp_next(list);
         list_pp_get_value(list, &last_item);
@@ -144,8 +137,7 @@ bool _get_rule_result(ParserOptions *parser_opt, ListPP *list, PPListItem *new_i
     list_pp_get_value(list, &last_item);
     PPListItem item0;
     PPListItem item1;
-    switch (rule_right_side_size)
-    {
+    switch (rule_right_side_size) {
         case 1:
             // format check
             if (!_is_simple_expression(last_item)) {
@@ -154,16 +146,17 @@ bool _get_rule_result(ParserOptions *parser_opt, ListPP *list, PPListItem *new_i
             }
             // new list item along with its AST node (E)
             if (!_token_to_list_item(parser_opt, last_item.node.token, NULL,
-                NULL, new_item)) return false;
+                                     NULL, new_item))
+                return false;
             break;
         case 2:
             list_pp_next(list);
             list_pp_get_value(list, &item0);
             // format check
-            if ((item0.type != NONTERMINAL_EXPRESSION
-                    || last_item.type != TERMINAL_EXCL_MARK)
-                && (item0.type != TERMINAL_NOT
-                    || last_item.type != NONTERMINAL_EXPRESSION)) {
+            if ((item0.type != NONTERMINAL_EXPRESSION ||
+                 last_item.type != TERMINAL_EXCL_MARK) &&
+                (item0.type != TERMINAL_NOT ||
+                 last_item.type != NONTERMINAL_EXPRESSION)) {
                 parser_opt->return_code = STX_ERR;
                 return false;
             }
@@ -171,11 +164,13 @@ bool _get_rule_result(ParserOptions *parser_opt, ListPP *list, PPListItem *new_i
             if (item0.type == TERMINAL_NOT) {
                 // TOKEN_NOT E
                 if (!_token_to_list_item(parser_opt, item0.node.token,
-                    &last_item.node, NULL, new_item)) return false;
+                                         &last_item.node, NULL, new_item))
+                    return false;
             } else {
                 // E TOKEN_EXCL_MARK
                 if (!_token_to_list_item(parser_opt, last_item.node.token,
-                    &item0.node, NULL, new_item)) return false;
+                                         &item0.node, NULL, new_item))
+                    return false;
             }
             break;
         case 3:
@@ -184,18 +179,19 @@ bool _get_rule_result(ParserOptions *parser_opt, ListPP *list, PPListItem *new_i
             list_pp_next(list);
             list_pp_get_value(list, &item0);
             // format check
-            if ((item0.type != TERMINAL_L_BRACKET
-                    || item1.type != NONTERMINAL_EXPRESSION
-                    || last_item.type != TERMINAL_R_BRACKET)
-                && (item0.type != NONTERMINAL_EXPRESSION
-                    || !_is_binary_operator(item1)
-                    || last_item.type != NONTERMINAL_EXPRESSION)) {
+            if ((item0.type != TERMINAL_L_BRACKET ||
+                 item1.type != NONTERMINAL_EXPRESSION ||
+                 last_item.type != TERMINAL_R_BRACKET) &&
+                (item0.type != NONTERMINAL_EXPRESSION ||
+                 !_is_binary_operator(item1) ||
+                 last_item.type != NONTERMINAL_EXPRESSION)) {
                 parser_opt->return_code = STX_ERR;
                 return false;
             }
             // new list item along with its AST node (E OPERATOR E)
-            if(!_token_to_list_item(parser_opt, item1.node.token, &item0.node,
-                &last_item.node, new_item)) return false;
+            if (!_token_to_list_item(parser_opt, item1.node.token, &item0.node,
+                                     &last_item.node, new_item))
+                return false;
             break;
     }
 
@@ -214,9 +210,9 @@ bool _apply_rule(ParserOptions *parser_opt, ListPP *list) {
         list_pp_delete_first(list);
         list_pp_get_first(list, &item);
     }
-    list_pp_delete_first(list); // deletes handle
+    list_pp_delete_first(list);  // deletes handle
 
-    // add result of the rule to the list 
+    // add result of the rule to the list
     list_pp_insert_first(list, new_item);
 
     return true;
@@ -247,7 +243,7 @@ PPListItem _get_first_terminal(ListPP *list) {
 
     list_pp_first(list);
     list_pp_get_value(list, &item);
-    while (item.type == NONTERMINAL_EXPRESSION || item.type == FLAG_HANDLE ) {
+    while (item.type == NONTERMINAL_EXPRESSION || item.type == FLAG_HANDLE) {
         list_pp_next(list);
         list_pp_get_value(list, &item);
     }
@@ -261,39 +257,37 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
     // initialization
     ListPP list;
     list_pp_init(&list);
-    PPListItem empty_item = { .type = TERMINAL_EMPTY };
-    PPListItem handle_item = { .type = FLAG_HANDLE };
+    PPListItem empty_item = {.type = TERMINAL_EMPTY};
+    PPListItem handle_item = {.type = FLAG_HANDLE};
     list_pp_insert_first(&list, empty_item);
 
     // get first terminal along with its AST node
     PPListItem terminal;
-    if(!_token_to_list_item(parser_opt, parser_opt->token, NULL, NULL,
-       &terminal)) {
+    if (!_token_to_list_item(parser_opt, parser_opt->token, NULL, NULL,
+                             &terminal)) {
         list_pp_dispose(&list);
         return false;
     }
 
     // parse and check expression, build abstract syntax tree
-    while (terminal.type != TERMINAL_EMPTY
-           || !_list_contains_done_sequence(&list))
-    {
+    while (terminal.type != TERMINAL_EMPTY ||
+           !_list_contains_done_sequence(&list)) {
         // look in the precedence table and perform given action
-        switch (pp_table[_get_first_terminal(&list).type][terminal.type])
-        {
-            case PP_HANDLE_SHIFT: // <
+        switch (pp_table[_get_first_terminal(&list).type][terminal.type]) {
+            case PP_HANDLE_SHIFT:  // <
                 list_pp_insert_before(&list, handle_item);
                 list_pp_insert_first(&list, terminal);
                 break;
-            case PP_REDUCE: // >
+            case PP_REDUCE:  // >
                 if (!_apply_rule(parser_opt, &list)) {
                     list_pp_dispose(&list);
                     return false;
                 }
                 continue;
-            case PP_SHIFT_REDUCE: // =
+            case PP_SHIFT_REDUCE:  // =
                 list_pp_insert_first(&list, terminal);
                 break;
-            case PP_ERROR: // ERR
+            case PP_ERROR:  // ERR
                 parser_opt->return_code = STX_ERR;
                 list_pp_dispose(&list);
                 return false;
@@ -301,8 +295,8 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
 
         // get next terminal along with its AST node
         _next_token(parser_opt);
-        if(!_token_to_list_item(parser_opt, parser_opt->token, NULL, NULL,
-           &terminal)) {
+        if (!_token_to_list_item(parser_opt, parser_opt->token, NULL, NULL,
+                                 &terminal)) {
             list_pp_dispose(&list);
             return false;
         }
@@ -318,7 +312,7 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
     // generate expression
     // TODO: generate expression from abstract syntax tree
     ast = ast;
-    
+
     list_pp_dispose(&list);
     return true;
 }

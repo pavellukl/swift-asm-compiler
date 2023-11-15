@@ -1,6 +1,7 @@
 #ifndef RECURSIVE_PARSER_H
 #define RECURSIVE_PARSER_H
 
+#include "../../semantic_analyser/semantic_analyser.h"
 #include "../parser.h"
 #include "../precedence_parser/precedence_parser.h"
 
