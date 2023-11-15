@@ -316,9 +316,6 @@ bool __identif(ParserOptions *parser_opt) {
 
         if (is_function) {
             return _function_call(parser_opt);
-        } else if (parser_opt->token.type == TOKEN_KEYWORD_NIL) {
-            if (!_next_token(parser_opt)) return false;
-            return true;
         } else {
             return parse_check_optimize_generate_expression(parser_opt);
         }
@@ -391,11 +388,6 @@ bool __return(ParserOptions *parser_opt) {
         return true;
     }
 
-    if (parser_opt->token.type == TOKEN_KEYWORD_NIL) {
-        if (!_next_token(parser_opt)) return false;
-        return true;
-    }
-
     return parse_check_optimize_generate_expression(parser_opt);
 }
 
@@ -434,9 +426,6 @@ bool __varlet_identif(ParserOptions *parser_opt) {
 
         if (is_function) {
             return _function_call(parser_opt);
-        } else if (parser_opt->token.type == TOKEN_KEYWORD_NIL) {
-            if (!_next_token(parser_opt)) return false;
-            return true;
         } else {
             return parse_check_optimize_generate_expression(parser_opt);
         }
