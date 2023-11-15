@@ -8,6 +8,7 @@
 #include "../debug.h"
 #include "../parser/parser.h"
 #include "../parser/recursive_parser/recursive_parser.h"
+#include "../semantic_analyser/semantic_analyser.h"
 
 /// @brief Possible return values of compiler.
 typedef enum {

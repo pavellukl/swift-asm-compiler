@@ -41,29 +41,16 @@ bool _program(ParserOptions *parser_opt) {
 }
 
 bool _function_definition(ParserOptions *parser_opt) {
-    //! in first run generate function and don't run semantic check
-    //! in second run do not generate and run semantic check
-    //! view 'parser_opt->is_first_run' for info about run
+    //! in first run add function to symtable
+    //! in second run generate and run semantic check
     if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
-        // initialize parameter array
-        parser_opt->variables.new_identif.value.parameters.parameters_arr =
-            malloc(PARAM_ARR_INITIAL_N_ITEMS * sizeof(struct Parameter));
-        if (parser_opt->variables.new_identif.value.parameters.parameters_arr ==
-            NULL) {
-            parser_opt->return_code = INTER_ERR;
-            return false;
-        }
-
-        // TODO refactor parameter array into semantic_analyzer
-        parser_opt->variables.new_identif.value.parameters.size = 0;
-        parser_opt->variables.new_identif.value.parameters.capacity =
-            PARAM_ARR_INITIAL_N_ITEMS;
-        parser_opt->variables.new_identif.value.parameters.infinite = false;
+        // invalidate old parameter array before checking function
+        invalidate_parameter_array(
+            &parser_opt->variables.new_identif.value.parameters);
 
         if (_function_head(parser_opt) && _scope_body(parser_opt)) {
             // define function if identif is not in symtable and on first run
             if (parser_opt->is_first_run) {
-                parser_opt->variables.new_identif.defined_value = true;
                 parser_opt->variables.new_identif.variant = FUNCTION;
 
                 // add function to symtable
@@ -75,9 +62,6 @@ bool _function_definition(ParserOptions *parser_opt) {
                     &(parser_opt->variables.new_identif.value));
 
                 if (res != E_OK) {
-                    // TODO
-                    free(parser_opt->variables.new_identif.value.parameters
-                             .parameters_arr);
                     parser_opt->return_code = INTER_ERR;
                     return false;
                 }
@@ -85,22 +69,12 @@ bool _function_definition(ParserOptions *parser_opt) {
                 // semantically check function if on second run
                 analyze_function_dec(parser_opt);
                 // TODO check semantic return code
+
+                // TODO generate function in target code
             }
-
-            // TODO generate function in target code
-
-            // TODO
-            // free helper parameter array
-            free(parser_opt->variables.new_identif.value.parameters
-                     .parameters_arr);
 
             return true;
         };
-
-        // TODO
-        // free helper parameter array
-        free(parser_opt->variables.new_identif.value.parameters.parameters_arr);
-
         return false;
     }
 
@@ -118,6 +92,9 @@ bool _function_head(ParserOptions *parser_opt) {
         parser_opt->return_code = STX_ERR;
         return false;
     }
+
+    // TODO only get function identifier on second run and then find
+    // it in symtable
 
     // check symtable for identif
     LSTElement *el =
@@ -176,9 +153,6 @@ bool __func_identif_lbracket_arglist_rbracket(ParserOptions *parser_opt) {
 
 bool _param_list(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_R_BRACKET) {
-        // save that function has no parameters
-        parser_opt->variables.new_identif.value.parameters.size = 0;
-
         return true;
     } else if (parser_opt->token.type == TOKEN_IDENTIF ||
                parser_opt->token.type == TOKEN_UNDERSCORE) {
@@ -251,34 +225,10 @@ bool __param_name(ParserOptions *parser_opt) {
             parser_opt->variables.new_param.par_type =
                 parser_opt->variables.new_type;
 
-            // check if parameter array is out of capacity and reallocate
-            if (parser_opt->variables.new_identif.value.parameters.size ==
-                parser_opt->variables.new_identif.value.parameters.capacity) {
-                Parameter *buffer = realloc(
-                    parser_opt->variables.new_identif.value.parameters
-                        .parameters_arr,
-                    parser_opt->variables.new_identif.value.parameters.size *
-                        2 * sizeof(struct Parameter));
-                if (buffer == NULL) {
-                    free(parser_opt->variables.new_identif.value.parameters
-                             .parameters_arr);
-
-                    parser_opt->return_code = INTER_ERR;
-                    return false;
-                }
-
-                parser_opt->variables.new_identif.value.parameters
-                    .parameters_arr = buffer;
-                parser_opt->variables.new_identif.value.parameters.capacity *=
-                    2;
-            }
-
-            // add new param to param array
-            parser_opt->variables.new_identif.value.parameters.parameters_arr
-                [parser_opt->variables.new_identif.value.parameters.size] =
-                parser_opt->variables.new_param;
-
-            parser_opt->variables.new_identif.value.parameters.size++;
+            // add param to array
+            add_to_parameter_array(
+                &parser_opt->variables.new_identif.value.parameters,
+                parser_opt->variables.new_param);
 
             return true;
         }
