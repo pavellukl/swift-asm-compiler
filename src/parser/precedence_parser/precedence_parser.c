@@ -1,7 +1,7 @@
 #include "precedence_parser.h"
 
 void _free_AST(ASTNode *node) {
-    // TODO: free tokens
+    free_token(node->token);
     if (node->left != NULL) {
         _free_AST(node->left);
     }
@@ -22,7 +22,8 @@ void _free_pp_list(ListPP *list) {
     list_pp_dispose(list);
 }
 
-bool _get_token_types(ParserOptions *parser_opt, TokenData token,
+bool _get_token_types(ParserOptions *parser_opt,
+                      PPListItemType item_last_pp_type, TokenData token,
                       PPListItemType *pp_type, Type *data_type) {
     switch (token.type)
     {
@@ -88,15 +89,31 @@ bool _get_token_types(ParserOptions *parser_opt, TokenData token,
             *data_type = T_BOOL;
             return true;
         case TOKEN_IDENTIF:
+            // check for special end of expression with an identifier which does
+            // not fit syntactically - byt may fit outside of the expression
+            if (item_last_pp_type == TERMINAL_INT
+                || item_last_pp_type == TERMINAL_FLOAT
+                || item_last_pp_type == TERMINAL_STRING
+                || item_last_pp_type == TERMINAL_BOOL
+                || item_last_pp_type == TERMINAL_KEYWORD_NIL
+                || item_last_pp_type == TERMINAL_R_BRACKET) {
+                *pp_type = TERMINAL_EMPTY;
+                return true;
+            }
+            // it is identifier in the expression
             *pp_type = TERMINAL_IDENTIF;
             LSTElement *el =
                 st_search_element(parser_opt->symtable, token.value.string);
-            if (el == NULL
-                || (el->variant != FUNCTION && el->defined_value == false)) {
+            if (el == NULL) {
                 parser_opt->return_code = UNDEFVAR_ERR;
                 return false;
-            } else if (el->variant == FUNCTION) {
+            }
+            if (el->variant == FUNCTION) {
                 parser_opt->return_code = OTHER_ERR;
+                return false;
+            }
+            if (el->defined_value == false) {
+                parser_opt->return_code = UNDEFVAR_ERR;
                 return false;
             }
             *data_type = el->return_type;
@@ -112,6 +129,18 @@ bool _get_token_types(ParserOptions *parser_opt, TokenData token,
             *pp_type = TERMINAL_R_BRACKET;
             return true;
         default:
+            // check if the last read token was an operator - if so we expected
+            // an operand but got token which is not in expressions
+            // generally -> error
+            if (item_last_pp_type != TERMINAL_INT
+                || item_last_pp_type != TERMINAL_FLOAT
+                || item_last_pp_type != TERMINAL_STRING
+                || item_last_pp_type != TERMINAL_BOOL
+                || item_last_pp_type != TERMINAL_KEYWORD_NIL
+                || item_last_pp_type != TERMINAL_R_BRACKET) {
+                parser_opt->return_code = STX_ERR;
+                return false;
+            }
             *pp_type = TERMINAL_EMPTY;
             return true;
     }
@@ -325,9 +354,11 @@ PPListItem _get_first_terminal_item(ListPP list) {
     return item;
 }
 
-bool _token_to_pplist_item(ParserOptions *parser_opt, TokenData token,
-                         PPListItem *item) {
-    if (!_get_token_types(parser_opt, token, &item->pp_type, &item->data_type)){
+bool _token_to_pplist_item(ParserOptions *parser_opt,
+                           PPListItemType item_last_pp_type, TokenData token,
+                           PPListItem *item) {
+    if (!_get_token_types(parser_opt, item_last_pp_type, token, &item->pp_type,
+                          &item->data_type)) {
         return false;
     }
 
@@ -357,8 +388,11 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
     }
 
     // get first terminal along with its AST node
+    PPListItemType prev_terminal_pp_type = TERMINAL_ADD; /* expecting at least
+    1 operand - nonempty expression */
     PPListItem terminal;
-    if(!_token_to_pplist_item(parser_opt, parser_opt->token, &terminal)) {
+    if(!_token_to_pplist_item(parser_opt, prev_terminal_pp_type,
+                              parser_opt->token, &terminal)) {
         _free_pp_list(&list);
         return false;
     }
@@ -383,8 +417,10 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
                     _free_pp_list(&list);
                     return false;
                 }
+                prev_terminal_pp_type = terminal.pp_type;
                 _next_token(parser_opt);
-                if(!_token_to_pplist_item(parser_opt, parser_opt->token, &terminal)) {
+                if(!_token_to_pplist_item(parser_opt, prev_terminal_pp_type,
+                                          parser_opt->token, &terminal)) {
                     _free_pp_list(&list);
                     return false;
                 }
@@ -398,8 +434,10 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
                     _free_pp_list(&list);
                     return false;
                 }
+                prev_terminal_pp_type = terminal.pp_type;
                 _next_token(parser_opt);
-                if(!_token_to_pplist_item(parser_opt, parser_opt->token, &terminal)) {
+                if(!_token_to_pplist_item(parser_opt, prev_terminal_pp_type,
+                                          parser_opt->token, &terminal)) {
                     _free_pp_list(&list);
                     return false;
                 }

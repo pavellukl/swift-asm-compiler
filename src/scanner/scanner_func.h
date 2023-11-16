@@ -22,6 +22,8 @@ bool scanner_opt_init(ScannerOptions *opt, FILE *file);
 
 void scanner_rewind_file(ScannerOptions *opt);
 
+void free_token(TokenData token);
+
 int get_next_char(ScannerOptions *opt);
 
 bool get_next_token(ParserOptions *parser_opt);

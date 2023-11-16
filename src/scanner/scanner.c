@@ -106,8 +106,8 @@ bool scanner_opt_init(ScannerOptions* opt, FILE* file) {
     }
 
     opt->i = 0;
-    opt->line_counter = 1;
-    opt->id_counter = 1;
+    opt->line_counter = 0;
+    opt->id_counter = 0;
 
     opt->returned_tokens = stack_token_data_init();
 
@@ -122,13 +122,19 @@ void scanner_opt_free(ScannerOptions* opt) {
     opt->returned_tokens = NULL;
     opt->size = 0;
     opt->line_counter = 0;
-    opt->id_counter = 1;
+    opt->id_counter = 0;
 }
 
 void scanner_rewind_file(ScannerOptions* opt) {
     opt->i = 0;
-    opt->line_counter = 1;
-    opt->id_counter = 1;
+    opt->line_counter = 0;
+    opt->id_counter = 0;
+}
+
+void free_token(TokenData token) {
+    if (token.type == TOKEN_IDENTIF || token.type == TOKEN_STRING) {
+        free(token.value.string);
+    }
 }
 
 int get_next_char(ScannerOptions* opt) {

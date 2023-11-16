@@ -38,12 +38,14 @@ void _free_pp_list(ListPP *list);
  * @param parser_opt Parser options pointer to save possible semantic error
  *                   code.
  * @param token Derives types from this token.
+ * @param item_last_pp_type PP type of the last item read from input.
  * @param pp_type Precedence parsing type pointer for result type.
  * @param data_type Data type pointer for result type.
  * @return true If the operation was successful.
  * @return false If an error occurred. See @p parser_opt.return_code.
  */
-bool _get_token_types(ParserOptions *parser_opt, TokenData token,
+bool _get_token_types(ParserOptions *parser_opt,
+                      PPListItemType item_last_pp_type, TokenData token,
                       PPListItemType *pp_type, Type *data_type);
 
 /**
@@ -116,12 +118,14 @@ PPListItem _get_first_terminal_item(ListPP list);
  *
  * @param parser_opt Parser options pointer to save possible semantic error
  *                   code.
+ * @param item_last_pp_type PP type of the last item read from input.
  * @param token Token to be converted.
  * @param item Poiner to a variable for the result item.
  * @return true If the operation was successful.
  * @return false If an error occurred. See @p parser_opt.return_code.
  */
-bool _token_to_pplist_item(ParserOptions *parser_opt, TokenData token,
-                         PPListItem *item);
+bool _token_to_pplist_item(ParserOptions *parser_opt,
+                           PPListItemType item_last_pp_type, TokenData token,
+                           PPListItem *item);
 
 #endif /* PRECEDENCE_PARSER_H */
