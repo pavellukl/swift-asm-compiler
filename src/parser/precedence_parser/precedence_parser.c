@@ -383,9 +383,23 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
                     _free_pp_list(&list);
                     return false;
                 }
+                _next_token(parser_opt);
+                if(!_token_to_pplist_item(parser_opt, parser_opt->token, &terminal)) {
+                    _free_pp_list(&list);
+                    return false;
+                }
                 continue;
             case PP_SHIFT_REDUCE: // =
                 if (list_pp_insert_first(&list, terminal) == LIST_ALLOC_ERR) {
+                    _free_pp_list(&list);
+                    return false;
+                }
+                if (!_reduce_list_until_handle(parser_opt, &list)) {
+                    _free_pp_list(&list);
+                    return false;
+                }
+                _next_token(parser_opt);
+                if(!_token_to_pplist_item(parser_opt, parser_opt->token, &terminal)) {
                     _free_pp_list(&list);
                     return false;
                 }
@@ -394,13 +408,6 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
                 parser_opt->return_code = STX_ERR;
                 _free_pp_list(&list);
                 return false;
-        }
-
-        // get next terminal along with its AST node
-        _next_token(parser_opt);
-        if(!_token_to_pplist_item(parser_opt, parser_opt->token, &terminal)) {
-            _free_pp_list(&list);
-            return false;
         }
     }
 

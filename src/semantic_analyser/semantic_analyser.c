@@ -132,6 +132,25 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
                 *new_data_type = l_op_type;
             }
             break;
+        case TOKEN_EQUAL:
+        case TOKEN_NOT_EQUAL:
+            // both should be of the same type (int and float are same)
+            // operands can't be nilable type (nil as well)
+            if ((l_op_type != r_op_type)
+                &&
+                (!_is_number_type(l_op_type) ||
+                !_is_number_type(r_op_type))) {
+                parser_opt->return_code = EXPRTYPE_ERR;
+                return false;
+            }
+            if (_is_nilable_type(l_op_type) ||
+                _is_nilable_type(r_op_type) ||
+                l_op_type == T_NIL) {
+                parser_opt->return_code = EXPRTYPE_ERR;
+                return false;
+            }
+            *new_data_type = T_BOOL;
+            break;
         case TOKEN_LESSER:
         case TOKEN_LESSER_EQUAL:
         case TOKEN_GREATER:
@@ -148,20 +167,8 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
             }
             if (_is_nilable_type(l_op_type) ||
                 _is_nilable_type(r_op_type) ||
-                l_op_type == T_BOOL) {
-                parser_opt->return_code = EXPRTYPE_ERR;
-                return false;
-            }
-            *new_data_type = T_BOOL;
-            break;
-        case TOKEN_EQUAL:
-        case TOKEN_NOT_EQUAL:
-            // both should be of the same type (int and float are same)
-            // operands can be nilable type (nil as well)
-            if ((l_op_type != r_op_type)
-                &&
-                (!_is_number_type(l_op_type) ||
-                !_is_number_type(r_op_type))) {
+                l_op_type == T_BOOL ||
+                l_op_type == T_NIL) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
