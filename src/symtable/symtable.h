@@ -115,4 +115,24 @@ LSTElement* st_search_var(ListST* list, char* identifier);
 */
 LSTElement* st_search_func(ListST* list, char* identifier);
 
+/**
+ * Checks if global scope is active scope
+ * 
+ * @param ListST*   pointer to list
+ * 
+ * @return bool     true if global scope is active scope
+*/
+bool st_is_global_active(ListST* list);
+
+/**
+ * Searches function declaration in symtable and pushes new scope with same identifier
+ * and adds parameters to the new scope
+ * 
+ * @param ListST*       pointer to list
+ * @param char*         identifier of searched element
+ * 
+ * @return STError      result of the operation
+*/
+STError st_push_func_scope(ListST* list, char* identifier);
+
 #endif /* SYMTABLE_H */
