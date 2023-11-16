@@ -3,6 +3,7 @@
 
 #include "../scanner/scanner_types.h"
 #include "../symtable/symtable.h"
+#include "../generation/generation.h"
 
 typedef enum {
     OK,

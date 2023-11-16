@@ -5,6 +5,7 @@
 #include "../parser.h"
 #include "../precedence_parser/precedence_parser.h"
 
+void add_inbuilt_functions_to_symtable(ListST *symtable);
 void parse_check_optimize_generate(ParserOptions *parser_opt);
 void parse_function_definition(ParserOptions *parser_opt);
 

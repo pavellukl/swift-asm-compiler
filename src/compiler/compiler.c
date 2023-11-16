@@ -68,8 +68,10 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
 
     PRINTF_STDDEBUG("running second run\n");
 
-    // file rewind
+    // second run preparations
     scanner_rewind_file(&parser_opt.sc_opt);
+    add_inbuilt_functions_to_symtable(parser_opt.symtable);
+    generate_inbuilt_functions(parser_opt.out);
 
     // second run
     parser_opt.is_first_run = false;
