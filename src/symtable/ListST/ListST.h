@@ -45,6 +45,7 @@ typedef struct LSTElement {
     Variant variant;
     bool defined_value;
     LSTElementValue value;
+    char* scope_identifier;
 } LSTElement;
 
 typedef struct ListElement {
