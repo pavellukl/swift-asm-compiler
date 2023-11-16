@@ -4,3 +4,4 @@ _tests_build
 _deploy
 .vscode
 .todo
+.generation.swift
