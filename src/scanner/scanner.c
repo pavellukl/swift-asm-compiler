@@ -137,6 +137,38 @@ void free_token(TokenData token) {
     }
 }
 
+bool scanner_buf_init(ScannerBuffer *buf){
+    int capacity = 128;
+
+    buf->buffer = malloc(sizeof(char) * capacity);
+    if (buf->buffer == NULL) return false;
+
+    buf->i = 0;
+    buf->size = capacity;
+
+    return true;
+}
+
+void scanner_buf_free(ScannerBuffer *buf){
+    free(buf->buffer);
+
+    buf->buffer = NULL;
+    buf->i = 0;
+    buf->size = 0;
+}
+
+bool scanner_buf_insert(ScannerBuffer *buf, char ch){
+    if (buf->i == buf->size){
+        int new_capacity = buf->size * 2;
+        buf->buffer = realloc(buf->buffer, sizeof(char) * new_capacity);
+        if (buf->buffer == NULL) return false;
+
+        buf->size = new_capacity;
+    }
+    buf->buffer[buf->i++] = ch;
+    return true;
+}
+
 int get_next_char(ScannerOptions* opt) {
     PRINTF_STDDEBUG("INDEX: %d   ", opt->i);
     if (opt->i < opt->size) {
@@ -157,10 +189,10 @@ bool get_next_token(ParserOptions* parser_opt) {
     TokenData token;
     AutomatState current_state = START;
 
-    char b_buffer[256];  // adjust the size - probably dynamicky
-    int buffer_index = 0;
+    ScannerBuffer b_buffer;
+    scanner_buf_init(&b_buffer);
 
-    char unicode_buf[9];  // Holds up to 8 hexadecimal digits + null terminator.
+    char unicode_buf[9];
     int unicode_index = 0;
 
     char current_char = get_next_char(&parser_opt->sc_opt);
@@ -573,15 +605,15 @@ bool get_next_token(ParserOptions* parser_opt) {
             case IDENTIF:
                 while (isalpha(current_char) || current_char == '_' ||
                        isdigit(current_char)) {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_char = get_next_char(&parser_opt->sc_opt);
                 }
-                b_buffer[buffer_index] = '\0';
+                b_buffer.buffer[b_buffer.i] = '\0';
 
                 if (current_char == '?') {
-                    b_buffer[buffer_index++] = current_char;
-                    b_buffer[buffer_index] = '\0';
-                    token = is_keyword(b_buffer);
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
+                    b_buffer.buffer[b_buffer.i] = '\0';
+                    token = is_keyword(b_buffer.buffer);
                     if (token.type != TOKEN_IDENTIF) {
                         token.line_index = parser_opt->sc_opt.line_counter;
                         token.eol_before = new_line_before_token;
@@ -596,7 +628,7 @@ bool get_next_token(ParserOptions* parser_opt) {
                 }
 
                 parser_opt->sc_opt.i--;
-                token = is_keyword(b_buffer);
+                token = is_keyword(b_buffer.buffer);
                 if (token.type != TOKEN_IDENTIF) {
                     token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
@@ -604,13 +636,14 @@ bool get_next_token(ParserOptions* parser_opt) {
                     parser_opt->token = token;
                     return true;
                 } else {
-                    token.value.string =
-                        (char*)malloc(sizeof(char) * (strlen(b_buffer) + 1));
+                    token.value.string = 
+                        malloc(sizeof(char) * (b_buffer.i + 1));
                     if (token.value.string == NULL) {
                         parser_opt->return_code = INTER_ERR;
                         return false;
                     }
-                    strcpy(token.value.string, b_buffer);
+                    strcpy(token.value.string, b_buffer.buffer);
+                    scanner_buf_free(&b_buffer);
                     token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
                     token.id = parser_opt->sc_opt.id_counter++;
@@ -621,22 +654,22 @@ bool get_next_token(ParserOptions* parser_opt) {
 
             case NUM:  // Whole part
                 if (isdigit(current_char)) {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else if (current_char == '.') {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_state = DECIMAL_POINT;
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else if (current_char == 'e' || current_char == 'E') {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_state = EXP_MARK;
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
-                    b_buffer[buffer_index] = '\0';
+                    b_buffer.buffer[b_buffer.i] = '\0';
                     parser_opt->sc_opt.i--;
                     token.type = TOKEN_INT;
                     token.line_index = parser_opt->sc_opt.line_counter;
-                    token.value.int_value = strtol(b_buffer, NULL, 10);
+                    token.value.int_value = strtol(b_buffer.buffer, NULL, 10);
                     token.eol_before = new_line_before_token;
                     token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
@@ -646,7 +679,7 @@ bool get_next_token(ParserOptions* parser_opt) {
 
             case DECIMAL_POINT:  // Decimal point
                 if (isdigit(current_char)) {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_state = DECIMAL_VALUE;
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
@@ -658,18 +691,18 @@ bool get_next_token(ParserOptions* parser_opt) {
 
             case DECIMAL_VALUE:  // Decimal part
                 if (isdigit(current_char)) {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else if (current_char == 'e' || current_char == 'E') {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_state = EXP_MARK;
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
-                    b_buffer[buffer_index] = '\0';
+                    b_buffer.buffer[b_buffer.i] = '\0';
                     parser_opt->sc_opt.i--;
                     token.type = TOKEN_FLOAT;
                     token.line_index = parser_opt->sc_opt.line_counter;
-                    token.value.float_value = strtod(b_buffer, NULL);
+                    token.value.float_value = strtod(b_buffer.buffer, NULL);
                     token.eol_before = new_line_before_token;
                     token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
@@ -679,11 +712,11 @@ bool get_next_token(ParserOptions* parser_opt) {
 
             case EXP_MARK:  // Exponent marker e/E
                 if (current_char == '+' || current_char == '-') {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_state = EXP_SIGN;
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else if (isdigit(current_char)) {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_state = EXPONENT;
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
@@ -695,7 +728,7 @@ bool get_next_token(ParserOptions* parser_opt) {
 
             case EXP_SIGN:  // Sign after exponent marker +/-
                 if (isdigit(current_char)) {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_state = EXPONENT;
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
@@ -707,14 +740,14 @@ bool get_next_token(ParserOptions* parser_opt) {
 
             case EXPONENT:  // Exponent digits
                 if (isdigit(current_char)) {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                     current_char = get_next_char(&parser_opt->sc_opt);
                 } else {
-                    b_buffer[buffer_index] = '\0';
+                    b_buffer.buffer[b_buffer.i] = '\0';
                     parser_opt->sc_opt.i--;
                     token.type = TOKEN_FLOAT;
                     token.line_index = parser_opt->sc_opt.line_counter;
-                    token.value.float_value = strtod(b_buffer, NULL);
+                    token.value.float_value = strtod(b_buffer.buffer, NULL);
                     token.eol_before = new_line_before_token;
                     token.id = parser_opt->sc_opt.id_counter++;
                     parser_opt->token = token;
@@ -724,29 +757,96 @@ bool get_next_token(ParserOptions* parser_opt) {
 
             case STRING:
                 if (current_char == '"') {
-                    current_state = STRING_END;
+                    next_char = get_next_char(&parser_opt->sc_opt);
+
+                    if (next_char == '"') {
+                        next_char = get_next_char(&parser_opt->sc_opt);
+                        if (next_char == '\n'){
+                            current_state = MULTILINE_STRING;
+                        } else {
+                            parser_opt->return_code = INTER_ERR;
+                            return false;
+                        }
+                        
+                    } else {
+                        parser_opt->sc_opt.i--; 
+                        current_state = STRING_END;
+                    }
                 } else if (current_char == '\\') {
-                    b_buffer[buffer_index++] = current_char;
                     current_state = ESCAPE_SEQUENCE;
+                } else if (current_char == '\n'){
+                    parser_opt->return_code = INTER_ERR;
+                    return false;
                 } else {
-                    b_buffer[buffer_index++] = current_char;
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
+                }
+                current_char = get_next_char(&parser_opt->sc_opt);
+                break;
+            
+            case MULTILINE_STRING:
+                if (current_char == '"') {
+                    char next_char1 = get_next_char(&parser_opt->sc_opt);
+                    char next_char2 = get_next_char(&parser_opt->sc_opt);
+
+                    if (next_char1 == '"' && next_char2 == '"') {
+                        if (opt->file[parser_opt->sc_opt.i - 4] == '\n'){
+                            b_buffer.i--;
+                            opt->line_counter++;
+                            current_state = STRING_END;
+                        } else {
+                            parser_opt->return_code = INTER_ERR;
+                            return false;
+                        }
+                    } else {
+                        parser_opt->sc_opt.i -= 2;
+                        if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
+                    }
+                } else {
+                    if (current_char == '\n') {
+                        opt->line_counter++;
+                    }
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {parser_opt->return_code = INTER_ERR; return false;}
                 }
                 current_char = get_next_char(&parser_opt->sc_opt);
                 break;
 
             case ESCAPE_SEQUENCE:
-                if (current_char == '\\' || current_char == '"' ||
-                    current_char == 'n' || current_char == 'r' ||
-                    current_char == 't') {
-                    b_buffer[buffer_index++] = current_char;
-                    current_state = STRING;
-                } else if (current_char == 'u') {
-                    b_buffer[buffer_index++] = current_char;
-                    current_state = UNICODE_SEQUENCE;
-                } else {
-                    // ERROR: invalid escape sequence
-                    parser_opt->return_code = LEX_ERR;
-                    return false;
+                switch (current_char) {
+                    case '\\':
+                        if (!scanner_buf_insert(&b_buffer, '\\')) {parser_opt->return_code = INTER_ERR; return false;}
+                        current_state = STRING;
+                        break;
+                    case '"':
+                        if (!scanner_buf_insert(&b_buffer, '"')) {parser_opt->return_code = INTER_ERR; return false;}
+                        current_state = STRING;
+                        break;
+                    case '\'':
+                        if (!scanner_buf_insert(&b_buffer, '\'')) {parser_opt->return_code = INTER_ERR; return false;}
+                        current_state = STRING;
+                        break;
+                    case '0':
+                        if (!scanner_buf_insert(&b_buffer, '\0')) {parser_opt->return_code = INTER_ERR; return false;}
+                        current_state = STRING;
+                        break;
+                    case 'n':
+                        if (!scanner_buf_insert(&b_buffer, '\n')) {parser_opt->return_code = INTER_ERR; return false;}
+                        current_state = STRING;
+                        break;
+                    case 'r':
+                        if (!scanner_buf_insert(&b_buffer, '\r')) {parser_opt->return_code = INTER_ERR; return false;}
+                        current_state = STRING;
+                        break;
+                    case 't':
+                        if (!scanner_buf_insert(&b_buffer, '\t')) {parser_opt->return_code = INTER_ERR; return false;}
+                        current_state = STRING;
+                        break;
+                    case 'u':
+                        current_state = UNICODE_SEQUENCE;
+                        break;
+                    default:
+                        // ERROR: invalid escape sequence
+                        parser_opt->return_code = LEX_ERR;
+                        return false;
                 }
                 current_char = get_next_char(&parser_opt->sc_opt);
                 break;
@@ -763,16 +863,21 @@ bool get_next_token(ParserOptions* parser_opt) {
                 break;
 
             case UNICODE_VALUE:
-                while (isxdigit(current_char) && unicode_index < 8) {
-                    unicode_buf[unicode_index++] = current_char;
-                    current_char = get_next_char(&parser_opt->sc_opt);
-                }
-                unicode_buf[unicode_index] = '\0';
-                if (current_char == '}') {
-                    // to do
-                    strcat(b_buffer, unicode_buf);
-                    buffer_index += unicode_index;
-                    current_state = STRING;
+                if (isxdigit(current_char)){
+                    while (isxdigit(current_char) && unicode_index < 8) {
+                        unicode_buf[unicode_index++] = current_char;
+                        current_char = get_next_char(&parser_opt->sc_opt);
+                    }
+                    unicode_buf[unicode_index] = '\0';
+                    if (current_char == '}') {
+                        long int unicode_value = strtol(unicode_buf, NULL, 16);
+                        if (!scanner_buf_insert(&b_buffer, (char)unicode_value)) {parser_opt->return_code = INTER_ERR; return false;}
+                        current_state = STRING;
+                    } else {
+                        // ERROR: invalid unicode sequence
+                        parser_opt->return_code = LEX_ERR;
+                        return false;
+                    }
                 } else {
                     // ERROR: invalid unicode sequence
                     parser_opt->return_code = LEX_ERR;
@@ -782,18 +887,19 @@ bool get_next_token(ParserOptions* parser_opt) {
                 break;
 
             case STRING_END:
-                b_buffer[buffer_index] = '\0';
+                b_buffer.buffer[b_buffer.i] = '\0';
                 token.type = TOKEN_STRING;
                 token.line_index = parser_opt->sc_opt.line_counter;
                 token.value.string =
-                    (char*)malloc(sizeof(char) * (strlen(b_buffer) + 1));
+                    malloc(sizeof(char) * (b_buffer.i + 1));
                 if (token.value.string == NULL) {
                     parser_opt->return_code = INTER_ERR;
                     return false;
                 }
                 token.eol_before = new_line_before_token;
                 token.id = parser_opt->sc_opt.id_counter++;
-                strcpy(token.value.string, b_buffer);
+                strcpy(token.value.string, b_buffer.buffer);
+                scanner_buf_free(&b_buffer);
                 parser_opt->sc_opt.i--;
                 parser_opt->token = token;
                 return true;
