@@ -45,6 +45,7 @@ typedef enum {
     EXP_SIGN,
     EXPONENT,
     STRING,
+    MULTILINE_STRING,
     STRING_END,
     ESCAPE_SEQUENCE,
     UNICODE_SEQUENCE,
@@ -63,5 +64,11 @@ typedef struct {
     int id_counter;
     StackTokenData *returned_tokens;
 } ScannerOptions;
+
+typedef struct {
+    char *buffer;
+    int i;
+    int size;
+} ScannerBuffer;
 
 #endif /* SCANNER_TYPES_H */
