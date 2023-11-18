@@ -20,9 +20,9 @@ typedef enum {
 } ParserReturnCode;
 
 typedef struct {
-    LSTElement new_identif;
-    Parameter new_param;
-    Type new_type;
+    LSTElement identif;
+    Parameter param;
+    Type type;
 } SemanticVariables;
 
 typedef struct {

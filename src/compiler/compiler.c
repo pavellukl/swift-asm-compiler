@@ -45,11 +45,14 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
         return COMP_INTER_ERR;
     }
     // should be correctly unallocated by hash table
-    init_parameter_array(&parser_opt.variables.new_identif.value.parameters);
+    init_parameter_array(&parser_opt.variables.identif.value.parameters);
     parser_opt.out = out;
 
     // first run
     parser_opt.is_first_run = true;
+
+    // push global scope
+    st_push_scope(parser_opt.symtable, "global");
 
     PRINTF_STDDEBUG("running compiler\n");
 
@@ -79,6 +82,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
 
     PRINTF_STDDEBUG("second run done\n");
 
+    st_pop_scope(parser_opt.symtable);
     scanner_opt_free(&parser_opt.sc_opt);
     st_destroy_list(parser_opt.symtable);
     return _get_return_code(parser_opt.return_code);

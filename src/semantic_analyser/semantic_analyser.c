@@ -1,8 +1,19 @@
 #include "semantic_analyser.h"
 
-void analyze_function_dec(ParserOptions *parser_opt) {
-    parser_opt = parser_opt;
-    return;
+bool analyze_function_dec(ParserOptions *parser_opt) {
+    Parameters params = parser_opt->variables.identif.value.parameters;
+
+    // check if names and identifiers are different for all parameters
+    for (int i = 0; i < params.size; i++) {
+        Parameter param = params.parameters_arr[i];
+
+        if (!strcmp(param.name, param.identifier)) {
+            parser_opt->return_code = OTHER_ERR;
+            return false;
+        }
+    }
+
+    return true;
 }
 
 void init_parameter_array(Parameters *params) {
@@ -12,7 +23,7 @@ void init_parameter_array(Parameters *params) {
     params->parameters_arr = NULL;
 }
 
-bool add_to_parameter_array(Parameters *params, Parameter new_param) {
+bool add_to_parameter_array(Parameters *params, Parameter param) {
     if (params->capacity == params->size) {
         Parameter *buffer = realloc(params->parameters_arr,
                                     (params->capacity + PARAM_ARR_INC_N_ITEMS) *
@@ -28,7 +39,7 @@ bool add_to_parameter_array(Parameters *params, Parameter new_param) {
         params->capacity += PARAM_ARR_INC_N_ITEMS;
     }
 
-    params->parameters_arr[params->size] = new_param;
+    params->parameters_arr[params->size] = param;
     params->size++;
 
     return true;
@@ -37,33 +48,23 @@ bool add_to_parameter_array(Parameters *params, Parameter new_param) {
 void invalidate_parameter_array(Parameters *params) { params->size = 0; }
 
 bool is_simple_expression(PPListItemType pp_type) {
-    return pp_type == TERMINAL_IDENTIF
-           || pp_type == TERMINAL_INT
-           || pp_type == TERMINAL_FLOAT
-           || pp_type == TERMINAL_STRING
-           || pp_type == TERMINAL_BOOL
-           || pp_type == TERMINAL_KEYWORD_NIL;
+    return pp_type == TERMINAL_IDENTIF || pp_type == TERMINAL_INT ||
+           pp_type == TERMINAL_FLOAT || pp_type == TERMINAL_STRING ||
+           pp_type == TERMINAL_BOOL || pp_type == TERMINAL_KEYWORD_NIL;
 }
 
 bool is_binary_operator(PPListItemType pp_type) {
-    return pp_type == TERMINAL_ADD
-           || pp_type == TERMINAL_SUB
-           || pp_type == TERMINAL_MUL
-           || pp_type == TERMINAL_DIV
-           || pp_type == TERMINAL_EQUAL
-           || pp_type == TERMINAL_NOT_EQUAL
-           || pp_type == TERMINAL_LESSER
-           || pp_type == TERMINAL_LESSER_EQUAL
-           || pp_type == TERMINAL_GREATER
-           || pp_type == TERMINAL_GREATER_EQUAL
-           || pp_type == TERMINAL_AND
-           || pp_type == TERMINAL_OR
-           || pp_type == TERMINAL_NIL_COALESCING;
+    return pp_type == TERMINAL_ADD || pp_type == TERMINAL_SUB ||
+           pp_type == TERMINAL_MUL || pp_type == TERMINAL_DIV ||
+           pp_type == TERMINAL_EQUAL || pp_type == TERMINAL_NOT_EQUAL ||
+           pp_type == TERMINAL_LESSER || pp_type == TERMINAL_LESSER_EQUAL ||
+           pp_type == TERMINAL_GREATER || pp_type == TERMINAL_GREATER_EQUAL ||
+           pp_type == TERMINAL_AND || pp_type == TERMINAL_OR ||
+           pp_type == TERMINAL_NIL_COALESCING;
 }
 
 Type _remove_nilable(Type type) {
-    switch (type)
-    {
+    switch (type) {
         case T_INT_NIL:
             return T_INT;
         case T_FLOAT_NIL:
@@ -78,17 +79,13 @@ Type _remove_nilable(Type type) {
 }
 
 bool _is_number_type(Type type) {
-    return type == T_INT
-           || type == T_FLOAT
-           || type == T_INT_NIL
-           || type == T_FLOAT_NIL;
+    return type == T_INT || type == T_FLOAT || type == T_INT_NIL ||
+           type == T_FLOAT_NIL;
 }
 
 bool _is_nilable_type(Type type) {
-    return type == T_INT_NIL
-           || type == T_FLOAT_NIL
-           || type == T_STRING_NIL
-           || type == T_BOOL_NIL;
+    return type == T_INT_NIL || type == T_FLOAT_NIL || type == T_STRING_NIL ||
+           type == T_BOOL_NIL;
 }
 
 bool analyze_binary_operation(ParserOptions *parser_opt,
@@ -96,16 +93,13 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
                               Type r_op_type, Type *new_data_type) {
     // E -> E OPERATOR E
     // data type tests and new data type resolving
-    switch (operator_type)
-    {
+    switch (operator_type) {
         case TOKEN_ADD:
             // both should be only int or float or string (not nilable)
-            if ((l_op_type != T_STRING || r_op_type != T_STRING)
-                &&
+            if ((l_op_type != T_STRING || r_op_type != T_STRING) &&
                 (!_is_number_type(l_op_type) ||
-                !_is_number_type(r_op_type ||
-                _is_nilable_type(l_op_type) ||
-                _is_nilable_type(r_op_type)))) {
+                 !_is_number_type(r_op_type || _is_nilable_type(l_op_type) ||
+                                  _is_nilable_type(r_op_type)))) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
@@ -120,9 +114,8 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
         case TOKEN_DIV:
             // both should be only int or float (not nilable)
             if (!_is_number_type(l_op_type) ||
-                !_is_number_type(r_op_type ||
-                _is_nilable_type(l_op_type) ||
-                _is_nilable_type(r_op_type))) {
+                !_is_number_type(r_op_type || _is_nilable_type(l_op_type) ||
+                                 _is_nilable_type(r_op_type))) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
@@ -136,15 +129,12 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
         case TOKEN_NOT_EQUAL:
             // both should be of the same type (int and float are same)
             // operands can't be nilable type (nil as well)
-            if ((l_op_type != r_op_type)
-                &&
-                (!_is_number_type(l_op_type) ||
-                !_is_number_type(r_op_type))) {
+            if ((l_op_type != r_op_type) &&
+                (!_is_number_type(l_op_type) || !_is_number_type(r_op_type))) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
-            if (_is_nilable_type(l_op_type) ||
-                _is_nilable_type(r_op_type) ||
+            if (_is_nilable_type(l_op_type) || _is_nilable_type(r_op_type) ||
                 l_op_type == T_NIL) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
@@ -158,17 +148,13 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
             // both should be of the same type (int and float are same)
             // operands can't be nilable type (not nil as well)
             // operands can't be bool
-            if ((l_op_type != r_op_type)
-                &&
-                (!_is_number_type(l_op_type) ||
-                !_is_number_type(r_op_type))) {
+            if ((l_op_type != r_op_type) &&
+                (!_is_number_type(l_op_type) || !_is_number_type(r_op_type))) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
-            if (_is_nilable_type(l_op_type) ||
-                _is_nilable_type(r_op_type) ||
-                l_op_type == T_BOOL ||
-                l_op_type == T_NIL) {
+            if (_is_nilable_type(l_op_type) || _is_nilable_type(r_op_type) ||
+                l_op_type == T_BOOL || l_op_type == T_NIL) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
@@ -178,8 +164,7 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
         case TOKEN_OR:
             // operands must be bool
             // operands can't be nilable type (not nil as well)
-            if (l_op_type != T_BOOL ||
-                r_op_type != T_BOOL) {
+            if (l_op_type != T_BOOL || r_op_type != T_BOOL) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
@@ -189,9 +174,7 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
             /* right operand must be of the same type as left operand
                (but without nilable part) */
             // operands can't be nil
-            if (l_op_type == T_NIL ||
-                l_op_type !=
-                    _remove_nilable(r_op_type)) {
+            if (l_op_type == T_NIL || l_op_type != _remove_nilable(r_op_type)) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }

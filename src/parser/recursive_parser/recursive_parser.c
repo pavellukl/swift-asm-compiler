@@ -46,35 +46,53 @@ bool _function_definition(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
         // invalidate old parameter array before checking function
         invalidate_parameter_array(
-            &parser_opt->variables.new_identif.value.parameters);
+            &parser_opt->variables.identif.value.parameters);
 
-        if (_function_head(parser_opt) && _scope_body(parser_opt)) {
-            // define function if identif is not in symtable and on first run
-            if (parser_opt->is_first_run) {
-                parser_opt->variables.new_identif.variant = FUNCTION;
+        // define function if identif is not in symtable and on first run, only
+        // check function head
+        if (parser_opt->is_first_run && _function_head(parser_opt)) {
+            parser_opt->variables.identif.variant = FUNCTION;
 
-                // add function to symtable
-                STError res = st_add_element(
-                    parser_opt->symtable,
-                    parser_opt->variables.new_identif.identifier,
-                    parser_opt->variables.new_identif.return_type,
-                    parser_opt->variables.new_identif.variant,
-                    &(parser_opt->variables.new_identif.value));
+            // add function to symtable
+            STError res = st_add_element(
+                parser_opt->symtable, parser_opt->variables.identif.identifier,
+                parser_opt->variables.identif.return_type,
+                parser_opt->variables.identif.variant,
+                &(parser_opt->variables.identif.value));
 
-                if (res != E_OK) {
-                    parser_opt->return_code = INTER_ERR;
-                    return false;
-                }
-            } else {
-                // semantically check function if on second run
-                analyze_function_dec(parser_opt);
-                // TODO check semantic return code
-
-                // TODO generate function in target code
+            if (res != E_OK) {
+                parser_opt->return_code = INTER_ERR;
+                return false;
             }
 
             return true;
-        };
+        } else if (!parser_opt->is_first_run) {
+            // check function head
+            if (!_function_head(parser_opt)) return false;
+
+            // semantically check function
+            if (!analyze_function_dec(parser_opt)) return false;
+
+            // push function scope
+            // TODO think about identifier of scope
+            st_push_func_scope(parser_opt->symtable,
+                               &parser_opt->variables.identif,
+                               parser_opt->variables.identif.identifier);
+
+            // check function body
+            if (!_scope_body(parser_opt)) return false;
+
+            // pop function scope
+            st_pop_scope(parser_opt->symtable);
+
+            // TODO generate function head
+            // TODO generate function body
+            //! generating will probably have to be done in recursive descent
+            //! functions
+
+            return true;
+        }
+
         return false;
     }
 
@@ -93,9 +111,6 @@ bool _function_head(ParserOptions *parser_opt) {
         return false;
     }
 
-    // TODO only get function identifier on second run and then find
-    // it in symtable
-
     // check symtable for identif
     LSTElement *el =
         st_search_func(parser_opt->symtable, parser_opt->token.value.string);
@@ -105,10 +120,25 @@ bool _function_head(ParserOptions *parser_opt) {
         parser_opt->return_code = DEF_ERR;
         return false;
     }
+    // if on second run
+    else if (!parser_opt->is_first_run) {
+        // if function wasn't already defined on the first run
+        // TODO can be removed if everything is working as it should
+        if (el == NULL) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+        // if function is found, save the data for semantic analysis
+        else {
+            parser_opt->variables.identif = *el;
+            // we have all the data and the checks were done in the first run,
+            // we can stop recursive descent
+            return true;
+        }
+    }
 
     // save new function name
-    parser_opt->variables.new_identif.identifier =
-        parser_opt->token.value.string;
+    parser_opt->variables.identif.identifier = parser_opt->token.value.string;
 
     if (!_next_token(parser_opt)) return false;
     if (parser_opt->token.type != TOKEN_L_BRACKET) {
@@ -131,7 +161,7 @@ bool _function_head(ParserOptions *parser_opt) {
 bool __func_identif_lbracket_arglist_rbracket(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_L_CRLY_BRACKET) {
         // save function type as void when return type omitted
-        parser_opt->variables.new_identif.return_type = T_VOID;
+        parser_opt->variables.identif.return_type = T_VOID;
         return true;
     } else if (parser_opt->token.type == TOKEN_ARROW) {
         if (!_next_token(parser_opt)) return false;
@@ -139,8 +169,8 @@ bool __func_identif_lbracket_arglist_rbracket(ParserOptions *parser_opt) {
         // if data type grammar check passes
         if (_data_type(parser_opt)) {
             // save function type
-            parser_opt->variables.new_identif.return_type =
-                parser_opt->variables.new_type;
+            parser_opt->variables.identif.return_type =
+                parser_opt->variables.type;
             return true;
         }
 
@@ -179,10 +209,10 @@ bool _param(ParserOptions *parser_opt) {
         // save parameter name to new parameter
         switch (parser_opt->token.type) {
             case TOKEN_IDENTIF:
-                parser_opt->variables.new_param.name = "_";
+                parser_opt->variables.param.name = "_";
                 break;
             case TOKEN_UNDERSCORE:
-                parser_opt->variables.new_param.name =
+                parser_opt->variables.param.name =
                     parser_opt->token.value.string;
                 break;
             default:
@@ -202,10 +232,10 @@ bool __param_name(ParserOptions *parser_opt) {
         // save parameter identifier to new parameter
         switch (parser_opt->token.type) {
             case TOKEN_IDENTIF:
-                parser_opt->variables.new_param.identifier = "_";
+                parser_opt->variables.param.identifier = "_";
                 break;
             case TOKEN_UNDERSCORE:
-                parser_opt->variables.new_param.identifier =
+                parser_opt->variables.param.identifier =
                     parser_opt->token.value.string;
                 break;
             default:
@@ -222,13 +252,12 @@ bool __param_name(ParserOptions *parser_opt) {
         // if data type grammar check passes
         if (_data_type(parser_opt)) {
             // save function type
-            parser_opt->variables.new_param.par_type =
-                parser_opt->variables.new_type;
+            parser_opt->variables.param.par_type = parser_opt->variables.type;
 
             // add param to array
             add_to_parameter_array(
-                &parser_opt->variables.new_identif.value.parameters,
-                parser_opt->variables.new_param);
+                &parser_opt->variables.identif.value.parameters,
+                parser_opt->variables.param);
 
             return true;
         }
@@ -276,11 +305,32 @@ bool _command_sequence(ParserOptions *parser_opt) {
 }
 
 bool _command(ParserOptions *parser_opt) {
+    // save state of helper variables
+    SemanticVariables tmp = parser_opt->variables;
+    // TODO return saved state of variables
+
     if (parser_opt->token.type == TOKEN_IDENTIF) {
+        // save identifier for analysis
+        parser_opt->variables.identif.identifier =
+            parser_opt->token.value.string;
+
         if (!_next_token(parser_opt)) return false;
-        return __identif(parser_opt);
+
+        if (__identif(parser_opt)) {
+            // return saved state of variables
+            parser_opt->variables = tmp;
+            return true;
+        }
+
+        return false;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_RETURN) {
-        return _return_command(parser_opt);
+        if (_return_command(parser_opt)) {
+            // return saved state of variables
+            parser_opt->variables = tmp;
+            return true;
+        }
+
+        return false;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_VAR ||
                parser_opt->token.type == TOKEN_KEYWORD_LET) {
         return _variable_def(parser_opt);
@@ -294,12 +344,26 @@ bool _command(ParserOptions *parser_opt) {
 }
 
 bool __identif(ParserOptions *parser_opt) {
+    // function call
     if (parser_opt->token.type == TOKEN_L_BRACKET) {
         if (!_next_token(parser_opt)) return false;
 
+        // TODO save arguments
         if (!_arg_list(parser_opt)) {
             return false;
         }
+
+        // get called function
+        LSTElement *el = st_search_func(
+            parser_opt->symtable, parser_opt->variables.identif.identifier);
+
+        // if function doesn't exist
+        if (el == NULL) {
+            parser_opt->return_code = DEF_ERR;
+            return false;
+        }
+
+        // TODO semantically check function call (params vs args)
 
         if (parser_opt->token.type != TOKEN_R_BRACKET) {
             parser_opt->return_code = STX_ERR;
@@ -311,12 +375,30 @@ bool __identif(ParserOptions *parser_opt) {
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         if (!_next_token(parser_opt)) return false;
 
+        // get called variable
+        LSTElement *el = st_search_var(
+            parser_opt->symtable, parser_opt->variables.identif.identifier);
+
+        // if variable doesn't exist
+        if (el == NULL) {
+            parser_opt->return_code = UNDEFVAR_ERR;
+            return false;
+        }
+
+        // if trying to assign to constant
+        if (el->variant == CONSTANT) {
+            parser_opt->return_code = OTHER_ERR;
+            return false;
+        }
+
         bool is_function;
         if (!_look_ahead_for_fn(parser_opt, &is_function)) return false;
 
         if (is_function) {
             return _function_call(parser_opt);
         } else {
+            // TODO check expression type with variable type after precedence
+            // analysis
             return parse_check_optimize_generate_expression(parser_opt);
         }
     }
@@ -327,35 +409,35 @@ bool __identif(ParserOptions *parser_opt) {
 bool _data_type(ParserOptions *parser_opt) {
     switch (parser_opt->token.type) {
         case TOKEN_KEYWORD_INT:
-            parser_opt->variables.new_type = T_INT;
+            parser_opt->variables.type = T_INT;
             if (!_next_token(parser_opt)) return false;
             return true;
         case TOKEN_KEYWORD_INT_NIL:
-            parser_opt->variables.new_type = T_INT_NIL;
+            parser_opt->variables.type = T_INT_NIL;
             if (!_next_token(parser_opt)) return false;
             return true;
         case TOKEN_KEYWORD_DOUBLE:
-            parser_opt->variables.new_type = T_FLOAT;
+            parser_opt->variables.type = T_FLOAT;
             if (!_next_token(parser_opt)) return false;
             return true;
         case TOKEN_KEYWORD_DOUBLE_NIL:
-            parser_opt->variables.new_type = T_FLOAT_NIL;
+            parser_opt->variables.type = T_FLOAT_NIL;
             if (!_next_token(parser_opt)) return false;
             return true;
         case TOKEN_KEYWORD_STRING:
-            parser_opt->variables.new_type = T_STRING;
+            parser_opt->variables.type = T_STRING;
             if (!_next_token(parser_opt)) return false;
             return true;
         case TOKEN_KEYWORD_STRING_NIL:
-            parser_opt->variables.new_type = T_STRING_NIL;
+            parser_opt->variables.type = T_STRING_NIL;
             if (!_next_token(parser_opt)) return false;
             return true;
         case TOKEN_KEYWORD_BOOL:
-            parser_opt->variables.new_type = T_BOOL;
+            parser_opt->variables.type = T_BOOL;
             if (!_next_token(parser_opt)) return false;
             return true;
         case TOKEN_KEYWORD_BOOL_NIL:
-            parser_opt->variables.new_type = T_BOOL_NIL;
+            parser_opt->variables.type = T_BOOL_NIL;
             if (!_next_token(parser_opt)) return false;
             return true;
 
@@ -388,6 +470,14 @@ bool __return(ParserOptions *parser_opt) {
         return true;
     }
 
+    // if in global scope, check fails
+    if (st_is_global_active(parser_opt->symtable)) {
+        //! semantic check returning syntax error
+        parser_opt->return_code = STX_ERR;
+        return false;
+    }
+
+    // TODO check expression type with function type after precedence analysis
     return parse_check_optimize_generate_expression(parser_opt);
 }
 
@@ -527,6 +617,7 @@ bool _while_command(ParserOptions *parser_opt) {
 }
 
 bool _function_call(ParserOptions *parser_opt) {
+    // TODO semantically handle function call
     if (parser_opt->token.type != TOKEN_IDENTIF) {
         parser_opt->return_code = STX_ERR;
         return false;
@@ -539,6 +630,7 @@ bool _function_call(ParserOptions *parser_opt) {
     }
     if (!_next_token(parser_opt)) return false;
 
+    // TODO save arguments
     if (!_arg_list(parser_opt)) {
         return false;
     }
@@ -631,7 +723,8 @@ bool _arg_val(ParserOptions *parser_opt) {
 }
 
 void add_inbuilt_functions_to_symtable(ListST *symtable) {
-    TODO:
+    // TODO:
+    symtable = symtable;
 }
 
 void parse_function_definition(ParserOptions *parser_opt) {
