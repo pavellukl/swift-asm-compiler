@@ -13,7 +13,7 @@ int main(int argc, char* argv[]) {
     //     fopen("./tests/compiler/test_files/same_scope_redeclaration.swift",
     //     "r");
     //  FILE* in =
-    //     fopen("./tests/compiler/test_files/same_scope_redeclaration.swift",
+    //     fopen("./tests/compiler/generation_test_files/generate_me.swift",
     //     "r");
     FILE* in = stdin;
 

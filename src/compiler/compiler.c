@@ -57,7 +57,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
 
     // first run
     PRINTF_STDDEBUG("first run\n");
-    // parse_function_definition(&parser_opt);
+    parse_function_definition(&parser_opt);
     if (parser_opt.return_code != OK) {
         scanner_opt_free(&parser_opt.sc_opt);
         st_destroy_list(parser_opt.symtable);
@@ -74,7 +74,14 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
 
     // second run
     PRINTF_STDDEBUG("second run\n");
-    // parse_check_optimize_generate(&parser_opt);
+    parse_check_optimize_generate(&parser_opt);
+    if (parser_opt.return_code != OK) {
+        st_pop_scope(parser_opt.symtable);
+        scanner_opt_free(&parser_opt.sc_opt);
+        st_destroy_list(parser_opt.symtable);
+        generation_free(parser_opt.gen_var);
+        return _get_return_code(parser_opt.return_code);
+    }
 
     // printing to file out
     PRINTF_STDDEBUG("printing to file out\n");
@@ -84,5 +91,5 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     scanner_opt_free(&parser_opt.sc_opt);
     st_destroy_list(parser_opt.symtable);
     generation_free(parser_opt.gen_var);
-    return _get_return_code(parser_opt.return_code);
+    return COMP_OK;
 }
