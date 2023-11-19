@@ -43,6 +43,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
         return COMP_INTER_ERR;
     }
     //? should be correctly unallocated by hash table
+    // TODO draw this behavior out on paper to determine
     init_parameter_array(&parser_opt.variables.identif.value.parameters);
     if (!generation_init(&parser_opt.gen_var)) {
         scanner_opt_free(&parser_opt.sc_opt);
