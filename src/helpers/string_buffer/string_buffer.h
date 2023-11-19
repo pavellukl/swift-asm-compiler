@@ -1,0 +1,27 @@
+#ifndef STRING_BUFFER_H
+#define STRING_BUFFER_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <stdbool.h>
+#include <string.h>
+
+#define SBUFFER_INIT_CAPACITY 16
+
+/** Struct representing buffered string. */
+typedef struct {
+    /** Pointer to the buffered string. */
+    char *string;
+    /** Size of the buffered string including end of string character. */
+    size_t size;
+    /** Size of allocated space for buffered string. */
+    size_t capacity;
+} SBuffer;
+
+SBuffer *sbuffer_init();
+void sbuffer_discard(SBuffer *sbuffer);
+bool sbuffer_printf(SBuffer *sbuffer, const char *format, ...);
+bool sbuffer_clear(SBuffer **sbuffer);
+
+#endif /* STRING_BUFFER_H */

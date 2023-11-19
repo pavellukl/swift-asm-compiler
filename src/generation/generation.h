@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 
+
 void generate_inbuilt_functions(FILE *out);
 
 #endif /* GENERATION_H */

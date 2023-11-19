@@ -1,7 +1,5 @@
 #include "symtable.h"
 
-#include "ListST/ListST.c"
-
 unsigned int _get_hash(char* str) {
     long long p = 29791, m = 1e9 + 7;
     unsigned hash = 0;
@@ -518,7 +516,9 @@ bool st_is_global_active(ListST* list) {
 
     if (list->firstItem == NULL) return false;
 
-    if (list->firstItem->nextItem == NULL) return true;
+    if (list->firstItem->nextItem != NULL) return false;
+
+    return true;
 }
 
 STError st_push_func_scope(ListST* list, LSTElement* element,

@@ -189,8 +189,8 @@ bool get_next_token(ParserOptions* parser_opt) {
     TokenData token;
     AutomatState current_state = START;
 
-    if (stack_token_data_is_empty(opt->returned_tokens) == false) {
-        stack_token_data_pop(opt->returned_tokens, &token);
+    if (stack_token_data_is_empty(parser_opt->sc_opt.returned_tokens) == false) {
+        stack_token_data_pop(parser_opt->sc_opt.returned_tokens, &token);
         parser_opt->token = token;
         return true;
     }

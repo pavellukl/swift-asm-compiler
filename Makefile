@@ -103,7 +103,7 @@ debug_run:
 test: test_build test_run
 test_build: build $(TESTS_BIN)
 test_run:
-	@ for test in $(TESTS_BIN) ; do ./$$test --verbose=1; done
+	@ for test in $(TESTS_BIN) ; do ./$$test --verbose=1; echo ""; done
 
 deploy: | $(DEPLOY_BASE_DIR).dir
 	@ rm -rf $(DEPLOY_BASE_DIR)/*
@@ -127,7 +127,7 @@ $(BUILD_BIN_BASE_DIR)/$(BIN): $(BUILD_O) | $(BUILD_BIN_BASE_DIR)
 $(DEBUG_BIN_BASE_DIR)/$(BIN): $(DEBUG_O) | $(DEBUG_BIN_BASE_DIR)
 	$(CC) $(CFLAGS) $(DEBUG_O) -o $@
 
-$(TESTS_BIN_BASE_DIR)/%: $(TESTS_O_BASE_DIR)/%.o | $$(dir $(TESTS_BIN_BASE_DIR)/%)
+$(TESTS_BIN_BASE_DIR)/%: $(TESTS_O_BASE_DIR)/%.o $(BUILD_O_WITHOUT_MAIN) | $$(dir $(TESTS_BIN_BASE_DIR)/%)
 	$(CC) $(CFLAGS) $< $(BUILD_O_WITHOUT_MAIN) -o $@
 
 $(BUILD_O_BASE_DIR)/%.o: $(SRC_BASE_DIR)/%.c
