@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <string.h>
 
-#include "../parser/parser.h"
 #include "../parser/precedence_parser/ListPP/ListPP.h"
 #include "../symtable/symtable.h"
+#include "../parser/parser.h"
 
 #define PARAM_ARR_INC_N_ITEMS 4
 

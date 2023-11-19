@@ -4,7 +4,6 @@
 #include "../parser.h"
 #include "ListPP/ListPP.h"
 #include "precedence_table.h"
-#include "../../semantic_analyser/semantic_analyser.h"
 
 /**
  * @brief Performs syntax check, semantic check and generating upon expression.

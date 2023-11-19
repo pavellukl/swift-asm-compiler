@@ -29,13 +29,14 @@ typedef struct {
     bool is_first_run;
     ScannerOptions sc_opt;
     TokenData token;
-    FILE *out;
     ListST *symtable;
     ParserReturnCode return_code;
     // for easily passing data between functions in semantic analysis
     SemanticVariables variables;
+    GenerationVariables gen_var;
 } ParserOptions;
 
+#include "../semantic_analyser/semantic_analyser.h"
 #include "../scanner/scanner_func.h"
 
 bool _next_token(ParserOptions *parser_opt);

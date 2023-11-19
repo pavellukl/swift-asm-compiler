@@ -30,13 +30,11 @@ CompilerReturnCode _get_return_code(ParserReturnCode rp_return_value) {
 }
 
 CompilerReturnCode compile(FILE *in, FILE *out) {
-    PRINTF_STDDEBUG("run\n");
+    PRINTF_STDDEBUG("running compiler\n");
     assert(in != NULL);
-    assert(out != NULL);
-
-    PRINTF_STDDEBUG("pass asserts\n");
 
     // property init
+    PRINTF_STDDEBUG("init\n");
     ParserOptions parser_opt;
     if (!scanner_opt_init(&parser_opt.sc_opt, in)) return COMP_INTER_ERR;
     parser_opt.symtable = st_create_list();
@@ -44,46 +42,47 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
         scanner_opt_free(&parser_opt.sc_opt);
         return COMP_INTER_ERR;
     }
-    // should be correctly unallocated by hash table
+    //? should be correctly unallocated by hash table
     init_parameter_array(&parser_opt.variables.identif.value.parameters);
-    parser_opt.out = out;
-
-    // first run
-    parser_opt.is_first_run = true;
-
-    // push global scope
-    st_push_scope(parser_opt.symtable, "global");
-
-    PRINTF_STDDEBUG("running compiler\n");
-
-    parse_function_definition(&parser_opt);
-
-    PRINTF_STDDEBUG("running compiler3\n");
-
-    switch (parser_opt.return_code) {
-        case OK:
-            break;
-        default:
-            scanner_opt_free(&parser_opt.sc_opt);
-            st_destroy_list(parser_opt.symtable);
-            return _get_return_code(parser_opt.return_code);
+    if (!generation_init(parser_opt.gen_var)) {
+        scanner_opt_free(&parser_opt.sc_opt);
+        st_destroy_list(parser_opt.symtable);
+        return COMP_INTER_ERR;
     }
 
-    PRINTF_STDDEBUG("running second run\n");
+    // first run preparations
+    PRINTF_STDDEBUG("first run prep\n");
+    parser_opt.is_first_run = true;
+    st_push_scope(parser_opt.symtable, "global");
+
+    // first run
+    PRINTF_STDDEBUG("first run\n");
+    parse_function_definition(&parser_opt);
+    if (parser_opt.return_code != OK) {
+        scanner_opt_free(&parser_opt.sc_opt);
+        st_destroy_list(parser_opt.symtable);
+        generation_free(parser_opt.gen_var);
+        return _get_return_code(parser_opt.return_code);
+    }
 
     // second run preparations
+    PRINTF_STDDEBUG("second run prep\n");
     scanner_rewind_file(&parser_opt.sc_opt);
     add_inbuilt_functions_to_symtable(parser_opt.symtable);
-    generate_inbuilt_functions(parser_opt.out);
+    generate_inbuilt_functions(parser_opt.gen_var);
 
     // second run
+    PRINTF_STDDEBUG("second run\n");
     parser_opt.is_first_run = false;
     parse_check_optimize_generate(&parser_opt);
 
-    PRINTF_STDDEBUG("second run done\n");
+    // printing to file out
+    PRINTF_STDDEBUG("printing to file out\n");
+    print_generation_to_file(parser_opt.gen_var, out);
 
     st_pop_scope(parser_opt.symtable);
     scanner_opt_free(&parser_opt.sc_opt);
     st_destroy_list(parser_opt.symtable);
+    generation_free(parser_opt.gen_var);
     return _get_return_code(parser_opt.return_code);
 }

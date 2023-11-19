@@ -7,7 +7,7 @@
 #include <stdbool.h>
 #include <string.h>
 
-#define SBUFFER_INIT_CAPACITY 16
+#define SBUFFER_INIT_CAPACITY 64
 
 /** Struct representing buffered string. */
 typedef struct {

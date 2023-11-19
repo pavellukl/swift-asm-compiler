@@ -32,7 +32,7 @@ Test(compile, general) {
 
         cr_log_info("Running %s", subdirPtr->d_name);
 
-        CompilerReturnCode res = compile(in, stdout);
+        CompilerReturnCode res = compile(in, NULL);
 
         if (res != expectedRes) {
             cr_log_error(
