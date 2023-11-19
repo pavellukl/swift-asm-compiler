@@ -204,8 +204,9 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem *items,
                 *new_item = items[1];
             } else {
                 // data type tests
-                if (!analyze_binary_operation(parser_opt, items[1].data_type,
-                items[0].data_type, items[2].data_type, &new_item->data_type)) {
+                if (!analyze_binary_operation(parser_opt,
+                    items[1].node->token.type, items[0].data_type,
+                    items[2].data_type, &new_item->data_type)) {
                     return false;
                 }
                 // build new_item (data type already set)
@@ -229,7 +230,7 @@ bool _rule_exists(PPListItem *items, int rule_r_size) {
     switch (rule_r_size)
     {
         case 1:
-            if (!is_simple_expression(items[2].data_type)) {
+            if (!is_simple_expression(items[2].pp_type)) {
                 return false;
             }
             break;
@@ -246,7 +247,7 @@ bool _rule_exists(PPListItem *items, int rule_r_size) {
                     || items[1].pp_type != NONTERMINAL_EXPRESSION
                     || items[2].pp_type != TERMINAL_R_BRACKET)
                 && (items[0].pp_type != NONTERMINAL_EXPRESSION
-                    || !is_binary_operator(items[1].data_type)
+                    || !is_binary_operator(items[1].pp_type)
                     || items[2].pp_type != NONTERMINAL_EXPRESSION)) {
                 return false;
             }
