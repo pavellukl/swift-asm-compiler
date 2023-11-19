@@ -4,6 +4,7 @@
 #include "../parser.h"
 #include "ListPP/ListPP.h"
 #include "precedence_table.h"
+#include "../../generation/generation.h"
 
 /**
  * @brief Performs syntax check, semantic check and generating upon expression.

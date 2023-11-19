@@ -44,7 +44,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     }
     //? should be correctly unallocated by hash table
     init_parameter_array(&parser_opt.variables.identif.value.parameters);
-    if (!generation_init(parser_opt.gen_var)) {
+    if (!generation_init(&parser_opt.gen_var)) {
         scanner_opt_free(&parser_opt.sc_opt);
         st_destroy_list(parser_opt.symtable);
         return COMP_INTER_ERR;
@@ -57,7 +57,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
 
     // first run
     PRINTF_STDDEBUG("first run\n");
-    parse_function_definition(&parser_opt);
+    // parse_function_definition(&parser_opt);
     if (parser_opt.return_code != OK) {
         scanner_opt_free(&parser_opt.sc_opt);
         st_destroy_list(parser_opt.symtable);
@@ -67,14 +67,14 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
 
     // second run preparations
     PRINTF_STDDEBUG("second run prep\n");
+    parser_opt.is_first_run = false;
     scanner_rewind_file(&parser_opt.sc_opt);
     add_inbuilt_functions_to_symtable(parser_opt.symtable);
     generate_inbuilt_functions(parser_opt.gen_var);
 
     // second run
     PRINTF_STDDEBUG("second run\n");
-    parser_opt.is_first_run = false;
-    parse_check_optimize_generate(&parser_opt);
+    // parse_check_optimize_generate(&parser_opt);
 
     // printing to file out
     PRINTF_STDDEBUG("printing to file out\n");

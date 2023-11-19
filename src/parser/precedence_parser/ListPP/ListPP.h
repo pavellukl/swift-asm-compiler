@@ -4,6 +4,7 @@
 #include "../../../helpers/list.h"
 #include "../../../scanner/StackTokenData/StackTokenData.h"
 #include "../../../symtable/ListST/ListST.h"
+#include "../../../generation/generation.h"
 
 /** 
  * @brief List item type. Some of those values are used for indexing in
@@ -18,13 +19,6 @@ typedef enum {
     TERMINAL_STRING, TERMINAL_KEYWORD_NIL, TERMINAL_L_BRACKET,
     TERMINAL_R_BRACKET, TERMINAL_EMPTY, NONTERMINAL_EXPRESSION, FLAG_HANDLE
 } PPListItemType;
-
-/** @brief Represents an item in the precedence list. */
-typedef struct ASTNode {
-    TokenData token;
-    struct ASTNode *left;
-    struct ASTNode *right;
-} ASTNode;
 
 typedef struct {
     PPListItemType pp_type;

@@ -454,10 +454,10 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
     list_pp_first(&list);
     list_pp_get_value(&list, &expression);
     ASTNode *ast = expression.node;
+    parser_opt->variables.type = expression.data_type;
 
     // generate expression
-    // TODO: generate expression from abstract syntax tree
-    ast = ast;
+    generate_expression(&parser_opt->gen_var, ast);
 
     _free_pp_list(&list);
     return true;
