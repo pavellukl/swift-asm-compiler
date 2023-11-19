@@ -4,9 +4,9 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "../parser/parser.h"
 #include "../parser/precedence_parser/ListPP/ListPP.h"
 #include "../symtable/symtable.h"
-#include "../parser/parser.h"
 
 #define PARAM_ARR_INC_N_ITEMS 4
 
@@ -16,6 +16,16 @@
  * @param parser_opt parser options pointer to save possible semantic error code
  */
 bool analyze_function_dec(ParserOptions *parser_opt);
+
+/**
+ * @brief analyzes function call
+ *
+ * @param parser_opt parser options pointer to save possible semantic error code
+ * @param identifier identifier of called function
+ * @param arguments passed arguments
+ */
+bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
+                           Parameters *arguments);
 
 /**
  * @brief initialize helper parameter array variable, beware memory leak
@@ -42,6 +52,14 @@ bool add_to_parameter_array(Parameters *params, Parameter param);
  * invalidated
  */
 void invalidate_parameter_array(Parameters *params);
+
+/**
+ * @brief unallocates parameter array and reinitiliazes the structure
+ *
+ * @param params pointer to the parameters struct which's array will be
+ * unallocated
+ */
+void destroy_parameter_array(Parameters *params);
 
 /**
  * @brief Tells if a list item type is an expression consisting of a single
