@@ -4,6 +4,19 @@
 #include <criterion/new/assert.h>
 #include <dirent.h>
 #include <stdio.h>
+#include <time.h>
+#include <stdbool.h>
+
+#define ANSI_COLOR_RED "\x1b[31m"
+#define ANSI_COLOR_GREEN "\x1b[32m"
+#define ANSI_COLOR_BLUE "\x1b[34m"
+#define ANSI_COLOR_RESET "\x1b[0m"
+#define ANSI_CURSOR_BACK_7 "\x1b[7D"
+#define ANSI_CURSOR_UP "\x1b[1A"
+
+#define PASS "[" ANSI_COLOR_GREEN "PASS" ANSI_COLOR_RESET "]"
+#define RUN "[" ANSI_COLOR_BLUE "RUN" ANSI_COLOR_RESET " ]"
+#define ERR "[" ANSI_COLOR_RED "FAIL" ANSI_COLOR_RESET "]"
 
 Test(compile, general) {
     DIR *dir = opendir("./tests/compiler/test_files");
@@ -12,6 +25,8 @@ Test(compile, general) {
     }
 
     struct dirent *subdirPtr;
+
+    bool test_failed = false;
 
     while ((subdirPtr = readdir(dir)) != NULL) {
         if (!strcmp(subdirPtr->d_name, ".") ||
@@ -30,21 +45,28 @@ Test(compile, general) {
         CompilerReturnCode expectedRes;
         fscanf(in, "// %d", (int *)&expectedRes);
 
-        cr_log_info("Running %s", subdirPtr->d_name);
+        cr_log_info(ANSI_CURSOR_BACK_7 RUN " compile::%s", subdirPtr->d_name);
 
+        clock_t start = clock();
         CompilerReturnCode res = compile(in, NULL);
+        clock_t end = clock();
 
         if (res != expectedRes) {
+            test_failed = true;
             cr_log_error(
-                "Test failed for file %s. Expected: %d but compiler returned "
-                "%d",
+                ANSI_CURSOR_BACK_7 ANSI_CURSOR_UP ERR
+                " compile::%s. Expected: %d but compiler returned %d",
                 subdirPtr->d_name, expectedRes, res);
         } else {
-            cr_log_info("Test successful");
+            float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+            cr_log_info(ANSI_CURSOR_UP ANSI_CURSOR_BACK_7 PASS
+                        " compile::%s: (%fs)", subdirPtr->d_name, seconds);
         }
 
         fclose(in);
     }
+
+    cr_assert(test_failed == false);
 
     closedir(dir);
 }
