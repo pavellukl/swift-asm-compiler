@@ -16,6 +16,22 @@ bool analyze_function_dec(ParserOptions *parser_opt) {
     return true;
 }
 
+bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
+                           Parameters *arguments) {
+    // get called function
+    LSTElement *func = st_search_func(parser_opt->symtable, identifier);
+
+    // if function doesn't exist
+    if (func == NULL) {
+        parser_opt->return_code = DEF_ERR;
+        return false;
+    }
+
+    // TODO rest: check args and params
+    arguments = arguments;
+    return false;
+}
+
 void init_parameter_array(Parameters *params) {
     params->infinite = false;
     params->capacity = 0;
@@ -46,6 +62,11 @@ bool add_to_parameter_array(Parameters *params, Parameter param) {
 }
 
 void invalidate_parameter_array(Parameters *params) { params->size = 0; }
+
+void destroy_parameter_array(Parameters *params) {
+    free(params->parameters_arr);
+    init_parameter_array(params);
+}
 
 bool is_simple_expression(PPListItemType pp_type) {
     return pp_type == TERMINAL_IDENTIF || pp_type == TERMINAL_INT ||

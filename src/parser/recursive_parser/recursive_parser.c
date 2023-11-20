@@ -70,11 +70,11 @@ bool _function_definition(ParserOptions *parser_opt) {
             // check function head
             if (!_function_head(parser_opt)) return false;
 
-            // semantically check function
+            // semantically check function head
             if (!analyze_function_dec(parser_opt)) return false;
 
             // push function scope
-            // TODO think about identifier of scope
+            // TODO think about scope identifier
             st_push_func_scope(parser_opt->symtable,
                                &parser_opt->variables.identif,
                                parser_opt->variables.identif.identifier);
@@ -305,28 +305,18 @@ bool _command_sequence(ParserOptions *parser_opt) {
 }
 
 bool _command(ParserOptions *parser_opt) {
-    // save state of helper variables
-    SemanticVariables tmp = parser_opt->variables;
-    // TODO return saved state of variables
-
     if (parser_opt->token.type == TOKEN_IDENTIF) {
-        // save identifier for analysis
-        parser_opt->variables.identif.identifier =
-            parser_opt->token.value.string;
+        char *identif = parser_opt->token.value.string;
 
         if (!_next_token(parser_opt)) return false;
 
-        if (__identif(parser_opt)) {
-            // return saved state of variables
-            parser_opt->variables = tmp;
+        if (__identif(parser_opt, identif)) {
             return true;
         }
 
         return false;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_RETURN) {
         if (_return_command(parser_opt)) {
-            // return saved state of variables
-            parser_opt->variables = tmp;
             return true;
         }
 
@@ -343,27 +333,29 @@ bool _command(ParserOptions *parser_opt) {
     return false;
 }
 
-bool __identif(ParserOptions *parser_opt) {
+bool __identif(ParserOptions *parser_opt, char *identif) {
     // function call
     if (parser_opt->token.type == TOKEN_L_BRACKET) {
         if (!_next_token(parser_opt)) return false;
 
-        // TODO save arguments
-        if (!_arg_list(parser_opt)) {
+        // init arg array
+        Parameters args;
+        init_parameter_array(&args);
+
+        // save arguments
+        if (!_arg_list(parser_opt, &args)) {
+            destroy_parameter_array(&args);
             return false;
         }
 
-        // get called function
-        LSTElement *el = st_search_func(
-            parser_opt->symtable, parser_opt->variables.identif.identifier);
-
-        // if function doesn't exist
-        if (el == NULL) {
-            parser_opt->return_code = DEF_ERR;
+        // semantically check function call
+        if (!analyze_function_call(parser_opt, identif, &args)) {
+            destroy_parameter_array(&args);
             return false;
         }
 
-        // TODO semantically check function call (params vs args)
+        // unallocate argument array
+        destroy_parameter_array(&args);
 
         if (parser_opt->token.type != TOKEN_R_BRACKET) {
             parser_opt->return_code = STX_ERR;
@@ -372,8 +364,13 @@ bool __identif(ParserOptions *parser_opt) {
         if (!_next_token(parser_opt)) return false;
 
         return true;
-    } else if (parser_opt->token.type == TOKEN_ASSIGN) {
+    }
+    // assignment
+    else if (parser_opt->token.type == TOKEN_ASSIGN) {
         if (!_next_token(parser_opt)) return false;
+
+        // TODO semantically check assignment, refactor semantics into seperate
+        // function
 
         // get called variable
         LSTElement *el = st_search_var(
@@ -617,11 +614,14 @@ bool _while_command(ParserOptions *parser_opt) {
 }
 
 bool _function_call(ParserOptions *parser_opt) {
-    // TODO semantically handle function call
     if (parser_opt->token.type != TOKEN_IDENTIF) {
         parser_opt->return_code = STX_ERR;
         return false;
     }
+
+    // save function identifier
+    char *func_identif = parser_opt->token.value.string;
+
     if (!_next_token(parser_opt)) return false;
 
     if (parser_opt->token.type != TOKEN_L_BRACKET) {
@@ -630,10 +630,25 @@ bool _function_call(ParserOptions *parser_opt) {
     }
     if (!_next_token(parser_opt)) return false;
 
-    // TODO save arguments
-    if (!_arg_list(parser_opt)) {
+    // init arg array
+    Parameters args;
+    init_parameter_array(&args);
+
+    // save arguments
+    if (!_arg_list(parser_opt, &args)) {
+        destroy_parameter_array(&args);
         return false;
     }
+
+    // semantically check function call
+    if (!analyze_function_call(parser_opt, func_identif, &args)) {
+        destroy_parameter_array(&args);
+        return false;
+    }
+
+    // unallocate argument array
+    destroy_parameter_array(&args);
+
     if (!_next_token(parser_opt)) return false;
 
     if (parser_opt->token.type != TOKEN_R_BRACKET) {
@@ -645,7 +660,7 @@ bool _function_call(ParserOptions *parser_opt) {
     return true;
 }
 
-bool _arg_list(ParserOptions *parser_opt) {
+bool _arg_list(ParserOptions *parser_opt, Parameters *args) {
     if (parser_opt->token.type == TOKEN_R_BRACKET) {
         return true;
     } else if (parser_opt->token.type == TOKEN_IDENTIF ||
@@ -653,68 +668,129 @@ bool _arg_list(ParserOptions *parser_opt) {
                parser_opt->token.type == TOKEN_INT ||
                parser_opt->token.type == TOKEN_STRING ||
                parser_opt->token.type == TOKEN_KEYWORD_NIL) {
-        return _arg(parser_opt) && _comma_arg(parser_opt);
+        return _arg(parser_opt, args) && _comma_arg(parser_opt, args);
     }
     parser_opt->return_code = STX_ERR;
     return false;
 }
 
-bool _comma_arg(ParserOptions *parser_opt) {
+bool _comma_arg(ParserOptions *parser_opt, Parameters *args) {
     if (parser_opt->token.type == TOKEN_R_BRACKET) {
         return true;
     } else if (parser_opt->token.type == TOKEN_COMA) {
         if (!_next_token(parser_opt)) return false;
-        return _arg(parser_opt) && _comma_arg(parser_opt);
+        return _arg(parser_opt, args) && _comma_arg(parser_opt, args);
     }
     parser_opt->return_code = STX_ERR;
     return false;
 }
 
-bool _arg(ParserOptions *parser_opt) {
+bool _arg(ParserOptions *parser_opt, Parameters *args) {
+    // init argument
+    Parameter arg = {.identifier = "", .name = "", .par_type = T_VOID};
+
     if (parser_opt->token.type == TOKEN_FLOAT ||
         parser_opt->token.type == TOKEN_INT ||
         parser_opt->token.type == TOKEN_STRING ||
         parser_opt->token.type == TOKEN_KEYWORD_NIL) {
+        switch (parser_opt->token.type) {
+            // save argument type if argument is a literal
+            case TOKEN_FLOAT:
+                arg.par_type = T_FLOAT;
+                break;
+
+            case TOKEN_INT:
+                arg.par_type = T_INT;
+                break;
+
+            case TOKEN_STRING:
+                arg.par_type = T_STRING;
+                break;
+
+            case TOKEN_KEYWORD_NIL:
+                arg.par_type = T_NIL;
+                break;
+
+            // never happens, here to make the compiler happy
+            default:
+                break;
+        }
+
+        // add argument to argument array
+        add_to_parameter_array(args, arg);
+
         return true;
     } else if (parser_opt->token.type == TOKEN_IDENTIF) {
+        // save argument identifier
+        arg.identifier = parser_opt->token.value.string;
+
         if (!_next_token(parser_opt)) return false;
-        return __arg_name(parser_opt);
+        if (!__arg_name(parser_opt, &arg)) return false;
+
+        // add argument to argument array
+        add_to_parameter_array(args, arg);
+        return true;
     }
     parser_opt->return_code = STX_ERR;
     return false;
 }
 
-bool __arg_name(ParserOptions *parser_opt) {
+bool __arg_name(ParserOptions *parser_opt, Parameter *arg) {
     if (parser_opt->token.type == TOKEN_R_BRACKET ||
         parser_opt->token.type == TOKEN_COMA) {
         return true;
     } else if (parser_opt->token.type == TOKEN_COLON) {
         if (!_next_token(parser_opt)) return false;
-        return __arg_name_colon(parser_opt);
+        return __arg_name_colon(parser_opt, arg);
     }
     parser_opt->return_code = STX_ERR;
     return false;
 }
 
-bool __arg_name_colon(ParserOptions *parser_opt) {
+bool __arg_name_colon(ParserOptions *parser_opt, Parameter *arg) {
     if (parser_opt->token.type == TOKEN_IDENTIF) {
+        // save actual argument identifier, last identifier was it's name
+        arg->name = arg->identifier;
+        arg->identifier = parser_opt->token.value.string;
         if (!_next_token(parser_opt)) return false;
         return true;
     } else if (parser_opt->token.type == TOKEN_FLOAT ||
                parser_opt->token.type == TOKEN_INT ||
                parser_opt->token.type == TOKEN_STRING ||
                parser_opt->token.type == TOKEN_KEYWORD_NIL) {
-        return _arg_val(parser_opt);
+        return _arg_val(parser_opt, arg);
     }
     parser_opt->return_code = STX_ERR;
     return false;
 }
 
-bool _arg_val(ParserOptions *parser_opt) {
+bool _arg_val(ParserOptions *parser_opt, Parameter *arg) {
     if (parser_opt->token.type == TOKEN_INT ||
         parser_opt->token.type == TOKEN_FLOAT ||
         parser_opt->token.type == TOKEN_STRING ||
         parser_opt->token.type == TOKEN_KEYWORD_NIL) {
+        switch (parser_opt->token.type) {
+            // save argument type if argument is a literal
+            case TOKEN_FLOAT:
+                arg->par_type = T_FLOAT;
+                break;
+
+            case TOKEN_INT:
+                arg->par_type = T_INT;
+                break;
+
+            case TOKEN_STRING:
+                arg->par_type = T_STRING;
+                break;
+
+            case TOKEN_KEYWORD_NIL:
+                arg->par_type = T_NIL;
+                break;
+
+            // never happens, here to make the compiler happy
+            default:
+                break;
+        }
         if (!_next_token(parser_opt)) return false;
         return true;
     }
