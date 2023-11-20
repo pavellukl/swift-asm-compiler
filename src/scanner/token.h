@@ -2,8 +2,6 @@
 #define TOKEN_H
 
 typedef enum {
-    TOKEN_LINE_COMMENT,
-    TOKEN_BLOCK_COMMENT,
     TOKEN_IDENTIF,
     TOKEN_KEYWORD_DOUBLE,        // Double
     TOKEN_KEYWORD_DOUBLE_NIL,    // Double?
