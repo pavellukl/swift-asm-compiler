@@ -28,6 +28,8 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
     }
 
     // TODO rest: check args and params
+    arguments = arguments;
+    return false;
 }
 
 void init_parameter_array(Parameters *params) {
