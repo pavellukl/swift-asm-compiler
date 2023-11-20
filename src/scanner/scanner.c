@@ -352,11 +352,6 @@ bool get_next_token(ParserOptions* parser_opt) {
                 if (next_char == EOF) {
                     parser_opt->sc_opt.i--;
                 }
-                token.type = TOKEN_LINE_COMMENT;
-                token.line_index = parser_opt->sc_opt.line_counter;
-                token.eol_before = new_line_before_token;
-                token.id = parser_opt->sc_opt.id_counter++;
-                parser_opt->token = token;
                 return true;
 
             case BLOCK_COMMENT:
@@ -391,11 +386,6 @@ bool get_next_token(ParserOptions* parser_opt) {
                 if (next_char == '/') {
                     block_comment_count--;
                     if (block_comment_count == 0) {
-                        token.type = TOKEN_BLOCK_COMMENT;
-                        token.line_index = parser_opt->sc_opt.line_counter;
-                        token.eol_before = new_line_before_token;
-                        token.id = parser_opt->sc_opt.id_counter++;
-                        parser_opt->token = token;
                         return true;
                     } else {
                         current_state = BLOCK_COMMENT;
