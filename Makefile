@@ -29,7 +29,7 @@ DEPLOY_BASE_DIR := _deploy
 CC := gcc
 CFLAGS := -std=gnu99 -Wextra -Werror -pedantic -pthread -Wall
 build: CFLAGS += -D NDEBUG
-debug_build: CFLAGS += -D DEBUG
+debug_build: CFLAGS += -g -D DEBUG
 test_build: CFLAGS += -lcriterion
 DEPFLAGS = -MT $@ -MMD -MP -MF
 BUILD_DEPFLAGS = $(DEPFLAGS) $(BUILD_DEPS_BASE_DIR)/$*.d
