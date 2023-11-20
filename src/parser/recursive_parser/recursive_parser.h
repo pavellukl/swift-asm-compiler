@@ -22,16 +22,18 @@ bool _command(ParserOptions *parser_opt);
 bool __identif(ParserOptions *parser_opt, char *identif);
 bool _data_type(ParserOptions *parser_opt);
 bool _return_command(ParserOptions *parser_opt);
-bool __return(ParserOptions *parser_opt);
+bool __return(ParserOptions *parser_opt, Type *expression_type);
 bool _variable_def(ParserOptions *parser_opt);
-bool __varlet_identif(ParserOptions *parser_opt);
-bool __varlet_identif_colon_type(ParserOptions *parser_opt);
+bool __varlet_identif(ParserOptions *parser_opt, Type *expected_var_type,
+                      Type *provided_value_type);
+bool __varlet_identif_colon_type(ParserOptions *parser_opt,
+                                 Type *provided_value_type);
 bool _conditional_command(ParserOptions *parser_opt);
 bool __if(ParserOptions *parser_opt);
 bool __if_let_identif_body(ParserOptions *parser_opt);
 bool __if_let_identif_body_else(ParserOptions *parser_opt);
 bool _while_command(ParserOptions *parser_opt);
-bool _function_call(ParserOptions *parser_opt);
+bool _function_call(ParserOptions *parser_opt, Type *return_type);
 bool _arg_list(ParserOptions *parser_opt, Parameters *args);
 bool _comma_arg(ParserOptions *parser_opt, Parameters *args);
 bool _arg(ParserOptions *parser_opt, Parameters *args);

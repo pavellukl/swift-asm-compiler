@@ -17,7 +17,7 @@ bool analyze_function_dec(ParserOptions *parser_opt) {
 }
 
 bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
-                           Parameters *arguments) {
+                           Parameters *arguments, Type *return_type) {
     // get called function
     LSTElement *func = st_search_func(parser_opt->symtable, identifier);
 
@@ -28,8 +28,101 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
     }
 
     // TODO rest: check args and params
+    //! check if variables have defined value
     arguments = arguments;
-    return false;
+
+    // save function return type
+    *return_type = func->return_type;
+
+    return true;
+}
+
+bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
+                        Type assign_type) {
+    // get variable that's being assigned to
+    LSTElement *el = st_search_var(parser_opt->symtable, identifier);
+
+    // if variable doesn't exist
+    if (el == NULL) {
+        parser_opt->return_code = UNDEFVAR_ERR;
+        return false;
+    }
+
+    // if trying to assign to constant
+    if (el->variant == CONSTANT) {
+        parser_opt->return_code = OTHER_ERR;
+        return false;
+    }
+
+    // if types don't match
+    // TODO check if this is correct
+    if (assign_type != el->return_type ||
+        (_is_nilable_type(el->return_type) && assign_type != T_NIL)) {
+        parser_opt->return_code = EXPRTYPE_ERR;
+        return false;
+    }
+
+    el->defined_value = true;
+
+    return true;
+}
+
+bool analyze_return(ParserOptions *parser_opt, LSTElement fnc,
+                    Type expression_type) {
+    // return can not be in the global scope
+    if (st_is_global_active(parser_opt->symtable)) {
+        //! semantic check returning syntax error
+        parser_opt->return_code = STX_ERR;
+        return false;
+    }
+
+    // if function type and return expression type do not match
+    if (fnc.return_type != expression_type ||
+        (_is_nilable_type(fnc.return_type) && expression_type != T_NIL)) {
+        parser_opt->return_code = FNRET_ERR;
+        return false;
+    }
+
+    return true;
+}
+
+bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
+                     char *identifier, Type expected_type,
+                     Type provided_value_type) {
+    // try to find variable with the same identifier
+    LSTElement *el = st_search_var(parser_opt->symtable, identifier);
+
+    // TODO handle same scope redeclaration
+    if (el != NULL /*&& is_within_same_scope*/) {
+        parser_opt->return_code = DEF_ERR;
+        return false;
+    }
+
+    // if type isn't explicitly provided and no value is provided
+    if (expected_type == T_VOID &&
+        (provided_value_type == T_VOID || provided_value_type == T_NIL)) {
+        parser_opt->return_code = UNDEFTYPE_ERR;
+        return false;
+    }
+
+    // if expected and provided types do not match
+    if (expected_type != provided_value_type ||
+        (_is_nilable_type(expected_type) && provided_value_type != T_NIL)) {
+        parser_opt->return_code = EXPRTYPE_ERR;
+        return false;
+    }
+
+    bool is_value_defined = provided_value_type != T_VOID;
+    LSTElementValue var_val = {0};
+
+    // add defined variable to symtable
+    STError err = st_add_element(
+        parser_opt->symtable, identifier, expected_type,
+        is_constant ? CONSTANT : VARIABLE, is_value_defined ? &var_val : NULL);
+
+    if (err != E_OK) return false;
+
+    return true;
 }
 
 void init_parameter_array(Parameters *params) {

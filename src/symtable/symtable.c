@@ -535,7 +535,7 @@ STError st_push_func_scope(ListST* list, LSTElement* element,
                     list,
                     element->value.parameters.parameters_arr[i].identifier,
                     element->value.parameters.parameters_arr[i].par_type,
-                    VARIABLE, NULL) != E_OK)
+                    CONSTANT, NULL) != E_OK)
                 return E_ALLOC;
         }
     }
