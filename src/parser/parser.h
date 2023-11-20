@@ -40,5 +40,6 @@ typedef struct {
 #include "../scanner/scanner_func.h"
 
 bool _next_token(ParserOptions *parser_opt);
+bool _first_token(ParserOptions *parser_opt);
 
 #endif /* PARSER_H */

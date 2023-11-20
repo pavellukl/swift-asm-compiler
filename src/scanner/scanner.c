@@ -209,7 +209,7 @@ bool get_next_token(ParserOptions* parser_opt) {
     bool new_line_before_token = false;
 
     while (true) {
-        PRINTF_STDDEBUG("STATE: %d, working with CHAR: %c(%d)\n ",
+        PRINTF_STDDEBUG("STATE: %d, working with CHAR: %c(%d)\n",
                         current_state, current_char, current_char);
 
         switch (current_state) {

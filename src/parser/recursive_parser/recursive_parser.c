@@ -729,7 +729,7 @@ void add_inbuilt_functions_to_symtable(ListST *symtable) {
 
 void parse_function_definition(ParserOptions *parser_opt) {
     // get first token
-    if (!_next_token(parser_opt)) return;
+    if (!_first_token(parser_opt)) return;
 
     while (true) {
         // search functions and EOF

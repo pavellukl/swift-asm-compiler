@@ -5,6 +5,7 @@
 #include "ListPP/ListPP.h"
 #include "precedence_table.h"
 #include "../../generation/generation.h"
+#include "../../debug.h"
 
 /**
  * @brief Performs syntax check, semantic check and generating upon expression.
@@ -59,7 +60,7 @@ bool _get_token_types(ParserOptions *parser_opt,
  * @return true If the operation was successful.
  * @return false If an error occurred. See @p parser_opt.return_code.
  */
-bool _build_rule_result(ParserOptions *parser_opt, PPListItem *items,
+bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
                         int rule_r_size, PPListItem *new_item);
 
 /**
@@ -82,7 +83,7 @@ bool _rule_exists(PPListItem *items, int rule_r_size);
  * @return true If operation was successful.
  * @return false If rule does not end with the handle.
  */
-bool _calculate_rule_r_size(ListPP list, int *size);
+bool _calculate_rule_r_size(ListPP *list, int *size);
 
 /**
  * @brief Performs one rule according to grammer.
@@ -108,10 +109,10 @@ bool _list_contains_done_sequence(ListPP list);
  * @brief Searches list from top to bottom and returns first terminal it founds.
  *        Note that it assumes that the list contains a terminal item.
  *
- * @param list List to search in.
+ * @param list Pointer to the List to search in.
  * @return First terminal in the list.
  */
-PPListItem _get_first_terminal_item(ListPP list);
+PPListItem _get_first_terminal_item(ListPP *list);
 
 /**
  * @brief Converts a token to the ListPP item.
