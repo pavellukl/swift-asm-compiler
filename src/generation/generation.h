@@ -5,6 +5,7 @@
 #include <stdbool.h>
 #include "../helpers/string_buffer/string_buffer.h"
 #include "../scanner/token.h"
+#include "../symtable/ListST/ListST.h"
 
 typedef struct {
     SBuffer *selected;
@@ -20,6 +21,7 @@ typedef struct {
 /** @brief Abstract syntax tree node for expression. */
 typedef struct ASTNode {
     TokenData token;
+    Type data_type;
     struct ASTNode *left;
     struct ASTNode *right;
 } ASTNode;
@@ -29,8 +31,9 @@ void generation_free(const GenerationVariables gen_opt);
 void print_generation_to_file(GenerationVariables gen_opt, FILE *out);
 
 void generate_inbuilt_functions(GenerationVariables gen_var);
+void _generate_string_literal(GenerationVariables *gen_var, char *str);
 void _generate_arithmetical_expression(GenerationVariables *gen_var,
-                                       ASTNode *ast);
+                                       ASTNode *ast, Type expr_type);
 void generate_expression(GenerationVariables *gen_var, ASTNode *ast);
 
 #endif /* GENERATION_H */

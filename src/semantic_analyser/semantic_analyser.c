@@ -117,10 +117,10 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
     switch (operator_type) {
         case TOKEN_ADD:
             // both should be only int or float or string (not nilable)
-            if ((l_op_type != T_STRING || r_op_type != T_STRING) &&
-                (!_is_number_type(l_op_type) ||
-                 !_is_number_type(r_op_type || _is_nilable_type(l_op_type) ||
-                                  _is_nilable_type(r_op_type)))) {
+            if ((l_op_type != T_STRING || r_op_type != T_STRING) 
+                &&
+                (!_is_number_type(l_op_type) || !_is_number_type(r_op_type ||
+                 _is_nilable_type(l_op_type) || _is_nilable_type(r_op_type)))) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
@@ -135,8 +135,9 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
         case TOKEN_DIV:
             // both should be only int or float (not nilable)
             if (!_is_number_type(l_op_type) ||
-                !_is_number_type(r_op_type || _is_nilable_type(l_op_type) ||
-                                 _is_nilable_type(r_op_type))) {
+                !_is_number_type(r_op_type ||
+                _is_nilable_type(l_op_type) ||
+                _is_nilable_type(r_op_type))) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }

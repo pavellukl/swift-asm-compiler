@@ -3,7 +3,6 @@
 
 #include "../../../helpers/list.h"
 #include "../../../scanner/StackTokenData/StackTokenData.h"
-#include "../../../symtable/ListST/ListST.h"
 #include "../../../generation/generation.h"
 
 /** 
@@ -22,7 +21,6 @@ typedef enum {
 
 typedef struct {
     PPListItemType pp_type;
-    Type data_type;
     ASTNode *node;
 } PPListItem;
 

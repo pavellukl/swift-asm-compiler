@@ -799,7 +799,7 @@ bool _arg_val(ParserOptions *parser_opt, Parameter *arg) {
 }
 
 void add_inbuilt_functions_to_symtable(ListST *symtable) {
-    // TODO:
+    // TODO: add inbuilt funcitions to symtable
     symtable = symtable;
 }
 

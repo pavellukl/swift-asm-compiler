@@ -1,3 +1,2 @@
-// printed result
 
-var a: Int = 1 + 2
+var a: Int = "asd"

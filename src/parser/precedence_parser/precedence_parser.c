@@ -3,9 +3,9 @@
 void _free_AST(ASTNode *node) {
     if (node == NULL) return;
 
-    free_token(node->token);
     _free_AST(node->left);
     _free_AST(node->right);
+    free_token(node->token);
     free(node);
 }
 
@@ -165,16 +165,16 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
                     parser_opt->return_code = UNDEFVAR_ERR;
                     return false;
                 }
-                new_item->data_type = el->return_type;
+                new_item->node->data_type = el->return_type;
             } else {
-                new_item->data_type = items[2].data_type;
+                new_item->node->data_type = items[2].node->data_type;
             }
             break;
         case 2:
             if (items[1].pp_type == TERMINAL_NOT) {
                 // E -> TOKEN_NOT E (items[1] items[2])
                 // data type tests
-                if (items[2].data_type != T_BOOL) {
+                if (items[2].node->data_type != T_BOOL) {
                     parser_opt->return_code = EXPRTYPE_ERR;
                     return false;
                 }
@@ -183,13 +183,13 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
                 new_item->node->token = items[1].node->token;
                 new_item->node->left = items[2].node;
                 new_item->node->right = NULL;
-                new_item->data_type = items[2].data_type;
+                new_item->node->data_type = items[2].node->data_type;
             } else {
                 // E -> E TOKEN_EXCL_MARK (items[1] items[2])
                 // no data type tests (every data type is ok)
                 // build new_item
                 *new_item = items[1];
-                _remove_nilable(new_item->data_type);
+                _remove_nilable(new_item->node->data_type);
             }
             break;
         case 3:
@@ -202,8 +202,8 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
             } else {
                 // data type tests
                 if (!analyze_binary_operation(parser_opt,
-                    items[1].node->token.type, items[0].data_type,
-                    items[2].data_type, &new_item->data_type)) {
+                    items[1].node->token.type, items[0].node->data_type,
+                    items[2].node->data_type, &new_item->node->data_type)) {
                     return false;
                 }
                 // build new_item (data type already set)
@@ -360,14 +360,14 @@ PPListItem _get_first_terminal_item(ListPP *list) {
 bool _token_to_pplist_item(ParserOptions *parser_opt,
                            PPListItemType item_last_pp_type, TokenData token,
                            PPListItem *item) {
-    if (!_get_token_types(parser_opt, item_last_pp_type, token, &item->pp_type,
-                          &item->data_type)) {
-        return false;
-    }
-
     item->node = malloc(sizeof (*item->node));
     if (item->node == NULL) {
         parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+
+    if (!_get_token_types(parser_opt, item_last_pp_type, token, &item->pp_type,
+                          &item->node->data_type)) {
         return false;
     }
 
@@ -458,12 +458,14 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
     list_pp_first(&list);
     list_pp_get_value(&list, &expression);
     ASTNode *ast = expression.node;
-    parser_opt->variables.type = expression.data_type;
+    parser_opt->variables.type = expression.node->data_type;
 
     // generate expression
     PRINTF_STDDEBUG("expression generation\n")
     generate_expression(&parser_opt->gen_var, ast);
 
+    PRINTF_STDDEBUG("expression cleanup\n")
     _free_pp_list(&list);
+    PRINTF_STDDEBUG("expression done\n")
     return true;
 }
