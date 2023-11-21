@@ -10,6 +10,7 @@
 #include "../debug.h"
 #include "scanner_types.h"
 #include "../parser/parser.h"
+#include "../helpers/utils.h"
 
 
 TokenData is_keyword(char *keyword);
@@ -21,6 +22,8 @@ void scanner_opt_free(ScannerOptions *opt);
 bool scanner_opt_init(ScannerOptions *opt, FILE *file);
 
 void scanner_rewind_file(ScannerOptions *opt);
+
+bool clone_token(TokenData *dest, TokenData src);
 
 void free_token(TokenData token);
 

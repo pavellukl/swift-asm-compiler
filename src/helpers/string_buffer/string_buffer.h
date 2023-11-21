@@ -21,6 +21,10 @@ typedef struct {
 
 SBuffer *sbuffer_init();
 void sbuffer_discard(SBuffer *sbuffer);
+
+#define SBUFFER_PRINTF(...)                                                    \
+        do { if (!sbuffer_printf(__VA_ARGS__)) return false; } while(0)
+
 bool sbuffer_printf(SBuffer *sbuffer, const char *format, ...);
 bool sbuffer_clear(SBuffer **sbuffer);
 

@@ -131,6 +131,14 @@ void scanner_rewind_file(ScannerOptions* opt) {
     opt->id_counter = 0;
 }
 
+bool clone_token(TokenData *dest, TokenData src) {
+    *dest = src;
+    if (src.type == TOKEN_IDENTIF || src.type == TOKEN_STRING) {
+        return clone_string(&dest->value.string, src.value.string);
+    }
+    return true;
+}
+
 void free_token(TokenData token) {
     if (token.type == TOKEN_IDENTIF || token.type == TOKEN_STRING) {
         free(token.value.string);

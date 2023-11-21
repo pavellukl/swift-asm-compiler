@@ -371,7 +371,10 @@ bool _token_to_pplist_item(ParserOptions *parser_opt,
         return false;
     }
 
-    item->node->token = token;
+    if(!clone_token(&item->node->token, token)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
     item->node->left = NULL;
     item->node->right = NULL;
     return true;
@@ -462,7 +465,10 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
 
     // generate expression
     PRINTF_STDDEBUG("expression generation\n")
-    generate_expression(&parser_opt->gen_var, ast);
+    if (!generate_expression(&parser_opt->gen_var, ast)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
 
     PRINTF_STDDEBUG("expression cleanup\n")
     _free_pp_list(&list);
