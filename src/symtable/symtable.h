@@ -75,9 +75,9 @@ STError st_update_element(ListST* list, char* identifier,
  * Adds new scope to the list
  *
  * @param ListST*   pointer to the list
- * @param char*     identifier of the scope
+ * @param int     identifier of the scope
  */
-STError st_push_scope(ListST* list, char* identifier);
+STError st_push_scope(ListST* list, int identifier);
 
 /**
  * Pops actual (first) scope
@@ -132,10 +132,10 @@ bool st_is_global_active(ListST* list);
  *
  * @param ListST*       pointer to list
  * @param LSTElement*   pointer to function element
- * @param char*         identifier of pushed scope
+ * @param int         identifier of pushed scope
  *
  * @return STError      result of the operation
  */
-STError st_push_func_scope(ListST* list, LSTElement* element, char* identifier);
+STError st_push_func_scope(ListST* list, LSTElement* element, int identifier);
 
 #endif /* SYMTABLE_H */

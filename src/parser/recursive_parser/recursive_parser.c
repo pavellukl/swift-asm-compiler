@@ -73,17 +73,20 @@ bool _function_definition(ParserOptions *parser_opt) {
             // semantically check function head
             if (!analyze_function_dec(parser_opt)) return false;
 
+            // save current scope counter
+            int tmp_scope_n = parser_opt->gen_var.scope_n;
             // push function scope
-            // TODO think about scope identifier
             st_push_func_scope(parser_opt->symtable,
                                &parser_opt->variables.identif,
-                               parser_opt->variables.identif.identifier);
+                               ++parser_opt->gen_var.scope_n);
 
             // check function body
             if (!_scope_body(parser_opt)) return false;
 
             // pop function scope
             st_pop_scope(parser_opt->symtable);
+            // restore saved state of scope count
+            parser_opt->gen_var.scope_n = tmp_scope_n;
 
             // TODO generate function head
             // TODO generate function body
@@ -332,9 +335,17 @@ bool _command(ParserOptions *parser_opt) {
         parser_opt->variables = tmp;
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
-        return _conditional_command(parser_opt);
+        if (!_conditional_command(parser_opt)) return false;
+
+        // return saved state of variables
+        parser_opt->variables = tmp;
+        return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
-        return _while_command(parser_opt);
+        if (!_while_command(parser_opt)) return false;
+
+        // return saved state of variables
+        parser_opt->variables = tmp;
+        return true;
     }
     parser_opt->return_code = STX_ERR;
     return false;
@@ -623,20 +634,58 @@ bool _conditional_command(ParserOptions *parser_opt) {
 }
 
 bool __if(ParserOptions *parser_opt) {
+    // TODO handle defined values of variables in branches
     if (parser_opt->token.type == TOKEN_KEYWORD_LET) {
         if (!_next_token(parser_opt)) return false;
 
         if (parser_opt->token.type != TOKEN_IDENTIF) {
+            // TODO add this constant to new scope
             parser_opt->return_code = STX_ERR;
             return false;
         }
         if (!_next_token(parser_opt)) return false;
 
-        return _scope_body(parser_opt) && __if_let_identif_body(parser_opt);
+        // save current scope counter
+        int tmp_scope_n = parser_opt->gen_var.scope_n;
+        // push if scope
+        st_push_scope(parser_opt->symtable, ++parser_opt->gen_var.scope_n);
+
+        if (!_scope_body(parser_opt)) return false;
+
+        // pop if scope
+        st_pop_scope(parser_opt->symtable);
+        // restore saved state of scope count
+        parser_opt->gen_var.scope_n = tmp_scope_n;
+
+        // TODO collect data for checking if all branches have return and check
+        // here
+
+        return __if_let_identif_body(parser_opt);
     }
 
-    return parse_check_optimize_generate_expression(parser_opt) &&
-           _scope_body(parser_opt) && __if_let_identif_body(parser_opt);
+    if (!parse_check_optimize_generate_expression(parser_opt)) return false;
+
+    // semantically analyze if (check if expression is of type bool)
+    if (parser_opt->variables.type != T_BOOL) {
+        parser_opt->return_code = EXPRTYPE_ERR;
+        return false;
+    }
+
+    // save current scope counter
+    int tmp_scope_n = parser_opt->gen_var.scope_n;
+    // push if scope
+    st_push_scope(parser_opt->symtable, ++parser_opt->gen_var.scope_n);
+
+    if (!_scope_body(parser_opt)) return false;
+
+    // pop if scope
+    st_pop_scope(parser_opt->symtable);
+    // restore saved state of scope count
+    parser_opt->gen_var.scope_n = tmp_scope_n;
+
+    // TODO collect data for checking if all branches have return and check here
+
+    return __if_let_identif_body(parser_opt);
 }
 
 bool __if_let_identif_body(ParserOptions *parser_opt) {
@@ -671,8 +720,27 @@ bool __if_let_identif_body_else(ParserOptions *parser_opt) {
 bool _while_command(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
         if (!_next_token(parser_opt)) return false;
-        return parse_check_optimize_generate_expression(parser_opt) &&
-               _scope_body(parser_opt);
+        if (!parse_check_optimize_generate_expression(parser_opt)) return false;
+
+        // semantically analyze while (check if expression is of type bool)
+        if (parser_opt->variables.type != T_BOOL) {
+            parser_opt->return_code = EXPRTYPE_ERR;
+            return false;
+        }
+
+        // save current scope counter
+        int tmp_scope_n = parser_opt->gen_var.scope_n;
+        // push while scope
+        st_push_scope(parser_opt->symtable, ++parser_opt->gen_var.scope_n);
+
+        if (!_scope_body(parser_opt)) return false;
+
+        // pop while scope
+        st_pop_scope(parser_opt->symtable);
+        // restore saved state of scope count
+        parser_opt->gen_var.scope_n = tmp_scope_n;
+
+        return true;
     }
     parser_opt->return_code = STX_ERR;
     return false;
