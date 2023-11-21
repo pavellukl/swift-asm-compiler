@@ -54,13 +54,13 @@ bool _function_definition(ParserOptions *parser_opt) {
             parser_opt->variables.identif.variant = FUNCTION;
 
             // add function to symtable
-            STError res = st_add_element(
+            STError err = st_add_element(
                 parser_opt->symtable, parser_opt->variables.identif.identifier,
                 parser_opt->variables.identif.return_type,
                 parser_opt->variables.identif.variant,
                 &(parser_opt->variables.identif.value));
 
-            if (res != E_OK) {
+            if (err != E_OK) {
                 parser_opt->return_code = INTER_ERR;
                 return false;
             }
@@ -113,7 +113,7 @@ bool _function_head(ParserOptions *parser_opt) {
 
     // check symtable for identif
     LSTElement *el =
-        st_search_func(parser_opt->symtable, parser_opt->token.value.string);
+        st_search_element(parser_opt->symtable, parser_opt->token.value.string);
 
     // if identif already defined on first run
     if (el != NULL && parser_opt->is_first_run) {
@@ -124,7 +124,7 @@ bool _function_head(ParserOptions *parser_opt) {
     else if (!parser_opt->is_first_run) {
         // if function wasn't already defined on the first run
         // TODO can be removed if everything is working as it should
-        if (el == NULL) {
+        if (el == NULL || el->variant != FUNCTION) {
             parser_opt->return_code = INTER_ERR;
             return false;
         }
@@ -752,7 +752,7 @@ bool _comma_arg(ParserOptions *parser_opt, Parameters *args) {
 
 bool _arg(ParserOptions *parser_opt, Parameters *args) {
     // init argument
-    Parameter arg = {.identifier = "", .name = "", .par_type = T_VOID};
+    Parameter arg = {.name = "_", .identifier = "", .par_type = T_VOID};
 
     if (parser_opt->token.type == TOKEN_FLOAT ||
         parser_opt->token.type == TOKEN_INT ||
