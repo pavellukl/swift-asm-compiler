@@ -932,8 +932,114 @@ bool _arg_val(ParserOptions *parser_opt, Parameter *arg) {
 }
 
 void add_inbuilt_functions_to_symtable(ListST *symtable) {
-    // TODO: add inbuilt funcitions to symtable
-    symtable = symtable;
+    LSTElementValue value;
+    Parameters params;
+
+    value.parameters.infinite = false;
+    value.parameters.size = 0;
+    value.parameters.parameters_arr = NULL;
+    
+    
+    // readString()
+    if (st_add_element(symtable, "readString", T_STRING_NIL, FUNCTION, &value) != E_OK) {
+        return false;
+    }
+    // readInt()
+    if (st_add_element(symtable, "readInt", T_INT_NIL, FUNCTION, &value) != E_OK) {
+        return false;
+    }
+    // readDouble()
+    if (st_add_element(symtable, "readDouble", T_FLOAT_NIL, FUNCTION, &value) != E_OK) {
+        return false;
+    }
+
+    // write(term1, term2, ..., termN)
+    value.parameters.infinite = true;
+    if (st_add_element(symtable, "write", T_VOID, FUNCTION, &value) != E_OK) {
+        return false;
+    }
+
+    // Int2Double(_term: Int)
+    value.parameters.infinite = false;
+    value.parameters.size = 1;
+    value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    if (!value.parameters.parameters_arr) {
+        return false;
+    }
+    value.parameters.parameters_arr[0] = (Parameter){.identifier = "term", .par_type = T_INT};
+    if (st_add_element(symtable, "Int2Double", T_FLOAT, FUNCTION, &value) != E_OK) {
+        free(value.parameters.parameters_arr);
+        return false;
+    }
+    free(value.parameters.parameters_arr);
+
+    // Double2Int(_term: Double)
+    value.parameters.infinite = false;
+    value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    if (!value.parameters.parameters_arr) {
+        return false;
+    }
+    value.parameters.parameters_arr[0] = (Parameter){.identifier = "term", .par_type = T_FLOAT};
+    if (st_add_element(symtable, "Double2Int", T_INT, FUNCTION, &value) != E_OK) {
+        free(value.parameters.parameters_arr);
+        return false;
+    }
+    free(value.parameters.parameters_arr);
+
+    // length(_s: String)
+    value.parameters.size = 1;
+    value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    if (value.parameters.parameters_arr == NULL) {
+        return false;
+    }
+    value.parameters.parameters_arr[0] = (Parameter){.identifier = "s", .par_type = T_STRING};
+    if (st_add_element(symtable, "length", T_INT, FUNCTION, &value) != E_OK) {
+        free(value.parameters.parameters_arr);
+        return false;
+    }
+    free(value.parameters.parameters_arr);
+
+    // substring(of s: String, startingAt i: Int, endingBefore j: Int)
+    value.parameters.size = 3;
+    value.parameters.parameters_arr = malloc(3 * sizeof(Parameter));
+    if (value.parameters.parameters_arr == NULL) {
+        return false;
+    }
+    value.parameters.parameters_arr[0] = (Parameter){.identifier = "s", .par_type = T_STRING};
+    value.parameters.parameters_arr[1] = (Parameter){.identifier = "i", .par_type = T_INT};
+    value.parameters.parameters_arr[2] = (Parameter){.identifier = "j", .par_type = T_INT};
+    if (st_add_element(symtable, "substring", T_STRING_NIL, FUNCTION, &value) != E_OK) {
+        free(value.parameters.parameters_arr);
+        return false;
+    }
+    free(value.parameters.parameters_arr);
+
+    // ord(_c: String)
+    value.parameters.size = 1;
+    value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    if (value.parameters.parameters_arr == NULL) {
+        return false;
+    }
+    value.parameters.parameters_arr[0] = (Parameter){.identifier = "c", .par_type = T_STRING};
+    if (st_add_element(symtable, "ord", T_INT, FUNCTION, &value) != E_OK) {
+        free(value.parameters.parameters_arr);
+        return false;
+    }
+    free(value.parameters.parameters_arr);
+
+    // chr(_i: Int)
+    value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    if (value.parameters.parameters_arr == NULL) {
+        return false;
+    }
+    value.parameters.parameters_arr[0] = (Parameter){.identifier = "i", .par_type = T_INT};
+    if (st_add_element(symtable, "chr", T_STRING, FUNCTION, &value) != E_OK) {
+        free(value.parameters.parameters_arr);
+        return false;
+    }
+    free(value.parameters.parameters_arr);
+
+    return true;
 }
 
 void parse_function_definition(ParserOptions *parser_opt) {
