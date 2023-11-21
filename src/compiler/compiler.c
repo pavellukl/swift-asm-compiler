@@ -70,7 +70,9 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     parser_opt.is_first_run = false;
     st_push_scope(parser_opt.symtable, parser_opt.gen_var.scope_n);
     scanner_rewind_file(&parser_opt.sc_opt);
-    add_inbuilt_functions_to_symtable(parser_opt.symtable);
+    if (!add_inbuilt_functions_to_symtable(parser_opt.symtable)){
+        return COMP_INTER_ERR;
+    }
     generate_inbuilt_functions(parser_opt.gen_var);
 
     // second run
