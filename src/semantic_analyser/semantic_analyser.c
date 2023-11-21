@@ -3,13 +3,25 @@
 bool analyze_function_dec(ParserOptions *parser_opt) {
     Parameters params = parser_opt->variables.identif.value.parameters;
 
-    // check if names and identifiers are different for all parameters
     for (int i = 0; i < params.size; i++) {
         Parameter param = params.parameters_arr[i];
 
+        // check if names and identifiers are different
         if (!strcmp(param.name, param.identifier)) {
             parser_opt->return_code = OTHER_ERR;
             return false;
+        }
+
+        // check if identifiers are unique
+        if (!strcmp(param.identifier, "_")) continue;
+
+        for (int j = i + 1; j < params.size; j++) {
+            Parameter tmp = params.parameters_arr[i];
+
+            if (!strcmp(param.identifier, tmp.identifier)) {
+                parser_opt->return_code = OTHER_ERR;
+                return false;
+            }
         }
     }
 
