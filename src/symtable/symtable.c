@@ -266,6 +266,10 @@ void st_pop_scope(ListST* list) {
             free(list->firstItem->data->local_table[i]);
         }
     }
+
+    // TODO: free strings (identifier and possibly string value if item is of
+    // type string)
+
     free(list->firstItem->data->local_table);
     free(list->firstItem->data);
 
@@ -531,11 +535,17 @@ STError st_push_func_scope(ListST* list, LSTElement* element,
 
     if (element->value.parameters.parameters_arr != NULL) {
         for (int i = 0; i < element->value.parameters.size; i++) {
+            // if parameter identifier is '_', we can discard it
+            if (!strcmp(element->value.parameters.parameters_arr[i].identifier,
+                        "_")) {
+                continue;
+            }
+
             if (st_add_element(
                     list,
                     element->value.parameters.parameters_arr[i].identifier,
                     element->value.parameters.parameters_arr[i].par_type,
-                    VARIABLE, NULL) != E_OK)
+                    CONSTANT, NULL) != E_OK)
                 return E_ALLOC;
         }
     }

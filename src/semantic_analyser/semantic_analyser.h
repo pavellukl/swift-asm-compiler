@@ -23,9 +23,44 @@ bool analyze_function_dec(ParserOptions *parser_opt);
  * @param parser_opt parser options pointer to save possible semantic error code
  * @param identifier identifier of called function
  * @param arguments passed arguments
+ * @param return_type pointer to type where function return type will be stored
  */
 bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
-                           Parameters *arguments);
+                           Parameters *arguments, Type *return_type);
+
+/**
+ * @brief analyzes assignment, assigns varible defined_value flag
+ *
+ * @param parser_opt parser options pointer to save possible semantic error code
+ * @param identifier indentifier of the variable that's being assigned to
+ * @param assign_type type of the assigned value
+ */
+bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
+                        Type assign_type);
+
+/**
+ * @brief analyzes return statement
+ *
+ * @param parser_opt parser options pointer to save possible semantic error code
+ * @param fnc symtable entry of function within which
+ * @param expression_type type of the expression after return
+ */
+bool analyze_return(ParserOptions *parser_opt, LSTElement fnc,
+                    Type expression_type);
+
+/**
+ * @brief analyzes variable definition, and adds variable to symtable
+ *
+ * @param parser_opt parser options pointer to save possible semantic error code
+ * @param is_constant bool whether let or var was used (let = true, var = false)
+ * @param identifier identifier of newly defined variable
+ * @param expected_type explicitly defined type of variable (T_VOID if not
+ * defined)
+ * @param provided_value_type type of provided value (T_VOID if not proided)
+ */
+bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
+                     char *identifier, Type expected_type,
+                     Type provided_value_type);
 
 /**
  * @brief initialize helper parameter array variable, beware memory leak
