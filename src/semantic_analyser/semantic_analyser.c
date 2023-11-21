@@ -115,10 +115,14 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
     bool is_value_defined = provided_value_type != T_VOID;
     LSTElementValue var_val = {0};
 
+    // actual variable type to be saved in symtable
+    Type actual_type =
+        expected_type != T_VOID ? expected_type : provided_value_type;
+
     // add defined variable to symtable
-    STError err = st_add_element(
-        parser_opt->symtable, identifier, expected_type,
-        is_constant ? CONSTANT : VARIABLE, is_value_defined ? &var_val : NULL);
+    STError err = st_add_element(parser_opt->symtable, identifier, actual_type,
+                                 is_constant ? CONSTANT : VARIABLE,
+                                 is_value_defined ? &var_val : NULL);
 
     if (err != E_OK) return false;
 
