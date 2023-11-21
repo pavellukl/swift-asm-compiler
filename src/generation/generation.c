@@ -253,11 +253,16 @@ bool generate_expression(GenerationVariables *gen_var, ASTNode *ast) {
     if (ast->token.type != TOKEN_AND
         && ast->token.type != TOKEN_OR
         && ast->token.type != TOKEN_NOT) {
-        if (!_generate_arithmetical_expression(gen_var, ast, ast->data_type))
+        if (!_generate_arithmetical_expression(gen_var, ast, ast->data_type)) {
+            free(init_label);
             return false;
+        }
     } else {
         gen_var->counter_n = 2;
-        if (!_generate_logical_expression(gen_var, ast, 0, 1)) return false;
+        if (!_generate_logical_expression(gen_var, ast, 0, 1)) {
+            free(init_label);
+            return false;
+        }
         SBUFFER_PRINTF(gen_var->selected, "LABEL %s-0\n"
                                           "  PUSHS bool@true\n"
                                           "  JUMP %send\n"
