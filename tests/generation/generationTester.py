@@ -50,10 +50,27 @@ for test_file in test_files:
             # crash happend
             print(f"{CURSOR_UP}{CRASH} generation::{test_filename}: {err[:-1]}")
             crashing = crashing + 1
+            continue
         elif p.returncode != 0:
-            # unexpected return code
+            # unexpected compiler return code
             print(f"{CURSOR_UP}{FAIL} generation::{test_filename}: Test file is not valid IFJ23. Compiler returned: {p.returncode}")
             failing = failing + 1
+            continue
+        
+        # pass compiler
+        
+        p = subprocess.Popen(["./ic23int", ""], stdout=subprocess.PIPE,
+                                                stdin=subprocess.PIPE,
+                                                stderr=subprocess.PIPE)
+        out, err = p.communicate(file_stringified.encode())
+        out = out.decode('utf-8')
+        err = err.decode('utf-8')
+        
+        if p.returncode != 0:
+            # unexpected interpreter return code
+            print(f"{CURSOR_UP}{FAIL} generation::{test_filename}: Interpreter returned error code: {p.returncode}")
+            failing = failing + 1
+            continue
         elif out != expected_output:
             # unexpected output
             print(f"{CURSOR_UP}{FAIL} generation::{test_filename}: Output does not match with expected")
@@ -63,11 +80,13 @@ for test_file in test_files:
             print(out)
             print("--------------------------------------------------------------------------")
             failing = failing + 1
-        else:
-            # pass
-            print(f"{CURSOR_UP}{PASS} generation::{test_filename}")
-            passing = passing + 1
-
+            continue
+        
+        # pass interpreter
+        
+        print(f"{CURSOR_UP}{PASS} generation::{test_filename}")
+        passing = passing + 1
+        
 failing_s = "0" if failing == 0 else f"{RED}{failing}{RESET}"
 crashing_s = "0" if crashing == 0 else f"{RED}{crashing}{RESET}"
 print(f"{DELIMITER} Synthesis: Tested: {BLUE}{len(test_files)}{RESET} | Passing: {GREEN}{passing}{RESET} | Failing: {failing_s} | Crashing: {crashing_s}")

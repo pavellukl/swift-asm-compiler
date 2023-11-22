@@ -113,6 +113,7 @@ deploy: | $(DEPLOY_BASE_DIR).dir
 	@ cp deployMakefile $(DEPLOY_BASE_DIR)/Makefile
 	@ cp rozdeleni $(DEPLOY_BASE_DIR)
 	@ cp dokumentace.pdf $(DEPLOY_BASE_DIR)
+	@ cp rozsireni $(DEPLOY_BASE_DIR)
 	@ zip -j xluklp00.zip $(DEPLOY_BASE_DIR)/*
 	@ bash is_it_ok.sh xluklp00.zip $(DEPLOY_BASE_DIR)
 	@ rm -rf xluklp00.zip
