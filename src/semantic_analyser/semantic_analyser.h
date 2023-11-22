@@ -8,14 +8,20 @@
 #include "../parser/precedence_parser/ListPP/ListPP.h"
 #include "../symtable/symtable.h"
 
-#define PARAM_ARR_INC_N_ITEMS 4
+/**
+ * @brief initiliaze semantic context strucutre
+ *
+ * @param sem_ctx semantic context pointer which will be initialized
+ */
+void init_semantic_context(SemanticContext *sem_ctx);
 
 /**
  * @brief analyzes function definition
  *
  * @param parser_opt parser options pointer to save possible semantic error code
+ * @param params parameters pointer
  */
-bool analyze_function_dec(ParserOptions *parser_opt);
+bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params);
 
 /**
  * @brief analyzes function call
@@ -42,10 +48,11 @@ bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
  * @brief analyzes return statement
  *
  * @param parser_opt parser options pointer to save possible semantic error code
- * @param fnc symtable entry of function within which
+ * @param fnc pointer to symtable entry of function within which to analyze
+ * return
  * @param expression_type type of the expression after return
  */
-bool analyze_return(ParserOptions *parser_opt, LSTElement fnc,
+bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
                     Type expression_type);
 
 /**
@@ -69,43 +76,11 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
  * @param identifier identifier specified after let
  * @param initial_type pointer to where the initial type of the variable will be
  * stored
+ * @param found_var poiner to where the pointer of the found variable will
+ * be stored
  */
 bool analyze_if_let(ParserOptions *parser_opt, char *identifier,
-                    Type *initial_type);
-
-/**
- * @brief initialize helper parameter array variable, beware memory leak
- *
- * @param params pointer to the parameters struct which's array will be
- * initialized
- */
-void init_parameter_array(Parameters *params);
-
-/**
- * @brief add a parameter into parameter array helper
- *
- * @param params pointer to the parameters struct into which the parameter will
- * be added
- * @return true if the operation was successful
- * @return false if the operation was not successful
- */
-bool add_to_parameter_array(Parameters *params, Parameter param);
-
-/**
- * @brief invalidates all values in the array, making it work like it's empty
- *
- * @param params pointer to the parameters struct which's array will be
- * invalidated
- */
-void invalidate_parameter_array(Parameters *params);
-
-/**
- * @brief unallocates parameter array and reinitiliazes the structure
- *
- * @param params pointer to the parameters struct which's array will be
- * unallocated
- */
-void destroy_parameter_array(Parameters *params);
+                    Type *initial_type, LSTElement **found_var);
 
 /**
  * @brief Tells if a list item type is an expression consisting of a single

@@ -18,6 +18,7 @@ int main(int argc, char* argv[]) {
     //  FILE* in =
     //     fopen("./tests/compiler/test_files/function_call.swift",
     //     "r");
+    // FILE* in = fopen("./tests/compiler/test_files/empty.swift", "r");
     FILE* in = stdin;
 
     switch (compile(in, stdout)) {

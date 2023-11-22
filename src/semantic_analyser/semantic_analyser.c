@@ -1,10 +1,18 @@
 #include "semantic_analyser.h"
 
-bool analyze_function_dec(ParserOptions *parser_opt) {
-    Parameters params = parser_opt->variables.identif.value.parameters;
+void init_semantic_context(SemanticContext *sem_ctx) {
+    sem_ctx->current_fnc = NULL;
+}
 
-    for (int i = 0; i < params.size; i++) {
-        Parameter param = params.parameters_arr[i];
+bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params) {
+    for (int i = 0; i < params->size; i++) {
+        Parameter param = params->parameters_arr[i];
+
+        // TODO: remove if everything is working correctly
+        if (param.identifier == NULL || param.name == NULL) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
 
         // check if names and identifiers are different
         if (!strcmp(param.name, param.identifier)) {
@@ -13,10 +21,10 @@ bool analyze_function_dec(ParserOptions *parser_opt) {
         }
 
         // check if identifiers are unique
-        if (!strcmp(param.identifier, "_")) continue;
+        if (param.identifier == NULL) continue;
 
-        for (int j = i + 1; j < params.size; j++) {
-            Parameter tmp = params.parameters_arr[i];
+        for (int j = i + 1; j < params->size; j++) {
+            Parameter tmp = params->parameters_arr[i];
 
             if (!strcmp(param.identifier, tmp.identifier)) {
                 parser_opt->return_code = OTHER_ERR;
@@ -30,6 +38,7 @@ bool analyze_function_dec(ParserOptions *parser_opt) {
 
 bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
                            Parameters *arguments, Type *return_type) {
+    // TODO fix NULL as _
     // get called function
     LSTElement *func =
         st_search_element(parser_opt->symtable, identifier, NULL);
@@ -52,16 +61,18 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
         Parameter call_arg = arguments->parameters_arr[i];
 
         // if parameter and argument names do not match
-        if (strcmp(func_param.name, call_arg.name) != 0) {
+        if ((func_param.name != NULL || call_arg.name != NULL) &&
+            (call_arg.name == NULL ||
+             strcmp(func_param.name, call_arg.name) != 0)) {
             parser_opt->return_code = FNCALL_ERR;
             return false;
         }
 
         // if argument is not a literal -> it is an identifier
-        if (strcmp(func_param.identifier, "") != 0) {
+        if (call_arg.identifier != NULL) {
             // check argument identifier
-            LSTElement *el =
-                st_search_element(parser_opt->symtable, identifier, NULL);
+            LSTElement *el = st_search_element(parser_opt->symtable,
+                                               call_arg.identifier, NULL);
 
             // if identifier is not defined or has no defined value
             if (el == NULL || !el->defined_value) {
@@ -123,7 +134,7 @@ bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
     return true;
 }
 
-bool analyze_return(ParserOptions *parser_opt, LSTElement fnc,
+bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
                     Type expression_type) {
     // return can not be in the global scope
     if (st_is_global_active(parser_opt->symtable)) {
@@ -133,8 +144,8 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement fnc,
     }
 
     // if function type and return expression type do not match
-    if (fnc.return_type != expression_type &&
-        (!_is_nilable_type(fnc.return_type) || expression_type != T_NIL)) {
+    if (fnc->return_type != expression_type &&
+        (!_is_nilable_type(fnc->return_type) || expression_type != T_NIL)) {
         parser_opt->return_code = FNRET_ERR;
         return false;
     }
@@ -179,8 +190,8 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
 
     // add defined variable to symtable
     STError err = st_add_element(parser_opt->symtable, identifier, actual_type,
-                                 is_constant ? CONSTANT : VARIABLE,
-                                 is_value_defined ? &var_val : NULL);
+                                 is_constant ? CONSTANT : VARIABLE, var_val,
+                                 is_value_defined);
 
     if (err != E_OK) {
         parser_opt->return_code = INTER_ERR;
@@ -190,7 +201,7 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
 }
 
 bool analyze_if_let(ParserOptions *parser_opt, char *identifier,
-                    Type *initial_type) {
+                    Type *initial_type, LSTElement **found_var) {
     // try to find specified variable
     LSTElement *el = st_search_element(parser_opt->symtable, identifier, NULL);
 
@@ -200,49 +211,14 @@ bool analyze_if_let(ParserOptions *parser_opt, char *identifier,
         return false;
     }
 
+    // save found variable
+    *found_var = el;
     // save initial variable type
     *initial_type = el->return_type;
-
     // remove nil from type for if branch
     el->return_type = _remove_nilable(el->return_type);
 
     return true;
-}
-
-void init_parameter_array(Parameters *params) {
-    params->infinite = false;
-    params->capacity = 0;
-    params->size = 0;
-    params->parameters_arr = NULL;
-}
-
-bool add_to_parameter_array(Parameters *params, Parameter param) {
-    if (params->capacity == params->size) {
-        Parameter *buffer = realloc(params->parameters_arr,
-                                    (params->capacity + PARAM_ARR_INC_N_ITEMS) *
-                                        sizeof(struct Parameter));
-        if (buffer == NULL) {
-            free(params->parameters_arr);
-            init_parameter_array(params);
-            return false;
-        }
-
-        params->parameters_arr = buffer;
-
-        params->capacity += PARAM_ARR_INC_N_ITEMS;
-    }
-
-    params->parameters_arr[params->size] = param;
-    params->size++;
-
-    return true;
-}
-
-void invalidate_parameter_array(Parameters *params) { params->size = 0; }
-
-void destroy_parameter_array(Parameters *params) {
-    free(params->parameters_arr);
-    init_parameter_array(params);
 }
 
 bool is_simple_expression(PPListItemType pp_type) {

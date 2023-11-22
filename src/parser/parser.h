@@ -20,10 +20,8 @@ typedef enum {
 } ParserReturnCode;
 
 typedef struct {
-    LSTElement identif;
-    Parameter param;
-    Type type;
-} SemanticVariables;
+    LSTElement *current_fnc;
+} SemanticContext;
 
 typedef struct {
     bool is_first_run;
@@ -32,7 +30,7 @@ typedef struct {
     ListST *symtable;
     ParserReturnCode return_code;
     // for easily passing data between functions in semantic analysis
-    SemanticVariables variables;
+    SemanticContext sem_ctx;
     GenerationVariables gen_var;
 } ParserOptions;
 

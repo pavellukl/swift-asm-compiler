@@ -12,10 +12,12 @@
  *
  * @param parser_opt Parser options pointer to save possible semantic error
  *                   code.
+ * @param resulting_type Type pointer where the resulting type will be saved.
  * @return true If the operation was successful.
  * @return false If an error occurred. See @p parser_opt.return_code.
  */
-bool parse_check_optimize_generate_expression(ParserOptions *parser_opt);
+bool parse_check_optimize_generate_expression(ParserOptions *parser_opt,
+                                              Type *resulting_type);
 
 /**
  * @brief Releases all memory from AST node and it's left and right children.

@@ -381,7 +381,8 @@ bool _token_to_pplist_item(ParserOptions *parser_opt,
     return true;
 }
 
-bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
+bool parse_check_optimize_generate_expression(ParserOptions *parser_opt,
+                                              Type *resulting_type) {
     PrecedenceTable pp_table = PRECEDENCE_TABLE;
     PRINTF_STDDEBUG("expression syntax/semantic checking\n")
 
@@ -462,7 +463,7 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt) {
     list_pp_first(&list);
     list_pp_get_value(&list, &expression);
     ASTNode *ast = expression.node;
-    parser_opt->variables.type = expression.node->data_type;
+    *resulting_type = expression.node->data_type;
 
     // generate expression
     PRINTF_STDDEBUG("expression generation\n")

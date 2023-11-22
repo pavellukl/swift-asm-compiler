@@ -123,29 +123,27 @@ void _st_insert_element(ListItemST* scope, LSTElement* element) {
 }
 
 LSTElement* _create_element(char* identifier, Type return_type, Variant variant,
-                            LSTElementValue* value) {
+                            LSTElementValue value, bool defined_value) {
     LSTElement* new = malloc(sizeof(LSTElement));
     if (new == NULL) return NULL;
 
     new->identifier = identifier;
     new->return_type = return_type;
     new->variant = variant;
-    if (value == NULL) {
-        new->defined_value = false;
-    } else {
-        new->value = *value;
-        new->defined_value = true;
-    }
+    new->value = value;
+    new->defined_value = defined_value;
 
     return new;
 }
 
 STError st_add_element(ListST* list, char* identifier, Type return_type,
-                       Variant variant, LSTElementValue* value) {
+                       Variant variant, LSTElementValue value,
+                       bool defined_value) {
     if (list == NULL) return E_LIST;
     if (list->firstItem == NULL) return E_LIST;
 
-    LSTElement* new = _create_element(identifier, return_type, variant, value);
+    LSTElement* new =
+        _create_element(identifier, return_type, variant, value, defined_value);
 
     if (new == NULL) return E_ALLOC;
 
@@ -231,18 +229,22 @@ void st_pop_scope(ListST* list) {
     for (int i = 0; i < list->firstItem->data->max_size; i++) {
         if (list->firstItem->data->local_table[i] != NULL) {
             if (list->firstItem->data->local_table[i]->variant == FUNCTION) {
-                if (list->firstItem->data->local_table[i]
-                        ->value.parameters.parameters_arr != NULL)
-                    free(list->firstItem->data->local_table[i]
-                             ->value.parameters.parameters_arr);
+                destroy_parameter_array(
+                    &list->firstItem->data->local_table[i]->value.parameters);
             }
+
+            free(list->firstItem->data->local_table[i]->identifier);
+            // TODO: needed?
+            // if(list->firstItem->data->local_table[i]->return_type ==
+            // T_STRING ||
+            // list->firstItem->data->local_table[i]->return_type ==
+            // T_STRING_NIL) {
+            //     free(list->firstItem->data->local_table[i]->value.string_value);
+            // }
+
             free(list->firstItem->data->local_table[i]);
         }
     }
-
-    // TODO: free strings (identifier and possibly string value if item is of
-    // type string)
-
     free(list->firstItem->data->local_table);
     free(list->firstItem->data);
 
@@ -383,8 +385,8 @@ STError st_remove_element(ListST* list, char* identifier) {
     return E_OK;
 }
 
-STError st_update_element(ListST* list, char* identifier,
-                          LSTElementValue* value) {
+STError st_update_element(ListST* list, char* identifier, LSTElementValue value,
+                          bool defined_value) {
     if (list == NULL) return E_LIST;
     if (list->firstItem == NULL) return E_LIST;
 
@@ -394,8 +396,8 @@ STError st_update_element(ListST* list, char* identifier,
     if (element->variant == FUNCTION || element->variant == CONSTANT)
         return E_SEARCH;
 
-    element->value = *value;
-    if (value != NULL) element->defined_value = true;
+    element->value = value;
+    element->defined_value = defined_value;
 
     return E_OK;
 }
@@ -513,17 +515,20 @@ STError st_push_func_scope(ListST* list, LSTElement* element, int identifier) {
 
     if (element->value.parameters.parameters_arr != NULL) {
         for (int i = 0; i < element->value.parameters.size; i++) {
-            // if parameter identifier is '_', we can discard it
-            if (!strcmp(element->value.parameters.parameters_arr[i].identifier,
-                        "_")) {
+            // if parameter identifier is '_' which is signified by NULL, we can
+            // discard it
+            if (element->value.parameters.parameters_arr[i].identifier ==
+                NULL) {
                 continue;
             }
+
+            LSTElementValue val = {0};
 
             if (st_add_element(
                     list,
                     element->value.parameters.parameters_arr[i].identifier,
                     element->value.parameters.parameters_arr[i].par_type,
-                    CONSTANT, NULL) != E_OK)
+                    CONSTANT, val, true) != E_OK)
                 return E_ALLOC;
         }
     }

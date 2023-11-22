@@ -42,9 +42,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
         scanner_opt_free(&parser_opt.sc_opt);
         return COMP_INTER_ERR;
     }
-    //? should be correctly unallocated by hash table
-    // TODO draw this behavior out on paper to determine
-    init_parameter_array(&parser_opt.variables.identif.value.parameters);
+
     if (!generation_init(&parser_opt.gen_var)) {
         scanner_opt_free(&parser_opt.sc_opt);
         st_destroy_list(parser_opt.symtable);
@@ -68,6 +66,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     // second run preparations
     PRINTF_STDDEBUG("second run prep\n");
     parser_opt.is_first_run = false;
+    init_semantic_context(&parser_opt.sem_ctx);
     st_push_scope(parser_opt.symtable, parser_opt.gen_var.scope_n);
     scanner_rewind_file(&parser_opt.sc_opt);
     if (!add_inbuilt_functions_to_symtable(parser_opt.symtable) ||

@@ -1,6 +1,7 @@
 #ifndef RECURSIVE_PARSER_H
 #define RECURSIVE_PARSER_H
 
+#include "../../helpers/parameters/parameters.h"
 #include "../parser.h"
 #include "../precedence_parser/precedence_parser.h"
 
@@ -10,17 +11,20 @@ void parse_function_definition(ParserOptions *parser_opt);
 
 bool _program(ParserOptions *parser_opt);
 bool _function_definition(ParserOptions *parser_opt);
-bool _function_head(ParserOptions *parser_opt);
-bool __func_identif_lbracket_arglist_rbracket(ParserOptions *parser_opt);
-bool _param_list(ParserOptions *parser_opt);
-bool _comma_param(ParserOptions *parser_opt);
-bool _param(ParserOptions *parser_opt);
-bool __param_name(ParserOptions *parser_opt);
+bool _function_head(ParserOptions *parser_opt, LSTElement *func,
+                    LSTElement **func_ptr);
+bool __func_identif_lbracket_arglist_rbracket(ParserOptions *parser_opt,
+                                              LSTElement *func);
+bool _param_list(ParserOptions *parser_opt, LSTElement *func);
+bool _comma_param(ParserOptions *parser_opt, LSTElement *func);
+bool _param(ParserOptions *parser_opt, LSTElement *func);
+bool __param_name(ParserOptions *parser_opt, LSTElement *func,
+                  Parameter *param);
 bool _scope_body(ParserOptions *parser_opt);
 bool _command_sequence(ParserOptions *parser_opt);
 bool _command(ParserOptions *parser_opt);
 bool __identif(ParserOptions *parser_opt, char *identif);
-bool _data_type(ParserOptions *parser_opt);
+bool _data_type(ParserOptions *parser_opt, Type *type);
 bool _return_command(ParserOptions *parser_opt);
 bool __return(ParserOptions *parser_opt, Type *expression_type);
 bool _variable_def(ParserOptions *parser_opt);

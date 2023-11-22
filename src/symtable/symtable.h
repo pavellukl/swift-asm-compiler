@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "../helpers/parameters/parameters.h"
 #include "ListST/ListST.h"
 
 #define HASH_SIZE 109
@@ -32,12 +33,14 @@ void st_destroy_list(ListST* list);
  * @param char*         identifier of the element
  * @param Type          type of the element/return type of the function
  * @param Variant       variant of the element
- * @param Value*        pointer to the value of the element of the function
+ * @param Value         value of the element
+ * @param bool          bool whether the element has a defined value
  *
  * @return enum          result of the operation
  */
 STError st_add_element(ListST* list, char* identifier, Type return_type,
-                       Variant variant, LSTElementValue* value);
+                       Variant variant, LSTElementValue value,
+                       bool defined_value);
 
 /**
  * Searches element in all scopes
@@ -67,12 +70,14 @@ STError st_remove_element(ListST* list, char* identifier);
  *
  * @param ListST*       pointer to list
  * @param char*         identifier of searched element
- * @param Value*        pointer to the new value
+ * @param Value         new value
+ * @param bool          bool whether the element has a defined value
+
  *
  * @return STError      result of the operation
  */
-STError st_update_element(ListST* list, char* identifier,
-                          LSTElementValue* value);
+STError st_update_element(ListST* list, char* identifier, LSTElementValue value,
+                          bool defined_value);
 
 /**
  * Adds new scope to the list
