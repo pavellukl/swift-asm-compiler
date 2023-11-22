@@ -388,7 +388,7 @@ STError st_update_element(ListST* list, char* identifier,
     if (list == NULL) return E_LIST;
     if (list->firstItem == NULL) return E_LIST;
 
-    LSTElement* element = st_search_element(list, identifier);
+    LSTElement* element = st_search_element(list, identifier, NULL);
     if (element == NULL) return E_SEARCH;
 
     if (element->variant == FUNCTION || element->variant == CONSTANT)
@@ -448,7 +448,8 @@ STError st_remove_func(ListST* list, char* identifier) {
     return E_OK;
 }
 
-LSTElement* st_search_element(ListST* list, char* identifier) {
+LSTElement* st_search_element(ListST* list, char* identifier,
+                              int* scope_identifier) {
     if (list == NULL) return NULL;
     if (list->firstItem == NULL) return NULL;
 
@@ -466,6 +467,9 @@ LSTElement* st_search_element(ListST* list, char* identifier) {
                (count < tmp->data->max_size)) {
             if ((strcmp(tmp->data->local_table[index]->identifier,
                         identifier) == 0)) {
+                if (scope_identifier != NULL) {
+                    *scope_identifier = tmp->data->identifier;
+                }
                 return tmp->data->local_table[index];
             } else {
                 if ((index + step) >= tmp->data->max_size) {

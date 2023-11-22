@@ -44,10 +44,13 @@ STError st_add_element(ListST* list, char* identifier, Type return_type,
  *
  * @param ListST*       pointer to list
  * @param char*         identifier of searched element
+ * @param int*          pointer to where the scope id of found element will be
+ * stored
  *
  * @return LSTElement*  pointer to the element
  */
-LSTElement* st_search_element(ListST* list, char* identifier);
+LSTElement* st_search_element(ListST* list, char* identifier,
+                              int* scope_identifier);
 
 /**
  * Removes first element with the same identifier in all scopes

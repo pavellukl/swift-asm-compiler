@@ -63,6 +63,17 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
                      Type provided_value_type);
 
 /**
+ * @brief analyzes if with let id syntax
+ *
+ * @param parser_opt parser options pointer to save possible semantic error code
+ * @param identifier identifier specified after let
+ * @param initial_type pointer to where the initial type of the variable will be
+ * stored
+ */
+bool analyze_if_let(ParserOptions *parser_opt, char *identifier,
+                    Type *initial_type);
+
+/**
  * @brief initialize helper parameter array variable, beware memory leak
  *
  * @param params pointer to the parameters struct which's array will be
