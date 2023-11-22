@@ -102,8 +102,8 @@ bool _get_token_types(ParserOptions *parser_opt,
             }
             // it is identifier in the expression
             *pp_type = TERMINAL_IDENTIF;
-            LSTElement *el =
-                st_search_element(parser_opt->symtable, token.value.string);
+            LSTElement *el = st_search_element(parser_opt->symtable,
+                                               token.value.string, NULL);
             if (el == NULL) {
                 parser_opt->return_code = UNDEFVAR_ERR;
                 return false;
@@ -159,8 +159,9 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
             new_item->node->left = NULL;
             new_item->node->right = NULL;
             if (items[2].pp_type == TERMINAL_IDENTIF) {
-                LSTElement *el = st_search_element(
-                    parser_opt->symtable, items[2].node->token.value.string);
+                LSTElement *el =
+                    st_search_element(parser_opt->symtable,
+                                      items[2].node->token.value.string, NULL);
                 if (el == NULL) {
                     parser_opt->return_code = UNDEFVAR_ERR;
                     return false;

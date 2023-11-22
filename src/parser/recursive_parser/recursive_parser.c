@@ -6,8 +6,8 @@ bool _look_ahead_for_fn(ParserOptions *parser_opt, bool *is_function) {
         return true;
     }
 
-    LSTElement *el =
-        st_search_element(parser_opt->symtable, parser_opt->token.value.string);
+    LSTElement *el = st_search_element(parser_opt->symtable,
+                                       parser_opt->token.value.string, NULL);
 
     if (el == NULL) {
         parser_opt->return_code = UNDEFVAR_ERR;
@@ -115,8 +115,8 @@ bool _function_head(ParserOptions *parser_opt) {
     }
 
     // check symtable for identif
-    LSTElement *el =
-        st_search_element(parser_opt->symtable, parser_opt->token.value.string);
+    LSTElement *el = st_search_element(parser_opt->symtable,
+                                       parser_opt->token.value.string, NULL);
 
     // if identif already defined on first run
     if (el != NULL && parser_opt->is_first_run) {
@@ -366,13 +366,8 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
             return false;
         }
 
-        // since the resulting value of the function is not needed in this case,
-        // we don't need the type for anything
-        Type *fnc_return_type = T_VOID;
-
         // semantically check function call
-        if (!analyze_function_call(parser_opt, identif, &args,
-                                   fnc_return_type)) {
+        if (!analyze_function_call(parser_opt, identif, &args, NULL)) {
             destroy_parameter_array(&args);
             return false;
         }
@@ -639,10 +634,11 @@ bool __if(ParserOptions *parser_opt) {
         if (!_next_token(parser_opt)) return false;
 
         if (parser_opt->token.type != TOKEN_IDENTIF) {
-            // TODO add this constant to new scope
             parser_opt->return_code = STX_ERR;
             return false;
         }
+
+        char *identifier = parser_opt->token.value.string;
         if (!_next_token(parser_opt)) return false;
 
         // save current scope counter
@@ -650,10 +646,20 @@ bool __if(ParserOptions *parser_opt) {
         // push if scope
         st_push_scope(parser_opt->symtable, ++parser_opt->gen_var.scope_n);
 
+        Type initial_var_type = T_VOID;
+        // run semantic actions
+        // TODO handle let syntax for else branch (T_NIL)
+        if (!analyze_if_let(parser_opt, identifier, &initial_var_type)) {
+            return false;
+        }
+
         if (!_scope_body(parser_opt)) return false;
 
         // pop if scope
         st_pop_scope(parser_opt->symtable);
+
+        // TODO restore initial type of var
+
         // restore saved state of scope count
         parser_opt->gen_var.scope_n = tmp_scope_n;
 

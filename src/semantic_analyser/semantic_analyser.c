@@ -31,7 +31,8 @@ bool analyze_function_dec(ParserOptions *parser_opt) {
 bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
                            Parameters *arguments, Type *return_type) {
     // get called function
-    LSTElement *func = st_search_element(parser_opt->symtable, identifier);
+    LSTElement *func =
+        st_search_element(parser_opt->symtable, identifier, NULL);
 
     // if function doesn't exist or identifier is not of a function
     if (func == NULL || func->variant != FUNCTION) {
@@ -60,7 +61,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
         if (strcmp(func_param.identifier, "") != 0) {
             // check argument identifier
             LSTElement *el =
-                st_search_element(parser_opt->symtable, identifier);
+                st_search_element(parser_opt->symtable, identifier, NULL);
 
             // if identifier is not defined or has no defined value
             if (el == NULL || !el->defined_value) {
@@ -88,7 +89,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
     }
 
     // save function return type
-    *return_type = func->return_type;
+    if (return_type != NULL) *return_type = func->return_type;
 
     return true;
 }
@@ -96,7 +97,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
 bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
                         Type assign_type) {
     // get variable that's being assigned to
-    LSTElement *el = st_search_element(parser_opt->symtable, identifier);
+    LSTElement *el = st_search_element(parser_opt->symtable, identifier, NULL);
 
     // if variable doesn't exist
     if (el == NULL) {
@@ -144,11 +145,13 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement fnc,
 bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
                      char *identifier, Type expected_type,
                      Type provided_value_type) {
+    int found_scope_id = -1;
     // try to find variable with the same identifier
-    LSTElement *el = st_search_element(parser_opt->symtable, identifier);
+    LSTElement *el =
+        st_search_element(parser_opt->symtable, identifier, &found_scope_id);
 
-    // TODO: handle same scope redeclaration
-    if ((el != NULL /*&& found_within_same_scope*/)) {
+    // check for same scope redeclaration
+    if ((el != NULL && found_scope_id == parser_opt->gen_var.scope_n)) {
         parser_opt->return_code = DEF_ERR;
         return false;
     }
@@ -179,7 +182,29 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
                                  is_constant ? CONSTANT : VARIABLE,
                                  is_value_defined ? &var_val : NULL);
 
-    if (err != E_OK) return false;
+    if (err != E_OK) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+    return true;
+}
+
+bool analyze_if_let(ParserOptions *parser_opt, char *identifier,
+                    Type *initial_type) {
+    // try to find specified variable
+    LSTElement *el = st_search_element(parser_opt->symtable, identifier, NULL);
+
+    // if variable does not exist or is not a constant
+    if (el == NULL || el->variant != CONSTANT) {
+        parser_opt->return_code = UNDEFVAR_ERR;
+        return false;
+    }
+
+    // save initial variable type
+    *initial_type = el->return_type;
+
+    // remove nil from type for if branch
+    el->return_type = _remove_nilable(el->return_type);
 
     return true;
 }
