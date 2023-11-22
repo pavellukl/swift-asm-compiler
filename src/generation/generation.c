@@ -54,9 +54,29 @@ void print_generation_to_file(GenerationVariables gen_opt, FILE *out) {
     fprintf(out, "%s\n", gen_opt.functions->string);
 }
 
-void generate_inbuilt_functions(GenerationVariables gen_var) {
+bool generate_function_start(GenerationVariables gen_var, LSTElement *fn) {
+    if (fn->variant != FUNCTION) return false;
+    if (fn->value.parameters.infinite) return false;
+
+    SBUFFER_PRINTF(gen_var.selected, "\nLABEL %s\n"
+                                       "  CREATEFRAME\n", gen_var.label);
+
+    for (int i = 0; i < fn->value.parameters.size; i++) {
+        SBUFFER_PRINTF(gen_var.selected, "  DEFVAR TF@%s\n"
+                                         "  PUSHS TF@%s\n",
+                                        fn->value.parameters.parameters_arr[i],
+                                        fn->value.parameters.parameters_arr[i]);
+    }
+
+    SBUFFER_PRINTF(gen_var.selected, "  PUSHFRAME\n");
+
+    return true;
+}
+
+bool generate_inbuilt_functions(GenerationVariables gen_var) {
     // TODO: generate inbuilt functions
     gen_var = gen_var;
+    return true;
 }
 
 bool _generate_string_literal(GenerationVariables *gen_var, char *str) {
@@ -243,12 +263,18 @@ bool _generate_logical_expression(GenerationVariables *gen_var, ASTNode *ast,
 bool generate_expression(GenerationVariables *gen_var, ASTNode *ast) {
     char *init_label;
     if (!clone_string(&init_label, gen_var->label->string)) return false;
-    SBUFFER_PRINTF(gen_var->label, "&%d", gen_var->expr_n++);
+    if (!sbuffer_printf(gen_var->label, "&%d", gen_var->expr_n++)) {
+        free(init_label);
+        return false;
+    }
     gen_var->counter_n = 0;
 
-    SBUFFER_PRINTF(gen_var->selected, "  CREATEFRAME\n"
+    if (!sbuffer_printf(gen_var->selected, "  CREATEFRAME\n"
                                       "  DEFVAR TF@temp0\n"
-                                      "  DEFVAR TF@temp1\n");
+                                      "  DEFVAR TF@temp1\n")) {
+        free(init_label);
+        return false;
+    }
 
     if (ast->token.type != TOKEN_AND
         && ast->token.type != TOKEN_OR
@@ -263,14 +289,17 @@ bool generate_expression(GenerationVariables *gen_var, ASTNode *ast) {
             free(init_label);
             return false;
         }
-        SBUFFER_PRINTF(gen_var->selected, "LABEL %s-0\n"
-                                          "  PUSHS bool@true\n"
-                                          "  JUMP %send\n"
-                                          "LABEL %s-1\n"
-                                          "  PUSHS bool@false\n"
-                                          "LABEL %send\n",
-                                gen_var->label->string, gen_var->label->string,
-                                gen_var->label->string, gen_var->label->string);
+        if (!sbuffer_printf(gen_var->selected, "LABEL %s-0\n"
+                                               "  PUSHS bool@true\n"
+                                               "  JUMP %send\n"
+                                               "LABEL %s-1\n"
+                                               "  PUSHS bool@false\n"
+                                               "LABEL %send\n",
+                            gen_var->label->string, gen_var->label->string,
+                            gen_var->label->string, gen_var->label->string)) {
+            free(init_label);
+            return false;
+        }
     }
 
     strcpy(gen_var->label->string, init_label);

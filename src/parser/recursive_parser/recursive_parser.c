@@ -931,9 +931,8 @@ bool _arg_val(ParserOptions *parser_opt, Parameter *arg) {
     return false;
 }
 
-void add_inbuilt_functions_to_symtable(ListST *symtable) {
+bool add_inbuilt_functions_to_symtable(ListST *symtable) {
     LSTElementValue value;
-    Parameters params;
 
     value.parameters.infinite = false;
     value.parameters.size = 0;

@@ -70,10 +70,14 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     parser_opt.is_first_run = false;
     st_push_scope(parser_opt.symtable, parser_opt.gen_var.scope_n);
     scanner_rewind_file(&parser_opt.sc_opt);
-    if (!add_inbuilt_functions_to_symtable(parser_opt.symtable)){
+    if (!add_inbuilt_functions_to_symtable(parser_opt.symtable) ||
+        !generate_inbuilt_functions(parser_opt.gen_var)) {
+        st_pop_scope(parser_opt.symtable);
+        scanner_opt_free(&parser_opt.sc_opt);
+        st_destroy_list(parser_opt.symtable);
+        generation_free(parser_opt.gen_var);
         return COMP_INTER_ERR;
     }
-    generate_inbuilt_functions(parser_opt.gen_var);
 
     // second run
     PRINTF_STDDEBUG("second run\n");
