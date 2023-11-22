@@ -178,7 +178,7 @@ bool scanner_buf_insert(ScannerBuffer* buf, char ch) {
 }
 
 int get_next_char(ScannerOptions* opt) {
-    PRINTF_STDDEBUG("INDEX: %d   ", opt->i);
+    PRINTF_STDDEBUG("INDEX: %d/%d\n", opt->i, opt->size);
     if (opt->i < opt->size) {
         PRINTF_STDDEBUG("RETURNING CHAR: %c(%d)\n", opt->file[opt->i],
                         opt->file[opt->i]);
@@ -359,8 +359,12 @@ bool get_next_token(ParserOptions* parser_opt) {
                 }
                 if (next_char == EOF) {
                     parser_opt->sc_opt.i--;
+                    current_state = END_OF_FILE;
+                    break;
                 }
-                return true;
+
+                current_state = WHITE_SPACE;
+                break;
 
             case BLOCK_COMMENT:
                 next_char = get_next_char(&parser_opt->sc_opt);

@@ -1,6 +1,6 @@
-// 4
+// 2
 
-var x = true
+var x: = true
 
 func test(_ x: Bool) -> Int? {
     if x {

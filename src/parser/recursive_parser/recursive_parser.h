@@ -18,8 +18,7 @@ bool __func_identif_lbracket_arglist_rbracket(ParserOptions *parser_opt,
 bool _param_list(ParserOptions *parser_opt, LSTElement *func);
 bool _comma_param(ParserOptions *parser_opt, LSTElement *func);
 bool _param(ParserOptions *parser_opt, LSTElement *func);
-bool __param_name(ParserOptions *parser_opt, LSTElement *func,
-                  Parameter *param);
+bool __param_name(ParserOptions *parser_opt, Parameter *param);
 bool _scope_body(ParserOptions *parser_opt);
 bool _command_sequence(ParserOptions *parser_opt);
 bool _command(ParserOptions *parser_opt);

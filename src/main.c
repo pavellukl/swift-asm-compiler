@@ -5,21 +5,10 @@ int main(int argc, char* argv[]) {
     fprintf(stdout, "Running %s with %d arguments\n", *argv, argc);
 
     // for debugging purposes
-    //  FILE* in =
-    //     fopen("./tests/compiler/test_files/undeclared_type_nil.swift", "r");
-    //  FILE* in =
-    //     fopen("./tests/compiler/test_files/wrong_variable_type3.swift", "r");
-    //  FILE* in =
-    //     fopen("./tests/compiler/test_files/same_scope_redeclaration.swift",
-    //     "r");
-    //  FILE* in =
-    //     fopen("./tests/compiler/generation_test_files/generate_me.swift",
-    //     "r");
-    //  FILE* in =
-    //     fopen("./tests/compiler/test_files/function_call.swift",
-    //     "r");
-    // FILE* in = fopen("./tests/compiler/test_files/empty.swift", "r");
-    FILE* in = stdin;
+    FILE* in = fopen(
+        "./tests/syntax_semantics/test_files/fnc_return_optional_val.swift",
+        "r");
+    // FILE* in = stdin;
 
     switch (compile(in, stdout)) {
         case COMP_OK:

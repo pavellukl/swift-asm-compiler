@@ -38,7 +38,6 @@ bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params) {
 
 bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
                            Parameters *arguments, Type *return_type) {
-    // TODO fix NULL as _
     // get called function
     LSTElement *func =
         st_search_element(parser_opt->symtable, identifier, NULL);
@@ -175,7 +174,7 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
     }
 
     // if expected and provided types do not match
-    if (expected_type != provided_value_type &&
+    if (expected_type != T_VOID && expected_type != provided_value_type &&
         (!_is_nilable_type(expected_type) || provided_value_type != T_NIL)) {
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;

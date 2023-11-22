@@ -249,7 +249,7 @@ bool _param(ParserOptions *parser_opt, LSTElement *func) {
             return false;
         }
 
-        if (!__param_name(parser_opt, func, &param)) {
+        if (!__param_name(parser_opt, &param)) {
             free(param.name);
             free(param.identifier);
             return false;
@@ -269,8 +269,7 @@ bool _param(ParserOptions *parser_opt, LSTElement *func) {
     return false;
 }
 
-bool __param_name(ParserOptions *parser_opt, LSTElement *func,
-                  Parameter *param) {
+bool __param_name(ParserOptions *parser_opt, Parameter *param) {
     if (parser_opt->token.type == TOKEN_IDENTIF ||
         parser_opt->token.type == TOKEN_UNDERSCORE) {
         // save parameter identifier to new parameter
@@ -297,8 +296,8 @@ bool __param_name(ParserOptions *parser_opt, LSTElement *func,
         }
         if (!_next_token(parser_opt)) return false;
 
-        // save function type
-        if (!_data_type(parser_opt, &func->return_type)) return false;
+        // save param type
+        if (!_data_type(parser_opt, &param->par_type)) return false;
 
         return true;
     }
@@ -417,11 +416,11 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
         if (!_look_ahead_for_fn(parser_opt, &is_function)) return false;
 
         if (is_function) {
-            Type *fnc_return_type = T_VOID;
-            if (!_function_call(parser_opt, fnc_return_type)) return false;
+            Type fnc_return_type = T_VOID;
+            if (!_function_call(parser_opt, &fnc_return_type)) return false;
 
             // semantically check assignment
-            if (!analyze_assignment(parser_opt, identif, *fnc_return_type)) {
+            if (!analyze_assignment(parser_opt, identif, fnc_return_type)) {
                 return false;
             }
 
@@ -555,18 +554,18 @@ bool _variable_def(ParserOptions *parser_opt) {
             return false;
         }
 
-        Type *expected_var_type = T_VOID;
-        Type *provided_value_type = T_VOID;
+        Type expected_var_type = T_VOID;
+        Type provided_value_type = T_VOID;
 
-        if (!__varlet_identif(parser_opt, expected_var_type,
-                              provided_value_type)) {
+        if (!__varlet_identif(parser_opt, &expected_var_type,
+                              &provided_value_type)) {
             free(identif);
             return false;
         }
 
         // do semantic actions on variable definition
         if (!analyze_var_def(parser_opt, is_constant, identif,
-                             *expected_var_type, *provided_value_type)) {
+                             expected_var_type, provided_value_type)) {
             free(identif);
             return false;
         }
@@ -984,7 +983,6 @@ bool _arg(ParserOptions *parser_opt, Parameters *args) {
             return false;
         }
 
-        // TODO
         // add argument to argument array
         if (!add_to_parameter_array(args, arg)) {
             free(arg.name);
@@ -1070,120 +1068,128 @@ bool _arg_val(ParserOptions *parser_opt, Parameter *arg) {
 }
 
 bool add_inbuilt_functions_to_symtable(ListST *symtable) {
-    LSTElementValue value;
+    symtable = symtable;
+    // LSTElementValue value;
 
-    value.parameters.infinite = false;
-    value.parameters.size = 0;
-    value.parameters.parameters_arr = NULL;
-    
-    
-    // readString()
-    if (st_add_element(symtable, "readString", T_STRING_NIL, FUNCTION, value,
-                       true) != E_OK) {
-        return false;
-    }
-    // readInt()
-    if (st_add_element(symtable, "readInt", T_INT_NIL, FUNCTION, value, true) !=
-        E_OK) {
-        return false;
-    }
-    // readDouble()
-    if (st_add_element(symtable, "readDouble", T_FLOAT_NIL, FUNCTION, value,
-                       true) != E_OK) {
-        return false;
-    }
+    // value.parameters.infinite = false;
+    // value.parameters.size = 0;
+    // value.parameters.parameters_arr = NULL;
 
-    // write(term1, term2, ..., termN)
-    value.parameters.infinite = true;
-    if (st_add_element(symtable, "write", T_VOID, FUNCTION, value, true) !=
-        E_OK) {
-        return false;
-    }
+    // // readString()
+    // if (st_add_element(symtable, "readString", T_STRING_NIL, FUNCTION, value,
+    //                    true) != E_OK) {
+    //     return false;
+    // }
+    // // readInt()
+    // if (st_add_element(symtable, "readInt", T_INT_NIL, FUNCTION, value, true)
+    // !=
+    //     E_OK) {
+    //     return false;
+    // }
+    // // readDouble()
+    // if (st_add_element(symtable, "readDouble", T_FLOAT_NIL, FUNCTION, value,
+    //                    true) != E_OK) {
+    //     return false;
+    // }
 
-    // Int2Double(_term: Int)
-    value.parameters.infinite = false;
-    value.parameters.size = 1;
-    value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    if (!value.parameters.parameters_arr) {
-        return false;
-    }
-    value.parameters.parameters_arr[0] = (Parameter){.identifier = "term", .par_type = T_INT};
-    if (st_add_element(symtable, "Int2Double", T_FLOAT, FUNCTION, value,
-                       true) != E_OK) {
-        free(value.parameters.parameters_arr);
-        return false;
-    }
-    free(value.parameters.parameters_arr);
+    // // write(term1, term2, ..., termN)
+    // value.parameters.infinite = true;
+    // if (st_add_element(symtable, "write", T_VOID, FUNCTION, value, true) !=
+    //     E_OK) {
+    //     return false;
+    // }
 
-    // Double2Int(_term: Double)
-    value.parameters.infinite = false;
-    value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    if (!value.parameters.parameters_arr) {
-        return false;
-    }
-    value.parameters.parameters_arr[0] = (Parameter){.identifier = "term", .par_type = T_FLOAT};
-    if (st_add_element(symtable, "Double2Int", T_INT, FUNCTION, value, true) !=
-        E_OK) {
-        free(value.parameters.parameters_arr);
-        return false;
-    }
-    free(value.parameters.parameters_arr);
+    // // Int2Double(_term: Int)
+    // value.parameters.infinite = false;
+    // value.parameters.size = 1;
+    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    // if (!value.parameters.parameters_arr) {
+    //     return false;
+    // }
+    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "term",
+    // .par_type = T_INT}; if (st_add_element(symtable, "Int2Double", T_FLOAT,
+    // FUNCTION, value,
+    //                    true) != E_OK) {
+    //     free(value.parameters.parameters_arr);
+    //     return false;
+    // }
+    // free(value.parameters.parameters_arr);
 
-    // length(_s: String)
-    value.parameters.size = 1;
-    value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    if (value.parameters.parameters_arr == NULL) {
-        return false;
-    }
-    value.parameters.parameters_arr[0] = (Parameter){.identifier = "s", .par_type = T_STRING};
-    if (st_add_element(symtable, "length", T_INT, FUNCTION, value, true) !=
-        E_OK) {
-        free(value.parameters.parameters_arr);
-        return false;
-    }
-    free(value.parameters.parameters_arr);
+    // // Double2Int(_term: Double)
+    // value.parameters.infinite = false;
+    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    // if (!value.parameters.parameters_arr) {
+    //     return false;
+    // }
+    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "term",
+    // .par_type = T_FLOAT}; if (st_add_element(symtable, "Double2Int", T_INT,
+    // FUNCTION, value, true) !=
+    //     E_OK) {
+    //     free(value.parameters.parameters_arr);
+    //     return false;
+    // }
+    // free(value.parameters.parameters_arr);
 
-    // substring(of s: String, startingAt i: Int, endingBefore j: Int)
-    value.parameters.size = 3;
-    value.parameters.parameters_arr = malloc(3 * sizeof(Parameter));
-    if (value.parameters.parameters_arr == NULL) {
-        return false;
-    }
-    value.parameters.parameters_arr[0] = (Parameter){.identifier = "s", .par_type = T_STRING};
-    value.parameters.parameters_arr[1] = (Parameter){.identifier = "i", .par_type = T_INT};
-    value.parameters.parameters_arr[2] = (Parameter){.identifier = "j", .par_type = T_INT};
-    if (st_add_element(symtable, "substring", T_STRING_NIL, FUNCTION, value,
-                       true) != E_OK) {
-        free(value.parameters.parameters_arr);
-        return false;
-    }
-    free(value.parameters.parameters_arr);
+    // // length(_s: String)
+    // value.parameters.size = 1;
+    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    // if (value.parameters.parameters_arr == NULL) {
+    //     return false;
+    // }
+    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "s",
+    // .par_type = T_STRING}; if (st_add_element(symtable, "length", T_INT,
+    // FUNCTION, value, true) !=
+    //     E_OK) {
+    //     free(value.parameters.parameters_arr);
+    //     return false;
+    // }
+    // free(value.parameters.parameters_arr);
 
-    // ord(_c: String)
-    value.parameters.size = 1;
-    value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    if (value.parameters.parameters_arr == NULL) {
-        return false;
-    }
-    value.parameters.parameters_arr[0] = (Parameter){.identifier = "c", .par_type = T_STRING};
-    if (st_add_element(symtable, "ord", T_INT, FUNCTION, value, true) != E_OK) {
-        free(value.parameters.parameters_arr);
-        return false;
-    }
-    free(value.parameters.parameters_arr);
+    // // substring(of s: String, startingAt i: Int, endingBefore j: Int)
+    // value.parameters.size = 3;
+    // value.parameters.parameters_arr = malloc(3 * sizeof(Parameter));
+    // if (value.parameters.parameters_arr == NULL) {
+    //     return false;
+    // }
+    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "s",
+    // .par_type = T_STRING}; value.parameters.parameters_arr[1] =
+    // (Parameter){.identifier = "i", .par_type = T_INT};
+    // value.parameters.parameters_arr[2] = (Parameter){.identifier = "j",
+    // .par_type = T_INT}; if (st_add_element(symtable, "substring",
+    // T_STRING_NIL, FUNCTION, value,
+    //                    true) != E_OK) {
+    //     free(value.parameters.parameters_arr);
+    //     return false;
+    // }
+    // free(value.parameters.parameters_arr);
 
-    // chr(_i: Int)
-    value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    if (value.parameters.parameters_arr == NULL) {
-        return false;
-    }
-    value.parameters.parameters_arr[0] = (Parameter){.identifier = "i", .par_type = T_INT};
-    if (st_add_element(symtable, "chr", T_STRING, FUNCTION, value, true) !=
-        E_OK) {
-        free(value.parameters.parameters_arr);
-        return false;
-    }
-    free(value.parameters.parameters_arr);
+    // // ord(_c: String)
+    // value.parameters.size = 1;
+    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    // if (value.parameters.parameters_arr == NULL) {
+    //     return false;
+    // }
+    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "c",
+    // .par_type = T_STRING}; if (st_add_element(symtable, "ord", T_INT,
+    // FUNCTION, value, true) != E_OK) {
+    //     free(value.parameters.parameters_arr);
+    //     return false;
+    // }
+    // free(value.parameters.parameters_arr);
+
+    // // chr(_i: Int)
+    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
+    // if (value.parameters.parameters_arr == NULL) {
+    //     return false;
+    // }
+    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "i",
+    // .par_type = T_INT}; if (st_add_element(symtable, "chr", T_STRING,
+    // FUNCTION, value, true) !=
+    //     E_OK) {
+    //     free(value.parameters.parameters_arr);
+    //     return false;
+    // }
+    // free(value.parameters.parameters_arr);
 
     return true;
 }
@@ -1204,6 +1210,8 @@ void parse_function_definition(ParserOptions *parser_opt) {
             return;
         };
 
+        // initialize return code to OK
+        parser_opt->return_code = OK;
         // operate upon function definition
         _function_definition(parser_opt);
         switch (parser_opt->return_code) {

@@ -52,6 +52,10 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     // first run preparations
     PRINTF_STDDEBUG("first run prep\n");
     parser_opt.is_first_run = true;
+    if (st_push_scope(parser_opt.symtable, parser_opt.gen_var.scope_n) !=
+        E_OK) {
+        return COMP_INTER_ERR;
+    };
 
     // first run
     PRINTF_STDDEBUG("first run\n");
@@ -67,7 +71,6 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     PRINTF_STDDEBUG("second run prep\n");
     parser_opt.is_first_run = false;
     init_semantic_context(&parser_opt.sem_ctx);
-    st_push_scope(parser_opt.symtable, parser_opt.gen_var.scope_n);
     scanner_rewind_file(&parser_opt.sc_opt);
     if (!add_inbuilt_functions_to_symtable(parser_opt.symtable) ||
         !generate_inbuilt_functions(parser_opt.gen_var)) {
