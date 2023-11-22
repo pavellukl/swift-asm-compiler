@@ -1,5 +1,5 @@
 import subprocess
-from os import listdir
+from os import listdir, remove
 from os.path import isfile, join
 import re
 
@@ -58,11 +58,13 @@ for test_file in test_files:
             continue
         
         # pass compiler
-        
-        p = subprocess.Popen(["./ic23int", ""], stdout=subprocess.PIPE,
-                                                stdin=subprocess.PIPE,
-                                                stderr=subprocess.PIPE)
-        out, err = p.communicate(file_stringified.encode())
+        with open("./tests/generation/temp", "w") as temp:
+            temp.write(out)
+            p = subprocess.Popen(["./ic23int", "./tests/generation/"], stdout=subprocess.PIPE,
+                                                                       stdin=subprocess.PIPE,
+                                                                       stderr=subprocess.PIPE)
+        remove("./tests/generation/temp")
+        out, err = p.communicate()
         out = out.decode('utf-8')
         err = err.decode('utf-8')
         
