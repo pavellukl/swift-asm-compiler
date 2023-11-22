@@ -18,8 +18,8 @@
 #define RUN "[" ANSI_COLOR_BLUE "RUN" ANSI_COLOR_RESET " ]"
 #define ERR "[" ANSI_COLOR_RED "FAIL" ANSI_COLOR_RESET "]"
 
-Test(compile, general) {
-    DIR *dir = opendir("./tests/compiler/test_files");
+Test(syntax_semantics, general) {
+    DIR *dir = opendir("./tests/syntax_semantics/test_files");
     if (dir == NULL) {
         cr_fatal("Couldn't open test directory.");
     }
@@ -35,7 +35,8 @@ Test(compile, general) {
         }
 
         char path[512];
-        sprintf(path, "./tests/compiler/test_files/%s", subdirPtr->d_name);
+        sprintf(
+            path, "./tests/syntax_semantics/test_files/%s", subdirPtr->d_name);
 
         FILE *in = fopen(path, "r");
         if (in == NULL) {

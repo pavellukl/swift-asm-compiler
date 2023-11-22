@@ -104,6 +104,7 @@ test: test_build test_run
 test_build: build $(TESTS_BIN)
 test_run:
 	@ for test in $(TESTS_BIN) ; do ./$$test --verbose=1; echo ""; done
+	@ python3 ./tests/generation/generationTester.py
 
 deploy: | $(DEPLOY_BASE_DIR).dir
 	@ rm -rf $(DEPLOY_BASE_DIR)/*
