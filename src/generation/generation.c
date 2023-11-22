@@ -54,6 +54,25 @@ void print_generation_to_file(GenerationVariables gen_opt, FILE *out) {
     fprintf(out, "%s\n", gen_opt.functions->string);
 }
 
+bool generate_function_call(GenerationVariables gen_var, LSTElement *fn) {
+    if (fn->variant != FUNCTION) return false;
+    if (fn->value.parameters.infinite) return false;
+
+    SBUFFER_PRINTF(gen_var.selected, "\nLABEL %s\n"
+                                       "  CREATEFRAME\n", gen_var.label);
+
+    for (int i = fn->value.parameters.size - 1; i >= 0; i--) {
+        SBUFFER_PRINTF(gen_var.selected, "  DEFVAR TF@%s\n"
+                                         "  PUSHS TF@%s\n",
+                                        fn->value.parameters.parameters_arr[i],
+                                        fn->value.parameters.parameters_arr[i]);
+    }
+
+    SBUFFER_PRINTF(gen_var.selected, "  PUSHFRAME\n");
+
+    return true;
+}
+
 bool generate_function_start(GenerationVariables gen_var, LSTElement *fn) {
     if (fn->variant != FUNCTION) return false;
     if (fn->value.parameters.infinite) return false;
