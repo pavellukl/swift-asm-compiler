@@ -22,7 +22,7 @@ print(f"{INFO} {__file__.split('/')[-1]}")
 tests_directory = "./tests/generation/test_files"
 
 test_files = [join(tests_directory, f) for f in listdir(tests_directory) if isfile(join(tests_directory, f))]
-test_files.reverse()
+test_files.sort()
 
 print(f"{DELIMITER} Running {BLUE}{len(test_files)}{RESET} tests from {YELLOW}generation{RESET}:")
 
