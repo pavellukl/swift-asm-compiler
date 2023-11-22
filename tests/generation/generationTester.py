@@ -67,10 +67,10 @@ for test_file in test_files:
         out, err = p.communicate()
         out = out.decode('utf-8')
         err = err.decode('utf-8')
-        
         if p.returncode != 0:
             # unexpected interpreter return code
             print(f"{CURSOR_UP}{FAIL} generation::{test_filename}: Interpreter returned error code: {p.returncode}")
+            print(INFO + " " + err[:-1].replace("\n", f"\n{INFO} "))
             failing = failing + 1
             continue
         elif out != expected_output:
