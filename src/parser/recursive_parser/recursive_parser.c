@@ -733,8 +733,10 @@ bool __if(ParserOptions *parser_opt) {
     }
 
     Type expression_type = T_VOID;
-    if (!parse_check_optimize_generate_expression(parser_opt, &expression_type))
+    if (!parse_check_optimize_generate_expression(parser_opt,
+                                                  &expression_type)) {
         return false;
+    }
 
     // semantically analyze if (check if expression is of type bool)
     if (expression_type != T_BOOL) {

@@ -5,8 +5,8 @@ int main(int argc, char* argv[]) {
     fprintf(stdout, "Running %s with %d arguments\n", *argv, argc);
 
     // for debugging purposes
-    // FILE* in = fopen(
-    //     "./tests/syntax_semantics/test_files/wrong_multiline_string_literal.swift",
+    // FILE* in =
+    //     fopen("./tests/syntax_semantics/test_files/function_call.swift",
     //     "r");
     FILE* in = stdin;
 

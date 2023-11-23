@@ -17,7 +17,7 @@ func factorial(_ n : Int) -> Int? {
     return result!
 }
 
-func test3(_ _ : Int, _ _: String, _ _: Double, _ _: Bool, of x: Int?) -> Int? {
+func test3(_ _ :Int, _ _: String, _ _: Double, _ _: Bool, of x: Int?) -> Int? {
     return x
 }
 

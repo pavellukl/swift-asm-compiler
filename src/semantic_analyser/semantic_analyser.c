@@ -238,7 +238,8 @@ bool _do_types_match(Type l_type, Type r_type) {
             if (r_type == T_INT) return true;
             break;
         case T_FLOAT_NIL:
-            if (r_type == T_FLOAT || r_type == T_NIL) return true;
+            if (r_type == T_FLOAT || r_type == T_INT || r_type == T_NIL)
+                return true;
             break;
         case T_INT_NIL:
             if (r_type == T_INT || r_type == T_NIL) return true;
