@@ -75,18 +75,17 @@ bool generate_function_call(GenerationVariables gen_var, LSTElement *fn) {
     return true;
 }
 
-bool generate_function_start(GenerationVariables gen_var, LSTElement *fn) {
-    if (fn->variant != FUNCTION) return false;
-    if (fn->value.parameters.infinite) return false;
+bool generate_function_start(GenerationVariables gen_var, Parameters pars) {
+    if (pars.infinite) return false;
 
     SBUFFER_PRINTF(gen_var.selected, "\nLABEL %s\n"
                                        "  CREATEFRAME\n", gen_var.label);
 
-    for (int i = 0; i < fn->value.parameters.size; i++) {
+    for (int i = 0; i < pars.size; i++) {
         SBUFFER_PRINTF(gen_var.selected, "  DEFVAR TF@%s\n"
                                          "  PUSHS TF@%s\n",
-                                        fn->value.parameters.parameters_arr[i],
-                                        fn->value.parameters.parameters_arr[i]);
+                                        pars.parameters_arr[i],
+                                        pars.parameters_arr[i]);
     }
 
     SBUFFER_PRINTF(gen_var.selected, "  PUSHFRAME\n");
@@ -323,7 +322,8 @@ bool generate_expression(GenerationVariables *gen_var, ASTNode *ast) {
         }
     }
 
-    strcpy(gen_var->label->string, init_label);
+    bool res = sbuffer_overwrite_content(
+        gen_var->label, "%s", init_label);
     free(init_label);
-    return true;
+    return res;
 }

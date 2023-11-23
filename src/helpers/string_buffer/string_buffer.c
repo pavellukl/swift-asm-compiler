@@ -61,7 +61,21 @@ bool sbuffer_printf(SBuffer *sbuffer, const char *format, ...) {
     return true;
 }
 
-bool sbuffer_clear(SBuffer **sbuffer) {
+bool sbuffer_overwrite_content(SBuffer *sbuffer, const char *format, ...) {
+    sbuffer->string[0] = '\0';
+    sbuffer->size = 1;
+
+    va_list args;
+    va_start(args, format);
+    if (!sbuffer_printf(sbuffer, format, args)) {
+        va_end(args);
+        return false;
+    }
+    va_end(args);
+    return true;
+}
+
+bool sbuffer_reinit(SBuffer **sbuffer) {
     sbuffer_discard(*sbuffer);
     *sbuffer = sbuffer_init();
     if (*sbuffer == NULL) {

@@ -26,6 +26,7 @@ void sbuffer_discard(SBuffer *sbuffer);
         do { if (!sbuffer_printf(__VA_ARGS__)) return false; } while(0)
 
 bool sbuffer_printf(SBuffer *sbuffer, const char *format, ...);
-bool sbuffer_clear(SBuffer **sbuffer);
+bool sbuffer_overwrite_content(SBuffer *sbuffer, const char *format, ...);
+bool sbuffer_reinit(SBuffer **sbuffer);
 
 #endif /* STRING_BUFFER_H */

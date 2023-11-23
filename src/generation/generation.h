@@ -33,7 +33,7 @@ bool generation_init(GenerationVariables *gen_opt);
 void generation_free(const GenerationVariables gen_opt);
 void print_generation_to_file(GenerationVariables gen_opt, FILE *out);
 
-bool generate_function_start(GenerationVariables gen_var, LSTElement *fn);
+bool generate_function_start(GenerationVariables gen_var, Parameters pars);
 bool generate_inbuilt_functions(GenerationVariables gen_var);
 bool _generate_string_literal(GenerationVariables *gen_var, char *str);
 bool _generate_arithmetical_expression(GenerationVariables *gen_var,
