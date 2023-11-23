@@ -56,12 +56,12 @@ void print_generation_to_file(GenerationVariables gen_opt, FILE *out) {
     }
 }
 
-bool generate_function_call(GenerationVariables gen_var, LSTElement *fn) {
+bool generate_function_start(GenerationVariables gen_var, LSTElement *fn) {
     if (fn->variant != FUNCTION) return false;
     if (fn->value.parameters.infinite) return false;
 
-    SBUFFER_PRINTF(gen_var.selected, "\nLABEL %s\n"
-                                       "  CREATEFRAME\n", gen_var.label);
+    SBUFFER_PRINTF(gen_var.selected, "\nLABEL _%s\n"
+                                       "  CREATEFRAME\n", fn->identifier);
 
     for (int i = fn->value.parameters.size - 1; i >= 0; i--) {
         SBUFFER_PRINTF(gen_var.selected, "  DEFVAR TF@%s\n"
@@ -75,27 +75,56 @@ bool generate_function_call(GenerationVariables gen_var, LSTElement *fn) {
     return true;
 }
 
-bool generate_function_start(GenerationVariables gen_var, Parameters pars) {
-    if (pars.infinite) return false;
+bool generate_inbuilt_functions(ListST *symtable, GenerationVariables gen_var) {
+    SBuffer *init_buffer = gen_var.selected;
 
-    SBUFFER_PRINTF(gen_var.selected, "\nLABEL %s\n"
-                                       "  CREATEFRAME\n", gen_var.label);
+    gen_var.selected = gen_var.functions;
+    int scope;
+    LSTElement *el;
+    
+    el = st_search_element(symtable, "readString", &scope);
+    if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // TODO: generate
 
-    for (int i = 0; i < pars.size; i++) {
-        SBUFFER_PRINTF(gen_var.selected, "  DEFVAR TF@%s\n"
-                                         "  PUSHS TF@%s\n",
-                                        pars.parameters_arr[i],
-                                        pars.parameters_arr[i]);
+    el = st_search_element(symtable, "readInt", &scope);
+    if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // TODO: generate
+
+    el = st_search_element(symtable, "readDouble", &scope);
+    if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // TODO: generate
+
+    el = st_search_element(symtable, "Int2Double", &scope);
+    if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // TODO: generate
+
+    el = st_search_element(symtable, "Double2Int", &scope);
+    if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // TODO: generate
+
+    el = st_search_element(symtable, "length", &scope);
+    if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // TODO: generate
+
+    el = st_search_element(symtable, "substring", &scope);
+    if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // TODO: generate
+
+    el = st_search_element(symtable, "ord", &scope);
+    if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // TODO: generate
+
+    el = st_search_element(symtable, "chr", &scope);
+    if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // TODO: generate
+
+    el = st_search_element(symtable, "write", &scope);
+    if (el == NULL) {
+        return false;
     }
+    // TODO: generate
 
-    SBUFFER_PRINTF(gen_var.selected, "  PUSHFRAME\n");
-
-    return true;
-}
-
-bool generate_inbuilt_functions(GenerationVariables gen_var) {
-    // TODO: generate inbuilt functions
-    gen_var = gen_var;
+    gen_var.selected = init_buffer;
     return true;
 }
 

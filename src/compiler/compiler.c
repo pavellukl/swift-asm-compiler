@@ -73,7 +73,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     init_semantic_context(&parser_opt.sem_ctx);
     scanner_rewind_file(&parser_opt.sc_opt);
     if (!add_inbuilt_functions_to_symtable(parser_opt.symtable) ||
-        !generate_inbuilt_functions(parser_opt.gen_var)) {
+        !generate_inbuilt_functions(parser_opt.symtable, parser_opt.gen_var)) {
         st_pop_scope(parser_opt.symtable);
         scanner_opt_free(&parser_opt.sc_opt);
         st_destroy_list(parser_opt.symtable);

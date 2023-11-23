@@ -20,13 +20,19 @@ typedef struct {
 } SBuffer;
 
 SBuffer *sbuffer_init();
+
 void sbuffer_discard(SBuffer *sbuffer);
 
 #define SBUFFER_PRINTF(...)                                                    \
-        do { if (!sbuffer_printf(__VA_ARGS__)) return false; } while(0)
+    do { if (!sbuffer_printf(__VA_ARGS__)) return false; } while(0)
 
 bool sbuffer_printf(SBuffer *sbuffer, const char *format, ...);
+
+#define SBUFFER_OVERWRITE_CONTENT(...)                                         \
+    do { if (!sbuffer_overwrite_content(__VA_ARGS__)) return false; } while(0)
+
 bool sbuffer_overwrite_content(SBuffer *sbuffer, const char *format, ...);
+
 bool sbuffer_reinit(SBuffer **sbuffer);
 
 #endif /* STRING_BUFFER_H */
