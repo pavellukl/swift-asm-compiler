@@ -22,7 +22,7 @@ typedef enum {
     COMP_EXPRTYPE_ERR,
     COMP_UNDEFTYPE_ERR,
     COMP_OTHER_ERR,
-    COMP_INTER_ERR
+    COMP_INTER_ERR = 99
 } CompilerReturnCode;
 
 /**
