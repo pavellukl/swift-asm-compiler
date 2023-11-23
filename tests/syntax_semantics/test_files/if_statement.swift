@@ -13,7 +13,7 @@ let b: Int = 3
 let c: Int = 1
 let d: Int? = nil
 
-if a > b && c < b
+if a! > b && c < b
 {
     
 }
@@ -21,7 +21,7 @@ else {
 
 }
 
-if x && y 
+if x && y
 {
     y = true
 }
@@ -52,7 +52,7 @@ else
 
 if x 
 {
-    num = a * c
+    num = a! * c
 } 
 else 
 {

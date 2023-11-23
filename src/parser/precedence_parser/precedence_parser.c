@@ -190,7 +190,8 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
                 // no data type tests (every data type is ok)
                 // build new_item
                 *new_item = items[1];
-                _remove_nilable(new_item->node->data_type);
+                new_item->node->data_type = 
+                    _remove_nilable(new_item->node->data_type);
             }
             break;
         case 3:
