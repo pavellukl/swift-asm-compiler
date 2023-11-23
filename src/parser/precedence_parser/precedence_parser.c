@@ -382,8 +382,7 @@ bool _token_to_pplist_item(ParserOptions *parser_opt,
     return true;
 }
 
-bool parse_check_optimize_generate_expression(ParserOptions *parser_opt,
-                                              Type *expected_type) {
+bool parse_check_optimize_expression(ParserOptions *parser_opt, ASTNode *ast) {
     PrecedenceTable pp_table = PRECEDENCE_TABLE;
     PRINTF_STDDEBUG("expression syntax/semantic checking\n")
 
@@ -461,38 +460,43 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt,
 
     // get abstract syntax tree
     PPListItem expression;
-    list_pp_first(&list);
-    list_pp_get_value(&list, &expression);
-    ASTNode *ast = expression.node;
+    list_pp_get_first(&list, &expression);
+    ast = expression.node;
 
-    if (expected_type != NULL) {
-        // do type conversion if needed
-        if ((*expected_type == T_FLOAT || *expected_type == T_FLOAT_NIL) &&
-            expression.node->data_type == T_INT) {
-            expression.node->data_type = T_FLOAT;
-        }
-
-        // check data type compatibility
-        if (_remove_nilable(*expected_type) != expression.node->data_type
-            &&
-            (!_is_nilable_type(*expected_type) ||
-            expression.node->data_type != T_NIL)) {
-            _free_pp_list(&list);
-            parser_opt->return_code = EXPRTYPE_ERR;
-            return false;
-        }
-    }
-
-    // generate expression
-    PRINTF_STDDEBUG("expression generation\n")
-    if (!generate_expression(&parser_opt->gen_var, ast)) {
-        _free_pp_list(&list);
-        parser_opt->return_code = INTER_ERR;
-        return false;
-    }
-
-    PRINTF_STDDEBUG("expression cleanup\n")
+    // free rest of the list but leave expresion unallocated
+    list_pp_delete_first(&list);
     _free_pp_list(&list);
+
     PRINTF_STDDEBUG("expression done\n")
+
+    // if (expected_type != NULL) {
+    //     // do type conversion if needed
+    //     if ((*expected_type == T_FLOAT || *expected_type == T_FLOAT_NIL) &&
+    //         expression.node->data_type == T_INT) {
+    //         expression.node->data_type = T_FLOAT;
+    //     }
+
+    //     // check data type compatibility
+    //     if (_remove_nilable(*expected_type) != expression.node->data_type
+    //         &&
+    //         (!_is_nilable_type(*expected_type) ||
+    //         expression.node->data_type != T_NIL)) {
+    //         _free_pp_list(&list);
+    //         parser_opt->return_code = EXPRTYPE_ERR;
+    //         return false;
+    //     }
+    // }
+
+    // // generate expression
+    // PRINTF_STDDEBUG("expression generation\n")
+    // if (!generate_expression(&parser_opt->gen_var, ast)) {
+    //     _free_pp_list(&list);
+    //     parser_opt->return_code = INTER_ERR;
+    //     return false;
+    // }
+
+    // PRINTF_STDDEBUG("expression cleanup\n")
+    // _free_pp_list(&list);
+
     return true;
 }

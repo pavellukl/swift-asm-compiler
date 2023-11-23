@@ -17,8 +17,7 @@
  * @return true If the operation was successful.
  * @return false If an error occurred. See @p parser_opt.return_code.
  */
-bool parse_check_optimize_generate_expression(ParserOptions *parser_opt,
-                                              Type* expected_type);
+bool parse_check_optimize_expression(ParserOptions *parser_opt, ASTNode *ast);
 
 /**
  * @brief Releases all memory from AST node and it's left and right children.
@@ -28,8 +27,8 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt,
 void _free_AST(ASTNode *node);
 
 /**
- * @brief Removes all items from the precedence parsing list and re-initializes
- *        the list.
+ * @brief Removes all items from the precedence parsing list while
+ *        unallocating their memory space as well.
  *
  * @param list Pointer to a list to operate upon.
  */
