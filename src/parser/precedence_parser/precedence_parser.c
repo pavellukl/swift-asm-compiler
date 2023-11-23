@@ -382,7 +382,7 @@ bool _token_to_pplist_item(ParserOptions *parser_opt,
     return true;
 }
 
-bool parse_check_optimize_expression(ParserOptions *parser_opt, ASTNode *ast) {
+bool parse_check_optimize_expression(ParserOptions *parser_opt, ASTNode **ast) {
     PrecedenceTable pp_table = PRECEDENCE_TABLE;
     PRINTF_STDDEBUG("expression syntax/semantic checking\n")
 
@@ -461,7 +461,7 @@ bool parse_check_optimize_expression(ParserOptions *parser_opt, ASTNode *ast) {
     // get abstract syntax tree
     PPListItem expression;
     list_pp_get_first(&list, &expression);
-    ast = expression.node;
+    *ast = expression.node;
 
     // free rest of the list but leave expresion unallocated
     list_pp_delete_first(&list);
@@ -469,6 +469,7 @@ bool parse_check_optimize_expression(ParserOptions *parser_opt, ASTNode *ast) {
 
     PRINTF_STDDEBUG("expression done\n")
 
+    // TODO: delete
     // if (expected_type != NULL) {
     //     // do type conversion if needed
     //     if ((*expected_type == T_FLOAT || *expected_type == T_FLOAT_NIL) &&

@@ -405,6 +405,9 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
             return false;
         }
 
+        // TODO handle retyping arg values
+        //! will probably need parameter Struct
+
         // unallocate argument array
         destroy_parameter_array(&args);
 
@@ -424,27 +427,36 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
         if (!_look_ahead_for_fn(parser_opt, &is_function)) return false;
 
         if (is_function) {
-            Type fnc_return_type = T_VOID;
-            if (!_function_call(parser_opt, &fnc_return_type)) return false;
+            // fake experession node
+            ASTNode expression_node = {.data_type = T_VOID};
+            ASTNode *expression_node_ptr = &expression_node;
+
+            if (!_function_call(parser_opt, &expression_node_ptr->data_type))
+                return false;
 
             // semantically check assignment
-            if (!analyze_assignment(parser_opt, identif, fnc_return_type)) {
+            if (!analyze_assignment(parser_opt, identif, expression_node_ptr,
+                                    true)) {
                 return false;
             }
 
             return true;
 
         } else {
-            Type expression_type;
-            if (!parse_check_optimize_generate_expression(parser_opt,
-                                                          &expression_type)) {
+            ASTNode *expression_node;
+            if (!parse_check_optimize_expression(parser_opt,
+                                                 &expression_node)) {
                 return false;
             }
 
             // semantically check assignment
-            if (!analyze_assignment(parser_opt, identif, expression_type)) {
+            if (!analyze_assignment(parser_opt, identif, expression_node,
+                                    false)) {
+                _free_AST(expression_node);
                 return false;
             }
+
+            _free_AST(expression_node);
 
             return true;
         }
@@ -500,14 +512,19 @@ bool _return_command(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_KEYWORD_RETURN) {
         if (!_next_token(parser_opt)) return false;
 
-        Type expression_type = T_VOID;
-        if (!__return(parser_opt, &expression_type)) return false;
+        ASTNode expression_node = {.data_type = T_VOID};
+        ASTNode *expression_node_ptr = &expression_node;
+        if (!__return(parser_opt, &expression_node_ptr)) return false;
 
         // semantically check return statement
         if (!analyze_return(parser_opt, parser_opt->sem_ctx.current_fnc,
-                            expression_type)) {
+                            expression_node_ptr)) {
+            // TODO why double free???
+            // _free_AST(expression_node_ptr);
             return false;
         }
+
+        _free_AST(expression_node_ptr);
 
         return true;
     }
@@ -515,7 +532,7 @@ bool _return_command(ParserOptions *parser_opt) {
     return false;
 }
 
-bool __return(ParserOptions *parser_opt, Type *expression_type) {
+bool __return(ParserOptions *parser_opt, ASTNode **expression_node) {
     if (parser_opt->token.type == TOKEN_END_OF_FILE ||
         parser_opt->token.type == TOKEN_KEYWORD_FUNC ||
         parser_opt->token.type == TOKEN_R_CRLY_BRACKET ||
@@ -529,8 +546,9 @@ bool __return(ParserOptions *parser_opt, Type *expression_type) {
     }
 
     // save expression type
-    if (!parse_check_optimize_generate_expression(parser_opt, expression_type))
+    if (!parse_check_optimize_expression(parser_opt, expression_node)) {
         return false;
+    }
 
     return true;
 }
@@ -563,20 +581,30 @@ bool _variable_def(ParserOptions *parser_opt) {
         }
 
         Type expected_var_type = T_VOID;
-        Type provided_value_type = T_VOID;
+        ASTNode provided_expression_node = {.data_type = T_VOID};
+        ASTNode *provided_expression_node_ptr = &provided_expression_node;
+        // TODO handle generation differently according to this bool
+        bool is_function = false;
 
         if (!__varlet_identif(parser_opt, &expected_var_type,
-                              &provided_value_type)) {
+                              &provided_expression_node_ptr, &is_function)) {
             free(identif);
+            // TODO double free fix
+            // _free_AST(provided_expression_node_ptr);
             return false;
         }
 
         // do semantic actions on variable definition
         if (!analyze_var_def(parser_opt, is_constant, identif,
-                             expected_var_type, provided_value_type)) {
+                             expected_var_type, provided_expression_node_ptr,
+                             is_function)) {
             free(identif);
+            // TODO double free fix
+            // _free_AST(provided_expression_node_ptr);
             return false;
         }
+
+        _free_AST(provided_expression_node_ptr);
 
         return true;
     }
@@ -585,7 +613,7 @@ bool _variable_def(ParserOptions *parser_opt) {
 }
 
 bool __varlet_identif(ParserOptions *parser_opt, Type *expected_var_type,
-                      Type *provided_value_type) {
+                      ASTNode **provided_expression_node, bool *is_function) {
     if (parser_opt->token.type == TOKEN_COLON) {
         if (!_next_token(parser_opt)) return false;
 
@@ -595,23 +623,25 @@ bool __varlet_identif(ParserOptions *parser_opt, Type *expected_var_type,
             return false;
         }
 
-        return __varlet_identif_colon_type(parser_opt, provided_value_type);
+        return __varlet_identif_colon_type(parser_opt, provided_expression_node,
+                                           is_function);
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         if (!_next_token(parser_opt)) return false;
 
-        bool is_function;
-        if (!_look_ahead_for_fn(parser_opt, &is_function)) return false;
+        if (!_look_ahead_for_fn(parser_opt, is_function)) return false;
 
-        if (is_function) {
+        if (*is_function) {
             // save provided value type, in this case it's the return type of
             // the function
-            if (!_function_call(parser_opt, provided_value_type)) return false;
+            if (!_function_call(parser_opt,
+                                &(*provided_expression_node)->data_type))
+                return false;
 
             return true;
         } else {
             // save expression type as provided value type
-            if (!parse_check_optimize_generate_expression(
-                    parser_opt, provided_value_type)) {
+            if (!parse_check_optimize_expression(parser_opt,
+                                                 provided_expression_node)) {
                 return false;
             }
 
@@ -623,7 +653,8 @@ bool __varlet_identif(ParserOptions *parser_opt, Type *expected_var_type,
 }
 
 bool __varlet_identif_colon_type(ParserOptions *parser_opt,
-                                 Type *provided_value_type) {
+                                 ASTNode **provided_expression_node,
+                                 bool *is_function) {
     if (parser_opt->token.type == TOKEN_END_OF_FILE ||
         parser_opt->token.type == TOKEN_KEYWORD_FUNC ||
         parser_opt->token.type == TOKEN_IDENTIF ||
@@ -639,19 +670,20 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt,
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         if (!_next_token(parser_opt)) return false;
 
-        bool is_function;
-        if (!_look_ahead_for_fn(parser_opt, &is_function)) return false;
+        if (!_look_ahead_for_fn(parser_opt, is_function)) return false;
 
-        if (is_function) {
+        if (*is_function) {
             // save provided value type, in this case it's the return type of
             // the function
-            if (!_function_call(parser_opt, provided_value_type)) return false;
+            if (!_function_call(parser_opt,
+                                &(*provided_expression_node)->data_type))
+                return false;
 
             return true;
         } else {
             // save expression type as provided value type
-            if (!parse_check_optimize_generate_expression(
-                    parser_opt, provided_value_type)) {
+            if (!parse_check_optimize_expression(parser_opt,
+                                                 provided_expression_node)) {
                 return false;
             }
 
@@ -732,17 +764,19 @@ bool __if(ParserOptions *parser_opt) {
         return true;
     }
 
-    Type expression_type = T_VOID;
-    if (!parse_check_optimize_generate_expression(parser_opt,
-                                                  &expression_type)) {
+    ASTNode *expression_node;
+    if (!parse_check_optimize_expression(parser_opt, &expression_node)) {
         return false;
     }
 
     // semantically analyze if (check if expression is of type bool)
-    if (expression_type != T_BOOL) {
+    if (expression_node->data_type != T_BOOL) {
+        _free_AST(expression_node);
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;
     }
+
+    _free_AST(expression_node);
 
     // save current scope counter
     int tmp_scope_n = parser_opt->gen_var.scope_n;
@@ -816,16 +850,19 @@ bool _while_command(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
         if (!_next_token(parser_opt)) return false;
 
-        Type expression_type;
-        if (!parse_check_optimize_generate_expression(parser_opt,
-                                                      &expression_type))
+        ASTNode *expression_node;
+        if (!parse_check_optimize_expression(parser_opt, &expression_node)) {
             return false;
+        }
 
         // semantically analyze while (check if expression is of type bool)
-        if (expression_type != T_BOOL) {
+        if (expression_node->data_type != T_BOOL) {
+            _free_AST(expression_node);
             parser_opt->return_code = EXPRTYPE_ERR;
             return false;
         }
+
+        _free_AST(expression_node);
 
         // save current scope counter
         int tmp_scope_n = parser_opt->gen_var.scope_n;
@@ -896,6 +933,9 @@ bool _function_call(ParserOptions *parser_opt, Type *return_type) {
         destroy_parameter_array(&args);
         return false;
     }
+
+    // TODO handle retyping arg values
+    //! will probably need parameter Struct
 
     // free token string value
     free(func_identif);

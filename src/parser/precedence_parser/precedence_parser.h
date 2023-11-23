@@ -12,12 +12,13 @@
  *
  * @param parser_opt Parser options pointer to save possible semantic error
  *                   code.
- * @param ast Pointer to the abstract syntax tree representing an expression.
- *            Parsed expression is stored here.
+ * @param ast Pointer to the pointer to the abstract syntax tree representing an
+ * expression. Parsed expression is stored here.
+ *
  * @return true If the operation was successful.
  * @return false If an error occurred. See @p parser_opt.return_code.
  */
-bool parse_check_optimize_expression(ParserOptions *parser_opt, ASTNode *ast);
+bool parse_check_optimize_expression(ParserOptions *parser_opt, ASTNode **ast);
 
 /**
  * @brief Releases all memory from AST node and it's left and right children.

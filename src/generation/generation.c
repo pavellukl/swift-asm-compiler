@@ -76,128 +76,134 @@ bool generate_function_start(GenerationVariables gen_var, LSTElement *fn) {
 }
 
 bool generate_inbuilt_functions(ListST *symtable, GenerationVariables gen_var) {
-    SBuffer *init_buffer = gen_var.selected;
+    symtable = symtable;
+    gen_var = gen_var;
+    // SBuffer *init_buffer = gen_var.selected;
 
-    gen_var.selected = gen_var.functions;
-    int scope;
-    LSTElement *el;
+    // gen_var.selected = gen_var.functions;
+    // int scope;
+    // LSTElement *el;
 
-    el = st_search_element(symtable, "readString", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    SBUFFER_PRINTF(gen_var.selected, "  READ LF@result string\n"
-                                     "  PUSHS LF@result\n"
-                                     "  RETURN\n");
+    // el = st_search_element(symtable, "readString", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // SBUFFER_PRINTF(gen_var.selected, "  READ LF@result string\n"
+    //                                  "  PUSHS LF@result\n"
+    //                                  "  RETURN\n");
 
-    el = st_search_element(symtable, "readInt", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    SBUFFER_PRINTF(gen_var.selected, "  READ LF@result int\n"
-                                     "  PUSHS LF@result\n"
-                                     "  RETURN\n");
+    // el = st_search_element(symtable, "readInt", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // SBUFFER_PRINTF(gen_var.selected, "  READ LF@result int\n"
+    //                                  "  PUSHS LF@result\n"
+    //                                  "  RETURN\n");
 
-    el = st_search_element(symtable, "readDouble", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    SBUFFER_PRINTF(gen_var.selected, "  READ LF@result double\n"
-                                     "  PUSHS LF@result\n"
-                                     "  RETURN\n");
+    // el = st_search_element(symtable, "readDouble", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // SBUFFER_PRINTF(gen_var.selected, "  READ LF@result double\n"
+    //                                  "  PUSHS LF@result\n"
+    //                                  "  RETURN\n");
 
-    el = st_search_element(symtable, "Int2Double", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    SBUFFER_PRINTF(gen_var.selected, "  INT2FLOAT LF@result LF@term\n"
-                                     "  PUSHS LF@result\n"
-                                     "  RETURN\n");
+    // el = st_search_element(symtable, "Int2Double", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // SBUFFER_PRINTF(gen_var.selected, "  INT2FLOAT LF@result LF@term\n"
+    //                                  "  PUSHS LF@result\n"
+    //                                  "  RETURN\n");
 
-    el = st_search_element(symtable, "Double2Int", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    SBUFFER_PRINTF(gen_var.selected, "  FLOAT2INT LF@result LF@term\n"
-                                     "  PUSHS LF@result\n"
-                                     "  RETURN\n");
+    // el = st_search_element(symtable, "Double2Int", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // SBUFFER_PRINTF(gen_var.selected, "  FLOAT2INT LF@result LF@term\n"
+    //                                  "  PUSHS LF@result\n"
+    //                                  "  RETURN\n");
 
-    el = st_search_element(symtable, "length", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    SBUFFER_PRINTF(gen_var.selected, "  STRLEN LF@result LF@s\n"
-                                     "  PUSHS LF@result\n"
-                                     "  RETURN\n");
+    // el = st_search_element(symtable, "length", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // SBUFFER_PRINTF(gen_var.selected, "  STRLEN LF@result LF@s\n"
+    //                                  "  PUSHS LF@result\n"
+    //                                  "  RETURN\n");
 
-    el = st_search_element(symtable, "substring", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    
-    //conditions returning nil
-    SBUFFER_PRINTF(gen_var.selected, "  DEFVAR LF@cond\n"
-                                     "  LT LF@cond LF@i int@0\n"                          //i < 0
-                                     "  JUMPIFEQ _string_return_nil LF@cond bool@true\n"
-                                     "  LT LF@cond LF@j int@0\n"                          //j < 0
-                                     "  JUMPIFEQ _string_return_nil LF@cond bool@true\n"
-                                     "  GT LF@cond LF@i LF@j\n"                           //i > j
-                                     "  JUMPIFEQ _string_return_nil LF@cond bool@true\n"
-                                     "  STRLEN LF@length LF@s\n"
-                                     "  DEFVAR LF@cond2\n"
-                                     "  GT LF@cond LF@i LF@length\n"                      //i >= length(s)
-                                     "  EQ LF@cond2 LF@i LF@length\n"
-                                     "  OR LF@cond LF@cond LF@cond2\n"
-                                     "  JUMPIFEQ _string_return_nil LF@cond bool@true\n"
-                                     "  GT LF@cond LF@j LF@length\n"                      //j > length(s)
-                                     "  JUMPIFEQ _string_return_nil LF@cond bool@true\n");
-    //getting substring
-    SBUFFER_PRINTF(gen_var.selected, "  DEFVAR LF@substring\n"
-                                     "  MOVE LF@substring string@\n"
-                                     "  DEFVAR LF@string_index\n"
-                                     "  MOVE LF@string_index LF@i\n"
-                                     "  DEFVAR LF@char\n"
-                                     "\nLABEL _string_loop_start\n"
-                                     "  JUMPIFEQ _string_loop_end LF@string_index LF@j\n"
-                                     "  GETCHAR LF@char LF@s LF@string_index\n"
-                                     "  CONCAT LF@substring LF@substring LF@char\n"
-                                     "  ADD LF@string_index LF@string_index int@1\n"
-                                     "  JUMP _string_loop_start\n"
-                                     "\nLABEL _string_loop_end\n");
-    //return
-    SBUFFER_PRINTF(gen_var.selected, "  PUSHS LF@substring\n"
-                                     "  RETURN\n");
-    //nil return
-    SBUFFER_PRINTF(gen_var.selected, "\nLABEL _string_return_nil\n"
-                                     "  PUSHS nil@nil\n"
-                                     "  RETURN\n");
+    // el = st_search_element(symtable, "substring", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
 
-    el = st_search_element(symtable, "ord", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    SBUFFER_PRINTF(gen_var.selected, "  STRI2INT LF@result LF@c int@0\n"
-                                     "  PUSHS LF@result\n"
-                                     "  RETURN\n");
+    // //conditions returning nil
+    // SBUFFER_PRINTF(gen_var.selected, "  DEFVAR LF@cond\n"
+    //                                  "  LT LF@cond LF@i int@0\n" //i < 0 "
+    //                                  JUMPIFEQ _string_return_nil LF@cond
+    //                                  bool@true\n" "  LT LF@cond LF@j int@0\n"
+    //                                  //j < 0 "  JUMPIFEQ _string_return_nil
+    //                                  LF@cond bool@true\n" "  GT LF@cond LF@i
+    //                                  LF@j\n"                           //i >
+    //                                  j "  JUMPIFEQ _string_return_nil LF@cond
+    //                                  bool@true\n" "  STRLEN LF@length LF@s\n"
+    //                                  "  DEFVAR LF@cond2\n"
+    //                                  "  GT LF@cond LF@i LF@length\n" //i >=
+    //                                  length(s) "  EQ LF@cond2 LF@i
+    //                                  LF@length\n" "  OR LF@cond LF@cond
+    //                                  LF@cond2\n" "  JUMPIFEQ
+    //                                  _string_return_nil LF@cond bool@true\n"
+    //                                  "  GT LF@cond LF@j LF@length\n" //j >
+    //                                  length(s) "  JUMPIFEQ _string_return_nil
+    //                                  LF@cond bool@true\n");
+    // //getting substring
+    // SBUFFER_PRINTF(gen_var.selected, "  DEFVAR LF@substring\n"
+    //                                  "  MOVE LF@substring string@\n"
+    //                                  "  DEFVAR LF@string_index\n"
+    //                                  "  MOVE LF@string_index LF@i\n"
+    //                                  "  DEFVAR LF@char\n"
+    //                                  "\nLABEL _string_loop_start\n"
+    //                                  "  JUMPIFEQ _string_loop_end
+    //                                  LF@string_index LF@j\n" "  GETCHAR
+    //                                  LF@char LF@s LF@string_index\n" " CONCAT
+    //                                  LF@substring LF@substring LF@char\n" "
+    //                                  ADD LF@string_index LF@string_index
+    //                                  int@1\n" "  JUMP _string_loop_start\n"
+    //                                  "\nLABEL _string_loop_end\n");
+    // //return
+    // SBUFFER_PRINTF(gen_var.selected, "  PUSHS LF@substring\n"
+    //                                  "  RETURN\n");
+    // //nil return
+    // SBUFFER_PRINTF(gen_var.selected, "\nLABEL _string_return_nil\n"
+    //                                  "  PUSHS nil@nil\n"
+    //                                  "  RETURN\n");
 
-    el = st_search_element(symtable, "chr", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    SBUFFER_PRINTF(gen_var.selected, "  INT2CHAR LF@result LF@i\n"
-                                     "  PUSHS LF@result\n"
-                                     "  RETURN\n");
+    // el = st_search_element(symtable, "ord", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // SBUFFER_PRINTF(gen_var.selected, "  STRI2INT LF@result LF@c int@0\n"
+    //                                  "  PUSHS LF@result\n"
+    //                                  "  RETURN\n");
 
-    el = st_search_element(symtable, "write", &scope);
-    if (el == NULL) {
-         return false;
-    }
-    SBUFFER_PRINTF(gen_var.selected, "\nLABEL _write\n"
-                                     "  CREATEFRAME\n"
-                                     "  PUSHFRAME\n");
+    // el = st_search_element(symtable, "chr", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // SBUFFER_PRINTF(gen_var.selected, "  INT2CHAR LF@result LF@i\n"
+    //                                  "  PUSHS LF@result\n"
+    //                                  "  RETURN\n");
 
-    //pop the parameter count
-    SBUFFER_PRINTF(gen_var.selected, "  DEFVAR LF@param_count\n"
-                                     "  POPS LF@param_count\n");
+    // el = st_search_element(symtable, "write", &scope);
+    // if (el == NULL) {
+    //      return false;
+    // }
+    // SBUFFER_PRINTF(gen_var.selected, "\nLABEL _write\n"
+    //                                  "  CREATEFRAME\n"
+    //                                  "  PUSHFRAME\n");
 
-    //printing parameters
-    SBUFFER_PRINTF(gen_var.selected, "  DEFVAR LF@counter\n"
-                                     "  MOVE LF@counter int@0\n"
-                                     "LABEL _write_loop_start\n"
-                                     "  JUMPIFEQ _write_loop_end LF@counter LF@param_count\n"
-                                     "  DEFVAR LF@temp_var\n"
-                                     "  POPS LF@temp_var\n"
-                                     "  WRITE LF@temp_var\n"
-                                     "  ADD LF@counter LF@counter int@1\n"
-                                     "  JUMP _write_loop_start\n"
-                                     "LABEL _write_loop_end\n");
+    // //pop the parameter count
+    // SBUFFER_PRINTF(gen_var.selected, "  DEFVAR LF@param_count\n"
+    //                                  "  POPS LF@param_count\n");
 
-    //return
-    SBUFFER_PRINTF(gen_var.selected, "  RETURN\n");
+    // //printing parameters
+    // SBUFFER_PRINTF(gen_var.selected, "  DEFVAR LF@counter\n"
+    //                                  "  MOVE LF@counter int@0\n"
+    //                                  "LABEL _write_loop_start\n"
+    //                                  "  JUMPIFEQ _write_loop_end LF@counter
+    //                                  LF@param_count\n" "  DEFVAR
+    //                                  LF@temp_var\n" "  POPS LF@temp_var\n" "
+    //                                  WRITE LF@temp_var\n" "  ADD LF@counter
+    //                                  LF@counter int@1\n" "  JUMP
+    //                                  _write_loop_start\n" "LABEL
+    //                                  _write_loop_end\n");
 
-    gen_var.selected = init_buffer;
+    // //return
+    // SBUFFER_PRINTF(gen_var.selected, "  RETURN\n");
+
+    // gen_var.selected = init_buffer;
     return true;
 }
 

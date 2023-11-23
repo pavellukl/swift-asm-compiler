@@ -39,10 +39,11 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
  *
  * @param parser_opt parser options pointer to save possible semantic error code
  * @param identifier indentifier of the variable that's being assigned to
- * @param assign_type type of the assigned value
+ * @param assign_node node representing the assigned value
+ * @param is_function whether the assigned value is a function
  */
 bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
-                        Type assign_type);
+                        ASTNode *assign_node, bool is_function);
 
 /**
  * @brief analyzes return statement
@@ -50,10 +51,10 @@ bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
  * @param parser_opt parser options pointer to save possible semantic error code
  * @param fnc pointer to symtable entry of function within which to analyze
  * return
- * @param expression_type type of the expression after return
+ * @param expression_node node representing the expression after return
  */
 bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
-                    Type expression_type);
+                    ASTNode *expression_node);
 
 /**
  * @brief analyzes variable definition, and adds variable to symtable
@@ -63,11 +64,12 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
  * @param identifier identifier of newly defined variable
  * @param expected_type explicitly defined type of variable (T_VOID if not
  * defined)
- * @param provided_value_type type of provided value (T_VOID if not proided)
+ * @param provided_value_node expression node (type is T_VOID if no expression)
+ * @param is_function whether the assigned value is a function
  */
 bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
                      char *identifier, Type expected_type,
-                     Type provided_value_type);
+                     ASTNode *provided_value_node, bool is_function);
 
 /**
  * @brief analyzes if with let id syntax

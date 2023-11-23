@@ -25,12 +25,13 @@ bool _command(ParserOptions *parser_opt);
 bool __identif(ParserOptions *parser_opt, char *identif);
 bool _data_type(ParserOptions *parser_opt, Type *type);
 bool _return_command(ParserOptions *parser_opt);
-bool __return(ParserOptions *parser_opt, Type *expression_type);
+bool __return(ParserOptions *parser_opt, ASTNode **expression_node);
 bool _variable_def(ParserOptions *parser_opt);
 bool __varlet_identif(ParserOptions *parser_opt, Type *expected_var_type,
-                      Type *provided_value_type);
+                      ASTNode **provided_expression_node, bool *is_function);
 bool __varlet_identif_colon_type(ParserOptions *parser_opt,
-                                 Type *provided_value_type);
+                                 ASTNode **provided_expression_node,
+                                 bool *is_function);
 bool _conditional_command(ParserOptions *parser_opt);
 bool __if(ParserOptions *parser_opt);
 bool __if_let_identif_body(ParserOptions *parser_opt);

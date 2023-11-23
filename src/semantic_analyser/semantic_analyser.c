@@ -52,21 +52,21 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
     // check validity of arguments against function parameters
     for (int i = 0; i < arguments->size; i++) {
         Parameter func_param = func->value.parameters.parameters_arr[i];
-        Parameter call_arg = arguments->parameters_arr[i];
+        Parameter *call_arg = &arguments->parameters_arr[i];
 
         // if parameter and argument names do not match
-        if ((func_param.name != NULL || call_arg.name != NULL) &&
-            (call_arg.name == NULL ||
-             strcmp(func_param.name, call_arg.name) != 0)) {
+        if ((func_param.name != NULL || call_arg->name != NULL) &&
+            (call_arg->name == NULL ||
+             strcmp(func_param.name, call_arg->name) != 0)) {
             parser_opt->return_code = FNCALL_ERR;
             return false;
         }
 
         // if argument is not a literal -> it is an identifier
-        if (call_arg.identifier != NULL) {
+        if (call_arg->identifier != NULL) {
             // check argument identifier
             LSTElement *el = st_search_element(parser_opt->symtable,
-                                               call_arg.identifier, NULL);
+                                               call_arg->identifier, NULL);
 
             // if identifier is not defined or has no defined value
             if (el == NULL || !el->defined_value) {
@@ -81,11 +81,21 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
             }
 
             // save element type for type check
-            call_arg.par_type = el->return_type;
+            call_arg->par_type = el->return_type;
+        }
+        // if argument is literal
+        else {
+            // retype literal to float if expression is int and expected type is
+            // float
+            if ((func_param.par_type == T_FLOAT ||
+                 func_param.par_type == T_FLOAT_NIL) &&
+                call_arg->par_type == T_INT) {
+                call_arg->par_type = T_FLOAT;
+            }
         }
 
         // if types do not match
-        if (!_do_types_match(func_param.par_type, call_arg.par_type)) {
+        if (!_do_types_match(func_param.par_type, call_arg->par_type)) {
             parser_opt->return_code = FNCALL_ERR;
             return false;
         }
@@ -98,7 +108,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
 }
 
 bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
-                        Type assign_type) {
+                        ASTNode *expression_node, bool is_function) {
     // get variable that's being assigned to
     LSTElement *el = st_search_element(parser_opt->symtable, identifier, NULL);
 
@@ -114,8 +124,15 @@ bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
         return false;
     }
 
+    // retype expression to float if expression is int and expected type is
+    // float
+    if ((el->return_type == T_FLOAT || T_FLOAT_NIL) &&
+        expression_node->data_type == T_INT && !is_function) {
+        expression_node->data_type = T_FLOAT;
+    }
+
     // if types don't match
-    if (!_do_types_match(el->return_type, assign_type)) {
+    if (!_do_types_match(el->return_type, expression_node->data_type)) {
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;
     }
@@ -126,7 +143,7 @@ bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
 }
 
 bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
-                    Type expression_type) {
+                    ASTNode *expression_node) {
     // return can not be in the global scope
     if (st_is_global_active(parser_opt->symtable)) {
         //! semantic check returning syntax error
@@ -134,8 +151,15 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
         return false;
     }
 
+    // retype expression to float if expression is int and expected type is
+    // float
+    if ((fnc->return_type == T_FLOAT || T_FLOAT_NIL) &&
+        expression_node->data_type == T_INT) {
+        expression_node->data_type = T_FLOAT;
+    }
+
     // if function type and return expression type do not match
-    if (!_do_types_match(fnc->return_type, expression_type)) {
+    if (!_do_types_match(fnc->return_type, expression_node->data_type)) {
         parser_opt->return_code = FNRET_ERR;
         return false;
     }
@@ -143,9 +167,10 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
     return true;
 }
 
+// TODO: check correctness
 bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
                      char *identifier, Type expected_type,
-                     Type provided_value_type) {
+                     ASTNode *provided_value_node, bool is_function) {
     int found_scope_id = -1;
     // try to find variable with the same identifier
     LSTElement *el =
@@ -157,26 +182,33 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
         return false;
     }
 
+    // retype expression to float if expression is int and expected type is
+    // float
+    if ((expected_type == T_FLOAT || T_FLOAT_NIL) &&
+        provided_value_node->data_type == T_INT && !is_function) {
+        provided_value_node->data_type = T_FLOAT;
+    }
+
     // if type isn't explicitly provided and no value is provided
-    if (expected_type == T_VOID &&
-        (provided_value_type == T_VOID || provided_value_type == T_NIL)) {
+    if (expected_type == T_VOID && (provided_value_node->data_type == T_VOID ||
+                                    provided_value_node->data_type == T_NIL)) {
         parser_opt->return_code = UNDEFTYPE_ERR;
         return false;
     }
 
     // if expected and provided types do not match
     if (expected_type != T_VOID &&
-        !_do_types_match(expected_type, provided_value_type)) {
+        !_do_types_match(expected_type, provided_value_node->data_type)) {
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;
     }
 
-    bool is_value_defined = provided_value_type != T_VOID;
+    bool is_value_defined = provided_value_node->data_type != T_VOID;
     LSTElementValue var_val = {0};
 
     // actual variable type to be saved in symtable
-    Type actual_type =
-        expected_type != T_VOID ? expected_type : provided_value_type;
+    Type actual_type = expected_type != T_VOID ? expected_type
+                                               : provided_value_node->data_type;
 
     // add defined variable to symtable
     STError err = st_add_element(parser_opt->symtable, identifier, actual_type,
@@ -234,12 +266,8 @@ bool _do_types_match(Type l_type, Type r_type) {
         case T_BOOL_NIL:
             if (r_type == T_BOOL || r_type == T_NIL) return true;
             break;
-        case T_FLOAT:
-            if (r_type == T_INT) return true;
-            break;
         case T_FLOAT_NIL:
-            if (r_type == T_FLOAT || r_type == T_INT || r_type == T_NIL)
-                return true;
+            if (r_type == T_FLOAT || r_type == T_NIL) return true;
             break;
         case T_INT_NIL:
             if (r_type == T_INT || r_type == T_NIL) return true;
