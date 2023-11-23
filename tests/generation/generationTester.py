@@ -37,7 +37,9 @@ for test_file in test_files:
         print(f"{RUN} generation::{test_filename}")
         
         file_stringified = f.read()
-        expected_output = re.findall("\/\*(([^*]|(\*+([^*/])))*)\*+\/", file_stringified)[0][0]
+        comments = [match[0] for match in re.findall("\/\*(([^*]|(\*+([^*/])))*)\*+\/", file_stringified)]
+        expected_output = comments[0]
+        stdin = comments[1] if len(comments) >= 2 else ""
         
         p = subprocess.Popen(["./_build/bin/epicCompiler3000", ""], stdout=subprocess.PIPE,
                                                                     stdin=subprocess.PIPE,
@@ -60,13 +62,17 @@ for test_file in test_files:
         # pass compiler
         with open("./tests/generation/temp", "w") as temp:
             temp.write(out)
-            p = subprocess.Popen(["./ic23int", "./tests/generation/"], stdout=subprocess.PIPE,
+            
+        p = subprocess.Popen(["./ic23int", "./tests/generation/temp"], stdout=subprocess.PIPE,
                                                                        stdin=subprocess.PIPE,
                                                                        stderr=subprocess.PIPE)
-        remove("./tests/generation/temp")
-        out, err = p.communicate()
+        
+        out, err = p.communicate(stdin.encode())
         out = out.decode('utf-8')
         err = err.decode('utf-8')
+        
+        remove("./tests/generation/temp")
+        
         if p.returncode != 0:
             # unexpected interpreter return code
             print(f"{CURSOR_UP}{FAIL} generation::{test_filename}: Interpreter returned error code: {p.returncode}")
@@ -85,12 +91,10 @@ for test_file in test_files:
             continue
         
         # pass interpreter
-        
         print(f"{CURSOR_UP}{PASS} generation::{test_filename}")
         passing = passing + 1
         
 failing_s = "0" if failing == 0 else f"{RED}{failing}{RESET}"
 crashing_s = "0" if crashing == 0 else f"{RED}{crashing}{RESET}"
 print(f"{DELIMITER} Synthesis: Tested: {BLUE}{len(test_files)}{RESET} | Passing: {GREEN}{passing}{RESET} | Failing: {failing_s} | Crashing: {crashing_s}")
-        
         
