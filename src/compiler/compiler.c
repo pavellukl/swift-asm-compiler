@@ -61,6 +61,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     PRINTF_STDDEBUG("first run\n");
     parse_function_definition(&parser_opt);
     if (parser_opt.return_code != OK) {
+        st_pop_scope(parser_opt.symtable);
         scanner_opt_free(&parser_opt.sc_opt);
         st_destroy_list(parser_opt.symtable);
         generation_free(parser_opt.gen_var);

@@ -524,9 +524,13 @@ STError st_push_func_scope(ListST* list, LSTElement* element, int identifier) {
 
             LSTElementValue val = {0};
 
+            char* param_identifier;
+            clone_string(
+                &param_identifier,
+                element->value.parameters.parameters_arr[i].identifier);
+
             if (st_add_element(
-                    list,
-                    element->value.parameters.parameters_arr[i].identifier,
+                    list, param_identifier,
                     element->value.parameters.parameters_arr[i].par_type,
                     CONSTANT, val, true) != E_OK)
                 return E_ALLOC;

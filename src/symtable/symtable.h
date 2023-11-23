@@ -6,6 +6,7 @@
 #include <string.h>
 
 #include "../helpers/parameters/parameters.h"
+#include "../helpers/utils.h"
 #include "ListST/ListST.h"
 
 #define HASH_SIZE 109

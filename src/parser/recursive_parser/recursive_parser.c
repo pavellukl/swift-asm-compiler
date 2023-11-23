@@ -33,7 +33,8 @@ bool _program(ParserOptions *parser_opt) {
                parser_opt->token.type == TOKEN_KEYWORD_VAR ||
                parser_opt->token.type == TOKEN_KEYWORD_LET ||
                parser_opt->token.type == TOKEN_KEYWORD_IF ||
-               parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
+               parser_opt->token.type == TOKEN_KEYWORD_WHILE ||
+               parser_opt->token.type == TOKEN_IDENTIF) {
         return _command(parser_opt) && _program(parser_opt);
     }
     parser_opt->return_code = STX_ERR;
@@ -95,7 +96,7 @@ bool _function_definition(ParserOptions *parser_opt) {
             parser_opt->sem_ctx.current_fnc = func;
 
             // check function body
-            if (!_scope_body(parser_opt)) return false;
+            bool scope_body_res = _scope_body(parser_opt);
 
             // reset current function of semantic context
             parser_opt->sem_ctx.current_fnc = NULL;
@@ -110,7 +111,7 @@ bool _function_definition(ParserOptions *parser_opt) {
             //! generating will probably have to be done in recursive descent
             //! functions
 
-            return true;
+            return scope_body_res;
         }
 
         return false;
@@ -137,7 +138,7 @@ bool _function_head(ParserOptions *parser_opt, LSTElement *func,
                                        parser_opt->token.value.string, NULL);
 
     // if identif already defined on first run
-    if (el != NULL) {
+    if (el != NULL && parser_opt->is_first_run) {
         parser_opt->return_code = DEF_ERR;
         return false;
     }
@@ -153,7 +154,14 @@ bool _function_head(ParserOptions *parser_opt, LSTElement *func,
         else {
             *func_ptr = el;
             // we have all the data and the checks were done in the first run,
-            // we can stop recursive descent
+            // we can stop recursive descent once we consume all tokens until
+            // left curly bracket
+            while (parser_opt->token.type != TOKEN_L_CRLY_BRACKET) {
+                if (!_next_token(parser_opt)) {
+                    return false;
+                };
+            }
+
             return true;
         }
     }
@@ -787,7 +795,7 @@ bool __if_let_identif_body_else(ParserOptions *parser_opt) {
             return false;
         }
 
-        if (_scope_body(parser_opt)) return false;
+        if (!_scope_body(parser_opt)) return false;
 
         // pop if scope
         st_pop_scope(parser_opt->symtable);
@@ -860,7 +868,6 @@ bool _function_call(ParserOptions *parser_opt, Type *return_type) {
 
     if (parser_opt->token.type != TOKEN_L_BRACKET) {
         free(func_identif);
-
         parser_opt->return_code = STX_ERR;
         return false;
     }
@@ -892,8 +899,6 @@ bool _function_call(ParserOptions *parser_opt, Type *return_type) {
     free(func_identif);
     // unallocate argument array
     destroy_parameter_array(&args);
-
-    if (!_next_token(parser_opt)) return false;
 
     if (parser_opt->token.type != TOKEN_R_BRACKET) {
         parser_opt->return_code = STX_ERR;

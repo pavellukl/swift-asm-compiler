@@ -76,55 +76,57 @@ bool generate_function_start(GenerationVariables gen_var, LSTElement *fn) {
 }
 
 bool generate_inbuilt_functions(ListST *symtable, GenerationVariables gen_var) {
-    SBuffer *init_buffer = gen_var.selected;
+    symtable = symtable;
+    gen_var = gen_var;
+    // SBuffer *init_buffer = gen_var.selected;
 
-    gen_var.selected = gen_var.functions;
-    int scope;
-    LSTElement *el;
-    
-    el = st_search_element(symtable, "readString", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    // TODO: generate
+    // gen_var.selected = gen_var.functions;
+    // int scope;
+    // LSTElement *el;
 
-    el = st_search_element(symtable, "readInt", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    // TODO: generate
+    // el = st_search_element(symtable, "readString", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // // TODO: generate
 
-    el = st_search_element(symtable, "readDouble", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    // TODO: generate
+    // el = st_search_element(symtable, "readInt", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // // TODO: generate
 
-    el = st_search_element(symtable, "Int2Double", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    // TODO: generate
+    // el = st_search_element(symtable, "readDouble", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // // TODO: generate
 
-    el = st_search_element(symtable, "Double2Int", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    // TODO: generate
+    // el = st_search_element(symtable, "Int2Double", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // // TODO: generate
 
-    el = st_search_element(symtable, "length", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    // TODO: generate
+    // el = st_search_element(symtable, "Double2Int", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // // TODO: generate
 
-    el = st_search_element(symtable, "substring", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    // TODO: generate
+    // el = st_search_element(symtable, "length", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // // TODO: generate
 
-    el = st_search_element(symtable, "ord", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    // TODO: generate
+    // el = st_search_element(symtable, "substring", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // // TODO: generate
 
-    el = st_search_element(symtable, "chr", &scope);
-    if (el == NULL || !generate_function_start(gen_var, el)) return false;
-    // TODO: generate
+    // el = st_search_element(symtable, "ord", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // // TODO: generate
 
-    el = st_search_element(symtable, "write", &scope);
-    if (el == NULL) {
-        return false;
-    }
-    // TODO: generate
+    // el = st_search_element(symtable, "chr", &scope);
+    // if (el == NULL || !generate_function_start(gen_var, el)) return false;
+    // // TODO: generate
 
-    gen_var.selected = init_buffer;
+    // el = st_search_element(symtable, "write", &scope);
+    // if (el == NULL) {
+    //     return false;
+    // }
+    // // TODO: generate
+
+    // gen_var.selected = init_buffer;
     return true;
 }
 

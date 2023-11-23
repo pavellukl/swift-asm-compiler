@@ -102,6 +102,17 @@ bool is_simple_expression(PPListItemType pp_type);
 bool is_binary_operator(PPListItemType pp_type);
 
 /**
+ * @brief determines whether types @p l_type and @p r_type match
+ * as if l_type = r_type
+ *
+ * @param l_type left part of "virtal type assignment", can't be T_VOID or T_NIL
+ * @param r_type right part of "virtual type assignment"
+ * @return true if types match
+ * @return false if types don't match
+ */
+bool _do_types_match(Type a, Type b);
+
+/**
  * @brief Converts type to equivalent type without possible nil value.
  *
  * @param type Type to be converted.

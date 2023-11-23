@@ -8,14 +8,9 @@ bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params) {
     for (int i = 0; i < params->size; i++) {
         Parameter param = params->parameters_arr[i];
 
-        // TODO: remove if everything is working correctly
-        if (param.identifier == NULL || param.name == NULL) {
-            parser_opt->return_code = INTER_ERR;
-            return false;
-        }
-
         // check if names and identifiers are different
-        if (!strcmp(param.name, param.identifier)) {
+        if (param.name != NULL && param.identifier != NULL &&
+            !strcmp(param.name, param.identifier)) {
             parser_opt->return_code = OTHER_ERR;
             return false;
         }
@@ -80,7 +75,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
             }
 
             // if identifier is not a constant or a variable
-            if (el->variant != CONSTANT || el->variant != VARIABLE) {
+            if (el->variant != CONSTANT && el->variant != VARIABLE) {
                 parser_opt->return_code = DEF_ERR;
                 return false;
             }
@@ -90,9 +85,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
         }
 
         // if types do not match
-        if (func_param.par_type != call_arg.par_type &&
-            (!_is_nilable_type(func_param.par_type) ||
-             call_arg.par_type != T_NIL)) {
+        if (!_do_types_match(func_param.par_type, call_arg.par_type)) {
             parser_opt->return_code = FNCALL_ERR;
             return false;
         }
@@ -122,8 +115,7 @@ bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
     }
 
     // if types don't match
-    if (assign_type != el->return_type &&
-        (!_is_nilable_type(el->return_type) || assign_type != T_NIL)) {
+    if (!_do_types_match(el->return_type, assign_type)) {
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;
     }
@@ -143,8 +135,7 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
     }
 
     // if function type and return expression type do not match
-    if (fnc->return_type != expression_type &&
-        (!_is_nilable_type(fnc->return_type) || expression_type != T_NIL)) {
+    if (!_do_types_match(fnc->return_type, expression_type)) {
         parser_opt->return_code = FNRET_ERR;
         return false;
     }
@@ -174,8 +165,8 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
     }
 
     // if expected and provided types do not match
-    if (expected_type != T_VOID && expected_type != provided_value_type &&
-        (!_is_nilable_type(expected_type) || provided_value_type != T_NIL)) {
+    if (expected_type != T_VOID &&
+        !_do_types_match(expected_type, provided_value_type)) {
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;
     }
@@ -234,6 +225,29 @@ bool is_binary_operator(PPListItemType pp_type) {
            pp_type == TERMINAL_GREATER || pp_type == TERMINAL_GREATER_EQUAL ||
            pp_type == TERMINAL_AND || pp_type == TERMINAL_OR ||
            pp_type == TERMINAL_NIL_COALESCING;
+}
+
+bool _do_types_match(Type l_type, Type r_type) {
+    if (l_type == r_type) return true;
+
+    switch (l_type) {
+        case T_BOOL_NIL:
+            if (r_type == T_BOOL || r_type == T_NIL) return true;
+            break;
+        case T_FLOAT_NIL:
+            if (r_type == T_FLOAT || r_type == T_NIL) return true;
+            break;
+        case T_INT_NIL:
+            if (r_type == T_INT || r_type == T_NIL) return true;
+            break;
+        case T_STRING_NIL:
+            if (r_type == T_STRING || r_type == T_NIL) return true;
+            break;
+        default:
+            break;
+    }
+
+    return false;
 }
 
 Type _remove_nilable(Type type) {
