@@ -383,7 +383,7 @@ bool _token_to_pplist_item(ParserOptions *parser_opt,
 }
 
 bool parse_check_optimize_generate_expression(ParserOptions *parser_opt,
-                                              Type *resulting_type) {
+                                              Type *expected_type) {
     PrecedenceTable pp_table = PRECEDENCE_TABLE;
     PRINTF_STDDEBUG("expression syntax/semantic checking\n")
 
@@ -464,11 +464,29 @@ bool parse_check_optimize_generate_expression(ParserOptions *parser_opt,
     list_pp_first(&list);
     list_pp_get_value(&list, &expression);
     ASTNode *ast = expression.node;
-    *resulting_type = expression.node->data_type;
+
+    if (expected_type != NULL) {
+        // do type conversion if needed
+        if ((*expected_type == T_FLOAT || *expected_type == T_FLOAT_NIL) &&
+            expression.node->data_type == T_INT) {
+            expression.node->data_type = T_FLOAT;
+        }
+
+        // check data type compatibility
+        if (_remove_nilable(*expected_type) != expression.node->data_type
+            &&
+            (!_is_nilable_type(*expected_type) ||
+            expression.node->data_type != T_NIL)) {
+            _free_pp_list(&list);
+            parser_opt->return_code = EXPRTYPE_ERR;
+            return false;
+        }
+    }
 
     // generate expression
     PRINTF_STDDEBUG("expression generation\n")
     if (!generate_expression(&parser_opt->gen_var, ast)) {
+        _free_pp_list(&list);
         parser_opt->return_code = INTER_ERR;
         return false;
     }
