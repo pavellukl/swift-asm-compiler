@@ -193,7 +193,7 @@ int get_next_char(ScannerOptions* opt) {
 }
 
 bool get_next_token(ParserOptions* parser_opt) {
-    PRINTF_STDDEBUG("CALL\n");
+    PRINTF_STDDEBUG("-----------------CALL\n");
     TokenData token;
     AutomatState current_state = START;
 
@@ -398,7 +398,7 @@ bool get_next_token(ParserOptions* parser_opt) {
                 if (next_char == '/') {
                     block_comment_count--;
                     if (block_comment_count == 0) {
-                        return true;
+                        current_state = WHITE_SPACE;
                     } else {
                         current_state = BLOCK_COMMENT;
                         next_char = get_next_char(&parser_opt->sc_opt);

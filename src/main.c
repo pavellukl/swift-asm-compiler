@@ -5,10 +5,10 @@ int main(int argc, char* argv[]) {
     fprintf(stdout, "Running %s with %d arguments\n", *argv, argc);
 
     // for debugging purposes
-    FILE* in = fopen(
-        "./tests/syntax_semantics/test_files/fnc_return_optional_val.swift",
-        "r");
-    // FILE* in = stdin;
+    // FILE* in = fopen(
+    //     "./tests/syntax_semantics/test_files/comments.swift",
+    //     "r");
+    FILE* in = stdin;
 
     switch (compile(in, stdout)) {
         case COMP_OK:
