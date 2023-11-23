@@ -49,9 +49,9 @@ Test(syntax_semantics, general) {
         cr_log_info(
             ANSI_CURSOR_BACK_7 RUN " syntax_semantics::%s", subdirPtr->d_name);
 
-        clock_t start = clock();
+        // clock_t start = clock();
         CompilerReturnCode res = compile(in, NULL);
-        clock_t end = clock();
+        // clock_t end = clock();
 
         if (res != expectedRes) {
             test_failed = true;
@@ -60,9 +60,9 @@ Test(syntax_semantics, general) {
                 " syntax_semantics::%s. Expected: %d but compiler returned %d",
                 subdirPtr->d_name, expectedRes, res);
         } else {
-            float seconds = (float)(end - start) / CLOCKS_PER_SEC;
+            // float seconds = (float)(end - start) / CLOCKS_PER_SEC;
             cr_log_info(ANSI_CURSOR_UP ANSI_CURSOR_BACK_7 PASS
-                    " syntax_semantics::%s: (%fs)", subdirPtr->d_name, seconds);
+                    " syntax_semantics::%s", subdirPtr->d_name);
         }
 
         fclose(in);
