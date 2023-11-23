@@ -1,4 +1,4 @@
-/*3*/
+/*34*/
 
 var a = false
 
@@ -8,6 +8,6 @@ if (a) {
     write(2)
 } else if (!a) {
     write(3)
-} else {
-    write(4)
 }
+
+write(4)
