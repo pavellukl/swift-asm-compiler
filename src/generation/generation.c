@@ -241,17 +241,17 @@ bool _generate_logical_expression(GenerationVariables *gen_var, ASTNode *ast,
         if (!_generate_arithmetical_expression(gen_var, ast, ast->data_type))
             return false;
         if (t == 0 || t == 1) {
-            SBUFFER_PRINTF(gen_var->selected, "  PUSHS bool@true\n");
-            SBUFFER_PRINTF(gen_var->selected, "  JUMPIFEQS %s-%d\n",
+            SBUFFER_PRINTF(gen_var->selected, "  PUSHS bool@true\n",
+                                              "  JUMPIFEQS %s-%d\n",
                                                     gen_var->label->string, t);
             if (f == 0 || f == 1) {
                 SBUFFER_PRINTF(gen_var->selected, "  JUMP %s-%d\n",
                                                     gen_var->label->string, f);
             }
         } else if (f == 0 || f == 1) {
-            SBUFFER_PRINTF(gen_var->selected, "  PUSHS bool@false\n");
-            SBUFFER_PRINTF(gen_var->selected, "  JUMPIFEQS %s-%d\n",
-                                                    gen_var->label->string, f);
+            SBUFFER_PRINTF(gen_var->selected, "  PUSHS bool@false\n",
+                                              "  JUMPIFEQS %s-%d\n",
+                                                gen_var->label->string, f);
         }
         return true;
     }
@@ -291,8 +291,8 @@ bool generate_expression(GenerationVariables *gen_var, ASTNode *ast) {
     gen_var->counter_n = 0;
 
     if (!sbuffer_printf(gen_var->selected, "  CREATEFRAME\n"
-                                      "  DEFVAR TF@temp0\n"
-                                      "  DEFVAR TF@temp1\n")) {
+                                           "  DEFVAR TF@temp0\n"
+                                           "  DEFVAR TF@temp1\n")) {
         free(init_label);
         return false;
     }
