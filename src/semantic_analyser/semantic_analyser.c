@@ -236,6 +236,7 @@ bool _do_types_match(Type l_type, Type r_type) {
             break;
         case T_FLOAT:
             if (r_type == T_INT) return true;
+            break;
         case T_FLOAT_NIL:
             if (r_type == T_FLOAT || r_type == T_NIL) return true;
             break;
