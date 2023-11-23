@@ -48,10 +48,12 @@ void print_generation_to_file(GenerationVariables gen_opt, FILE *out) {
 
     fprintf(out, ".IFJcode23\n\n");
 
-    fprintf(out, "%s\n", gen_opt.main->string);
-    fprintf(out, "  exit int@0\n\n");
+    fprintf(out, "%s", gen_opt.main->string);
 
-    fprintf(out, "%s\n", gen_opt.functions->string);
+    if (gen_opt.functions->size > 0) {
+        fprintf(out, "  exit int@0\n");
+        fprintf(out, "%s\n", gen_opt.functions->string);
+    }
 }
 
 bool generate_function_call(GenerationVariables gen_var, LSTElement *fn) {
