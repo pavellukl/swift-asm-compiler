@@ -323,7 +323,6 @@ bool get_next_token(ParserOptions* parser_opt) {
                             scanner_buf_init(&b_buffer);
                             current_state = NUM;
                         } else if (isalpha(current_char)) {
-                            scanner_buf_init(&b_buffer);
                             current_state = IDENTIF;
                         } else {
                             parser_opt->return_code = LEX_ERR;
@@ -613,6 +612,7 @@ bool get_next_token(ParserOptions* parser_opt) {
                 break;
 
             case IDENTIF:
+                scanner_buf_init(&b_buffer);
                 while (isalpha(current_char) || current_char == '_' ||
                        isdigit(current_char)) {
                     if (!scanner_buf_insert(&b_buffer, current_char)) {

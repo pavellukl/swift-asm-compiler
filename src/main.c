@@ -6,7 +6,7 @@ int main(int argc, char* argv[]) {
 
     // for debugging purposes
     // FILE* in = fopen(
-    //     "./tests/syntax_semantics/test_files/comments.swift",
+    //     "./tests/syntax_semantics/test_files/variables.swift",
     //     "r");
     FILE* in = stdin;
 
