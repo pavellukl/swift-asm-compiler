@@ -234,6 +234,8 @@ bool _do_types_match(Type l_type, Type r_type) {
         case T_BOOL_NIL:
             if (r_type == T_BOOL || r_type == T_NIL) return true;
             break;
+        case T_FLOAT:
+            if (r_type == T_INT) return true;
         case T_FLOAT_NIL:
             if (r_type == T_FLOAT || r_type == T_NIL) return true;
             break;
