@@ -1207,7 +1207,7 @@ void parse_function_definition(ParserOptions *parser_opt) {
         // search functions and EOF
         while (parser_opt->token.type != TOKEN_KEYWORD_FUNC &&
                parser_opt->token.type != TOKEN_END_OF_FILE) {
-            _next_token(parser_opt);
+            if(!_next_token(parser_opt)) return;
         }
         // if EOF -> end with success
         if (parser_opt->token.type == TOKEN_END_OF_FILE) {

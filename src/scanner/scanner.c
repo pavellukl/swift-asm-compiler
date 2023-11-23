@@ -833,7 +833,7 @@ bool get_next_token(ParserOptions* parser_opt) {
                             current_state = MULTILINE_STRING;
                         } else {
                             scanner_buf_free(&b_buffer);
-                            parser_opt->return_code = INTER_ERR;
+                            parser_opt->return_code = LEX_ERR;
                             return false;
                         }
 
@@ -845,7 +845,7 @@ bool get_next_token(ParserOptions* parser_opt) {
                     current_state = ESCAPE_SEQUENCE;
                 } else if (current_char == '\n') {
                     scanner_buf_free(&b_buffer);
-                    parser_opt->return_code = INTER_ERR;
+                    parser_opt->return_code = LEX_ERR;
                     return false;
                 } else {
                     if (!scanner_buf_insert(&b_buffer, current_char)) {
@@ -870,7 +870,7 @@ bool get_next_token(ParserOptions* parser_opt) {
                             current_state = STRING_END;
                         } else {
                             scanner_buf_free(&b_buffer);
-                            parser_opt->return_code = INTER_ERR;
+                            parser_opt->return_code = LEX_ERR;
                             return false;
                         }
                     } else {
