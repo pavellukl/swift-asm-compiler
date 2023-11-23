@@ -362,7 +362,7 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
             /* right operand must be of the same type as left operand
                (but without nilable part) */
             // operands can't be nil
-            if (l_op_type == T_NIL || l_op_type != _remove_nilable(r_op_type)) {
+            if (l_op_type == T_NIL || _remove_nilable(l_op_type) != r_op_type) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
