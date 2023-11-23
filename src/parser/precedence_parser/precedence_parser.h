@@ -12,8 +12,8 @@
  *
  * @param parser_opt Parser options pointer to save possible semantic error
  *                   code.
- * @param expected_type Pointer to the expected type of the expression. If NULL,
- *                      no type is expected.
+ * @param ast Pointer to the abstract syntax tree representing an expression.
+ *            Parsed expression is stored here.
  * @return true If the operation was successful.
  * @return false If an error occurred. See @p parser_opt.return_code.
  */
