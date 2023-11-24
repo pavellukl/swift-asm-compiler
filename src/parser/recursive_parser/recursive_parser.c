@@ -1131,128 +1131,235 @@ bool _arg_val(ParserOptions *parser_opt, Parameter *arg) {
 }
 
 bool add_inbuilt_functions_to_symtable(ListST *symtable) {
-    symtable = symtable;
-    // LSTElementValue value;
+    LSTElementValue value;
 
-    // value.parameters.infinite = false;
-    // value.parameters.size = 0;
-    // value.parameters.parameters_arr = NULL;
+    init_parameter_array(&value.parameters);
+    char *func_identifier = NULL;
+    Parameter param = {.name = NULL, .identifier = NULL, .par_type = T_VOID};
 
-    // // readString()
-    // if (st_add_element(symtable, "readString", T_STRING_NIL, FUNCTION, value,
-    //                    true) != E_OK) {
-    //     return false;
-    // }
-    // // readInt()
-    // if (st_add_element(symtable, "readInt", T_INT_NIL, FUNCTION, value, true)
-    // !=
-    //     E_OK) {
-    //     return false;
-    // }
-    // // readDouble()
-    // if (st_add_element(symtable, "readDouble", T_FLOAT_NIL, FUNCTION, value,
-    //                    true) != E_OK) {
-    //     return false;
-    // }
+    // readString()
+    if (!clone_string(&func_identifier, "readString")) return false;
+    if (st_add_element(symtable, func_identifier, T_STRING_NIL, FUNCTION, value,
+                       true) != E_OK) {
+        free(func_identifier);
+        return false;
+    }
 
-    // // write(term1, term2, ..., termN)
-    // value.parameters.infinite = true;
-    // if (st_add_element(symtable, "write", T_VOID, FUNCTION, value, true) !=
-    //     E_OK) {
-    //     return false;
-    // }
+    // readInt()
+    if (!clone_string(&func_identifier, "readInt")) return false;
+    if (st_add_element(symtable, func_identifier, T_INT_NIL, FUNCTION, value,
+                       true) != E_OK) {
+        free(func_identifier);
+        return false;
+    }
 
-    // // Int2Double(_term: Int)
-    // value.parameters.infinite = false;
-    // value.parameters.size = 1;
-    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    // if (!value.parameters.parameters_arr) {
-    //     return false;
-    // }
-    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "term",
-    // .par_type = T_INT}; if (st_add_element(symtable, "Int2Double", T_FLOAT,
-    // FUNCTION, value,
-    //                    true) != E_OK) {
-    //     free(value.parameters.parameters_arr);
-    //     return false;
-    // }
-    // free(value.parameters.parameters_arr);
+    // readDouble()
+    if (!clone_string(&func_identifier, "readDouble")) return false;
+    if (st_add_element(symtable, func_identifier, T_FLOAT_NIL, FUNCTION, value,
+                       true) != E_OK) {
+        free(func_identifier);
+        return false;
+    }
 
-    // // Double2Int(_term: Double)
-    // value.parameters.infinite = false;
-    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    // if (!value.parameters.parameters_arr) {
-    //     return false;
-    // }
-    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "term",
-    // .par_type = T_FLOAT}; if (st_add_element(symtable, "Double2Int", T_INT,
-    // FUNCTION, value, true) !=
-    //     E_OK) {
-    //     free(value.parameters.parameters_arr);
-    //     return false;
-    // }
-    // free(value.parameters.parameters_arr);
+    // write(term1, term2, ..., termN)
+    if (!clone_string(&func_identifier, "write")) return false;
+    value.parameters.infinite = true;
 
-    // // length(_s: String)
-    // value.parameters.size = 1;
-    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    // if (value.parameters.parameters_arr == NULL) {
-    //     return false;
-    // }
-    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "s",
-    // .par_type = T_STRING}; if (st_add_element(symtable, "length", T_INT,
-    // FUNCTION, value, true) !=
-    //     E_OK) {
-    //     free(value.parameters.parameters_arr);
-    //     return false;
-    // }
-    // free(value.parameters.parameters_arr);
+    if (st_add_element(symtable, func_identifier, T_VOID, FUNCTION, value,
+                       true) != E_OK) {
+        free(func_identifier);
+        return false;
+    }
 
-    // // substring(of s: String, startingAt i: Int, endingBefore j: Int)
-    // value.parameters.size = 3;
-    // value.parameters.parameters_arr = malloc(3 * sizeof(Parameter));
-    // if (value.parameters.parameters_arr == NULL) {
-    //     return false;
-    // }
-    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "s",
-    // .par_type = T_STRING}; value.parameters.parameters_arr[1] =
-    // (Parameter){.identifier = "i", .par_type = T_INT};
-    // value.parameters.parameters_arr[2] = (Parameter){.identifier = "j",
-    // .par_type = T_INT}; if (st_add_element(symtable, "substring",
-    // T_STRING_NIL, FUNCTION, value,
-    //                    true) != E_OK) {
-    //     free(value.parameters.parameters_arr);
-    //     return false;
-    // }
-    // free(value.parameters.parameters_arr);
+    // Int2Double(_term: Int)
+    if (!clone_string(&func_identifier, "Int2Double")) return false;
+    init_parameter_array(&value.parameters);
 
-    // // ord(_c: String)
-    // value.parameters.size = 1;
-    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    // if (value.parameters.parameters_arr == NULL) {
-    //     return false;
-    // }
-    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "c",
-    // .par_type = T_STRING}; if (st_add_element(symtable, "ord", T_INT,
-    // FUNCTION, value, true) != E_OK) {
-    //     free(value.parameters.parameters_arr);
-    //     return false;
-    // }
-    // free(value.parameters.parameters_arr);
+    param.name = NULL;
+    if (!clone_string(&param.identifier, "term")) {
+        free(func_identifier);
+        return false;
+    }
+    param.par_type = T_INT;
 
-    // // chr(_i: Int)
-    // value.parameters.parameters_arr = malloc(sizeof(Parameter));
-    // if (value.parameters.parameters_arr == NULL) {
-    //     return false;
-    // }
-    // value.parameters.parameters_arr[0] = (Parameter){.identifier = "i",
-    // .par_type = T_INT}; if (st_add_element(symtable, "chr", T_STRING,
-    // FUNCTION, value, true) !=
-    //     E_OK) {
-    //     free(value.parameters.parameters_arr);
-    //     return false;
-    // }
-    // free(value.parameters.parameters_arr);
+    if (!add_to_parameter_array(&value.parameters, param)) {
+        free(func_identifier);
+        free(param.identifier);
+        free(param.name);
+        return false;
+    }
+
+    if (st_add_element(symtable, func_identifier, T_FLOAT, FUNCTION, value,
+                       true) != E_OK) {
+        free(func_identifier);
+        destroy_parameter_array(&value.parameters);
+        return false;
+    }
+
+    // Double2Int(_term: Double)
+    if (!clone_string(&func_identifier, "Double2Int")) return false;
+    init_parameter_array(&value.parameters);
+
+    param.name = NULL;
+    if (!clone_string(&param.identifier, "term")) {
+        free(func_identifier);
+        return false;
+    }
+    param.par_type = T_FLOAT;
+
+    if (!add_to_parameter_array(&value.parameters, param)) {
+        free(func_identifier);
+        free(param.identifier);
+        free(param.name);
+        return false;
+    }
+
+    if (st_add_element(symtable, func_identifier, T_INT, FUNCTION, value,
+                       true) != E_OK) {
+        free(func_identifier);
+        destroy_parameter_array(&value.parameters);
+        return false;
+    }
+
+    // length(_s: String)
+    if (!clone_string(&func_identifier, "length")) return false;
+    init_parameter_array(&value.parameters);
+
+    param.name = NULL;
+    if (!clone_string(&param.identifier, "s")) {
+        free(func_identifier);
+        return false;
+    }
+    param.par_type = T_STRING;
+
+    if (!add_to_parameter_array(&value.parameters, param)) {
+        free(func_identifier);
+        free(param.identifier);
+        free(param.name);
+        return false;
+    }
+
+    if (st_add_element(symtable, func_identifier, T_INT, FUNCTION, value,
+                       true) != E_OK) {
+        free(func_identifier);
+        destroy_parameter_array(&value.parameters);
+        return false;
+    }
+
+    // substring(of s: String, startingAt i: Int, endingBefore j: Int)
+    if (!clone_string(&func_identifier, "substring")) return false;
+    init_parameter_array(&value.parameters);
+
+    if (!clone_string(&param.name, "of")) {
+        free(func_identifier);
+        return false;
+    }
+    if (!clone_string(&param.identifier, "s")) {
+        free(func_identifier);
+        free(param.name);
+        return false;
+    }
+    param.par_type = T_STRING;
+
+    if (!add_to_parameter_array(&value.parameters, param)) {
+        free(func_identifier);
+        free(param.identifier);
+        free(param.name);
+        return false;
+    }
+
+    if (!clone_string(&param.name, "startingAt")) {
+        free(func_identifier);
+        return false;
+    }
+    if (!clone_string(&param.identifier, "i")) {
+        free(func_identifier);
+        free(param.name);
+        return false;
+    }
+    param.par_type = T_INT;
+
+    if (!add_to_parameter_array(&value.parameters, param)) {
+        free(func_identifier);
+        free(param.identifier);
+        free(param.name);
+        return false;
+    }
+
+    if (!clone_string(&param.name, "endingBefore")) {
+        free(func_identifier);
+        return false;
+    }
+    if (!clone_string(&param.identifier, "j")) {
+        free(func_identifier);
+        free(param.name);
+        return false;
+    }
+    param.par_type = T_INT;
+
+    if (!add_to_parameter_array(&value.parameters, param)) {
+        free(func_identifier);
+        free(param.identifier);
+        free(param.name);
+        return false;
+    }
+
+    if (st_add_element(symtable, func_identifier, T_STRING_NIL, FUNCTION, value,
+                       true) != E_OK) {
+        free(func_identifier);
+        destroy_parameter_array(&value.parameters);
+        return false;
+    }
+
+    // ord(_c: String)
+    if (!clone_string(&func_identifier, "ord")) return false;
+    init_parameter_array(&value.parameters);
+
+    param.name = NULL;
+    if (!clone_string(&param.identifier, "c")) {
+        free(func_identifier);
+        free(param.name);
+        return false;
+    }
+    param.par_type = T_STRING;
+
+    if (!add_to_parameter_array(&value.parameters, param)) {
+        free(func_identifier);
+        free(param.identifier);
+        free(param.name);
+        return false;
+    }
+
+    if (st_add_element(symtable, func_identifier, T_INT, FUNCTION, value,
+                       true) != E_OK) {
+        destroy_parameter_array(&value.parameters);
+        return false;
+    }
+
+    // chr(_i: Int)
+    if (!clone_string(&func_identifier, "chr")) return false;
+    init_parameter_array(&value.parameters);
+
+    param.name = NULL;
+    if (!clone_string(&param.identifier, "i")) {
+        free(func_identifier);
+        free(param.name);
+        return false;
+    }
+    param.par_type = T_INT;
+
+    if (!add_to_parameter_array(&value.parameters, param)) {
+        free(func_identifier);
+        free(param.identifier);
+        free(param.name);
+        return false;
+    }
+
+    if (st_add_element(symtable, func_identifier, T_STRING, FUNCTION, value,
+                       true) != E_OK) {
+        destroy_parameter_array(&value.parameters);
+        return false;
+    }
 
     return true;
 }

@@ -35,7 +35,8 @@ bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params) {
 
 bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
                            Parameters *arguments, Type *return_type) {
-    // get called function
+    // TODO: handle infinite parameters
+    //  get called function
     LSTElement *func =
         st_search_element(parser_opt->symtable, identifier, NULL);
 
