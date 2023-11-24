@@ -261,39 +261,50 @@ bool generate_string_literal(GenerationVariables *gen_var, char *str) {
     return true;
 }
 
+bool generate_literal(GenerationVariables *gen_var, TokenData token,
+                      Type expected_type) {
+    switch (token.type)
+    {
+    case TOKEN_INT:
+        if (expected_type == T_FLOAT) {
+            SBUFFER_PRINTF(gen_var->selected, "float@%a",
+                            (float) token.value.int_value);
+        } else {
+            SBUFFER_PRINTF(
+                gen_var->selected, "int@%d", token.value.int_value);
+        }
+        return true;
+    case TOKEN_FLOAT:
+        SBUFFER_PRINTF(
+            gen_var->selected, "float@%a", token.value.float_value);
+        return true;
+    case TOKEN_STRING:
+        SBUFFER_PRINTF(gen_var->selected, "string@");
+        if (!generate_string_literal(gen_var, token.value.string))
+            return false;
+        return true;
+    case TOKEN_BOOL:
+        if (token.value.boolean == true) {
+            SBUFFER_PRINTF(gen_var->selected, "bool@true");
+        } else {
+            SBUFFER_PRINTF(gen_var->selected, "bool@false");
+        }
+        return true;
+    case TOKEN_KEYWORD_NIL:
+        SBUFFER_PRINTF(gen_var->selected, "nil@nil");
+        return true;
+    default:
+        return false;
+    }
+}
+
 bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
                                  ListST *symtable, Type expr_type) {
     if (ast->left == NULL && ast->right == NULL) {
         SBUFFER_PRINTF(gen_var->selected, "  PUSHS ");
-        switch (ast->token.type)
-        {
-        case TOKEN_INT:
-            if (expr_type == T_FLOAT) {
-                SBUFFER_PRINTF(gen_var->selected, "float@%a\n",
-                               (float) ast->token.value.int_value);
-            } else {
-                SBUFFER_PRINTF(
-                    gen_var->selected, "int@%d\n", ast->token.value.int_value);
-            }
-            return true;
-        case TOKEN_FLOAT:
-            SBUFFER_PRINTF(
-                gen_var->selected, "float@%a\n", ast->token.value.float_value);
-            return true;
-        case TOKEN_STRING:
-            SBUFFER_PRINTF(gen_var->selected, "string@");
-            if (!generate_string_literal(gen_var, ast->token.value.string))
-                return false;
-            SBUFFER_PRINTF(gen_var->selected, "\n");
-            return true;
-        case TOKEN_BOOL:
-            if (ast->token.value.boolean == true) {
-                SBUFFER_PRINTF(gen_var->selected, "bool@true\n");
-            } else {
-                SBUFFER_PRINTF(gen_var->selected, "bool@false\n");
-            }
-            return true;
-        case TOKEN_IDENTIF:
+
+        // it can be a variable or a literal
+        if (ast->token.type == TOKEN_IDENTIF) {
             // this should never fail - variable existence was tested before
             if (!generate_variable(gen_var, symtable, ast->token.value.string))
                 return false;
@@ -303,18 +314,15 @@ bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
             // (as opposed to symtable)
             if (expr_type == T_FLOAT && ast->data_type == T_INT) {
                 SBUFFER_PRINTF(gen_var->selected, "\n"
-                                                  "  INT2FLOATS\n");
-            } else {
-                SBUFFER_PRINTF(gen_var->selected, "\n");
+                                                  "  INT2FLOATS");
             }
-
-            return true;
-        case TOKEN_KEYWORD_NIL:
-            SBUFFER_PRINTF(gen_var->selected, "nil@nil\n");
-            return true;
-        default: // for the compiler to be happy
-            return false;
+        } else {
+            if (!generate_literal(gen_var, ast->token, expr_type))
+                return false;
         }
+
+        SBUFFER_PRINTF(gen_var->selected, "\n");
+        return true;
     }
 
     if (expr_type == T_BOOL &&
@@ -390,7 +398,7 @@ bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
                                         gen_var->label, gen_var->counter_n+1);
         gen_var->counter_n += 2;
         return true;
-    default: // for the compiler to be happy
+    default:
         return false;
     }
 }

@@ -40,6 +40,8 @@ bool generate_inbuilt_functions(ListST *symtable, GenerationVariables gen_var);
 bool generate_variable(GenerationVariables *gen_var, ListST *symtable,
                         char *identifier);
 bool generate_string_literal(GenerationVariables *gen_var, char *str);
+bool generate_literal(GenerationVariables *gen_var, TokenData token,
+                      Type expected_type);
 bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
                                  ListST *symtable, Type expr_type);
 bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
