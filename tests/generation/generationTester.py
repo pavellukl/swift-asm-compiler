@@ -1,5 +1,5 @@
 import subprocess
-from os import listdir, remove
+from os import listdir, remove, makedirs
 from os.path import isfile, join
 import re
 
@@ -29,6 +29,11 @@ print(f"{DELIMITER} Running {BLUE}{len(test_files)}{RESET} tests from {YELLOW}ge
 passing = 0
 failing = 0
 crashing = 0
+
+try:
+    makedirs("./_tests_build/mid_prod/generation")
+except OSError as err:
+    pass
 
 for test_file in test_files:
     with open(test_file, "r") as f:
@@ -60,18 +65,16 @@ for test_file in test_files:
             continue
         
         # pass compiler
-        with open("./tests/generation/temp", "w") as temp:
+        with open("./_tests_build/mid_prod/generation/" + test_filename[:-6], "w") as temp:
             temp.write(out)
             
-        p = subprocess.Popen(["./ic23int", "./tests/generation/temp"], stdout=subprocess.PIPE,
-                                                                       stdin=subprocess.PIPE,
-                                                                       stderr=subprocess.PIPE)
+        p = subprocess.Popen(["./ic23int", "./_tests_build/mid_prod/generation/" + test_filename[:-6]], stdout=subprocess.PIPE,
+                                                                                                       stdin=subprocess.PIPE,
+                                                                                                       stderr=subprocess.PIPE)
         
         out, err = p.communicate(stdin.encode())
         out = out.decode('utf-8')
         err = err.decode('utf-8')
-        
-        remove("./tests/generation/temp")
         
         if p.returncode != 0:
             # unexpected interpreter return code
