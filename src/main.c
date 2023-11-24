@@ -1,9 +1,6 @@
 #include "main.h"
 
-int main(int argc, char* argv[]) {
-    printf("Hello world!\n");
-    fprintf(stdout, "Running %s with %d arguments\n", *argv, argc);
-
+int main() {
     // for debugging purposes
     // FILE* in = fopen("./tests/syntax_semantics/test_files/empty.swift", "r");
     FILE* in = stdin;
