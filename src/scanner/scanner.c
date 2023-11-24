@@ -484,7 +484,8 @@ bool get_next_token(ParserOptions* parser_opt) {
                 next_char = get_next_char(&parser_opt->sc_opt);
                 if (next_char == '=') {
                     current_state = NOT_EQUAL;
-                } else if (isalpha(next_char) || next_char == '_') {
+                } else if (isalpha(next_char) || next_char == '_' ||
+                          next_char == '(') {
                     token.type = TOKEN_NOT;
                     token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
