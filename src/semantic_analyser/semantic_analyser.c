@@ -35,7 +35,6 @@ bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params) {
 
 bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
                            Parameters *arguments, Type *return_type) {
-    // TODO: handle infinite parameters
     //  get called function
     LSTElement *func =
         st_search_element(parser_opt->symtable, identifier, NULL);
@@ -47,10 +46,47 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
     }
 
     // if number of arguments doesn not match number of function parameters
-    if (arguments->size != func->value.parameters.size) {
+    if (arguments->size != func->value.parameters.size &&
+        !func->value.parameters.infinite) {
         parser_opt->return_code = FNCALL_ERR;
         return false;
     }
+
+    // if parameters are infinite
+    if (func->value.parameters.infinite) {
+        for (int i = 0; i < arguments->size; i++) {
+            Parameter call_arg = arguments->parameters_arr[i];
+
+            // if argument has a name
+            if (call_arg.name != NULL) {
+                parser_opt->return_code = FNCALL_ERR;
+                return false;
+            }
+
+            // if argument is not a literal -> it is an identifier
+            if (call_arg.identifier != NULL) {
+                // check argument identifier
+                LSTElement *el = st_search_element(parser_opt->symtable,
+                                                   call_arg.identifier, NULL);
+
+                // if identifier is not defined or has no defined value
+                if (el == NULL || !el->defined_value) {
+                    parser_opt->return_code = UNDEFVAR_ERR;
+                    return false;
+                }
+
+                // if identifier is not a constant or a variable
+                if (el->variant != CONSTANT && el->variant != VARIABLE) {
+                    parser_opt->return_code = DEF_ERR;
+                    return false;
+                }
+            }
+        }
+
+        return true;
+    }
+
+    // if parameters are not infinite
 
     // check validity of arguments against function parameters
     for (int i = 0; i < arguments->size; i++) {
