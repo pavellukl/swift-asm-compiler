@@ -3,11 +3,11 @@
 var a = 3
 
 while (a != 0) {
-    print(a)
+    write(a)
     while (a != 0) {
-        print(a)
+        write(a)
         a = a - 1
     }
-    print(a)
+    write(a)
 }
-print(a)
+write(a)

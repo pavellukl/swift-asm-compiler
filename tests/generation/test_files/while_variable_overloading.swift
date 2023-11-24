@@ -9,10 +9,10 @@ while (b != 0) {
         var a = 4
         var b = 5
         b = 4
-        print(a, c)
+        write(a, c)
         a = a - 1
     }
     b = b - 1
-    print(b)
+    write(b)
 }
-print(a)
+write(a)
