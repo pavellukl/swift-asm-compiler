@@ -1,3 +1,4 @@
+// 0
 /* Program 3: Prace s retezci a vestavenymi funkcemi */
 
 var str1 = "Toto je nejaky text v programu jazyka IFJ23"
