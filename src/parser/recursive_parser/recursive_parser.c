@@ -94,12 +94,22 @@ bool _function_definition(ParserOptions *parser_opt) {
 
             // set current function of semantic context
             parser_opt->sem_ctx.current_fnc = func;
+            parser_opt->sem_ctx.has_function_all_returns = false;
+            parser_opt->sem_ctx.is_scope_conditional = false;
 
             // check function body
             bool scope_body_res = _scope_body(parser_opt);
 
+            // if a non void function is missing return
+            if (func->return_type != T_VOID &&
+                !parser_opt->sem_ctx.has_function_all_returns) {
+                parser_opt->return_code = FNCALL_ERR;
+                return false;
+            }
+
             // reset current function of semantic context
             parser_opt->sem_ctx.current_fnc = NULL;
+            parser_opt->sem_ctx.has_function_all_returns = false;
 
             // pop function scope
             st_pop_scope(parser_opt->symtable);
@@ -405,7 +415,7 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
             return false;
         }
 
-        // TODO handle retyping arg values
+        // TODO handle retyping arg values when generating
         //! will probably need parameter Struct
 
         // unallocate argument array
@@ -527,6 +537,8 @@ bool _return_command(ParserOptions *parser_opt) {
         }
         // TODO: fix double free
         // _free_AST(expression_node_ptr);
+
+        parser_opt->sem_ctx.has_function_all_returns = true;
 
         return true;
     }
@@ -739,6 +751,9 @@ bool __if(ParserOptions *parser_opt) {
             return false;
         }
 
+        // set that scope is conditional
+        parser_opt->sem_ctx.is_scope_conditional = true;
+
         Type initial_var_type = T_VOID;
         LSTElement *el;
         if (!analyze_if_let(parser_opt, identifier, &initial_var_type, &el)) {
@@ -787,10 +802,13 @@ bool __if(ParserOptions *parser_opt) {
     // push if scope
     STError err =
         st_push_scope(parser_opt->symtable, ++parser_opt->gen_var.scope_n);
+
     if (err != E_OK) {
         parser_opt->return_code = INTER_ERR;
         return false;
     }
+
+    parser_opt->sem_ctx.is_scope_conditional = true;
 
     if (!_scope_body(parser_opt)) return false;
 
@@ -940,7 +958,7 @@ bool _function_call(ParserOptions *parser_opt, Type *return_type) {
         return false;
     }
 
-    // TODO handle retyping arg values
+    // TODO handle retyping arg values when generating
     //! will probably need parameter Struct
 
     // free token string value

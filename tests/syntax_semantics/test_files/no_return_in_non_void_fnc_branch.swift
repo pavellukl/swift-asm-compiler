@@ -1,4 +1,4 @@
-// 6
+// 4
 
 func test(with x: Bool) -> Int {
     if(x) {
