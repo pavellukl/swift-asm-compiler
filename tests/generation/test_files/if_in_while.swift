@@ -2,7 +2,7 @@
 
 var a = 3
 
-while (a > -2) {
+while (a > 0 - 2) {
     if (a == 2) {
         write(1)
     } else if (false) {
