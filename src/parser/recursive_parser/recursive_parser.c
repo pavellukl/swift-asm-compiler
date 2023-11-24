@@ -95,13 +95,12 @@ bool _function_definition(ParserOptions *parser_opt) {
             // set current function of semantic context
             parser_opt->sem_ctx.current_fnc = func;
             parser_opt->sem_ctx.has_function_all_returns = false;
-            parser_opt->sem_ctx.is_scope_conditional = false;
 
             // check function body
             bool scope_body_res = _scope_body(parser_opt);
 
             // if a non void function is missing return
-            if (func->return_type != T_VOID &&
+            if (scope_body_res && func->return_type != T_VOID &&
                 !parser_opt->sem_ctx.has_function_all_returns) {
                 parser_opt->return_code = FNCALL_ERR;
                 return false;
@@ -751,9 +750,6 @@ bool __if(ParserOptions *parser_opt) {
             return false;
         }
 
-        // set that scope is conditional
-        parser_opt->sem_ctx.is_scope_conditional = true;
-
         Type initial_var_type = T_VOID;
         LSTElement *el;
         if (!analyze_if_let(parser_opt, identifier, &initial_var_type, &el)) {
@@ -764,7 +760,13 @@ bool __if(ParserOptions *parser_opt) {
         // free token string value
         free(identifier);
 
+        // TODO
+        bool has_returns_tmp = parser_opt->sem_ctx.has_function_all_returns;
+        parser_opt->sem_ctx.has_function_all_returns = false;
+
         if (!_scope_body(parser_opt)) return false;
+
+        bool has_if_return = parser_opt->sem_ctx.has_function_all_returns;
 
         // pop if scope
         st_pop_scope(parser_opt->symtable);
@@ -774,10 +776,21 @@ bool __if(ParserOptions *parser_opt) {
         // restore saved state of scope count
         parser_opt->gen_var.scope_n = tmp_scope_n;
 
+        parser_opt->sem_ctx.has_function_all_returns = false;
+        bool has_else_branch = false;
+        if (!__if_let_identif_body(parser_opt, &has_else_branch)) return false;
+
+        if (has_else_branch) {
+            parser_opt->sem_ctx.has_function_all_returns =
+                (has_if_return &&
+                 parser_opt->sem_ctx.has_function_all_returns) ||
+                has_returns_tmp;
+        } else {
+            parser_opt->sem_ctx.has_function_all_returns = has_returns_tmp;
+        }
+
         // TODO collect data for checking if all branches have return and check
         // here
-
-        if (!__if_let_identif_body(parser_opt)) return false;
 
         return true;
     }
@@ -808,21 +821,37 @@ bool __if(ParserOptions *parser_opt) {
         return false;
     }
 
-    parser_opt->sem_ctx.is_scope_conditional = true;
+    // TODO
+
+    bool has_returns_tmp = parser_opt->sem_ctx.has_function_all_returns;
+    parser_opt->sem_ctx.has_function_all_returns = false;
 
     if (!_scope_body(parser_opt)) return false;
+
+    bool has_if_return = parser_opt->sem_ctx.has_function_all_returns;
 
     // pop if scope
     st_pop_scope(parser_opt->symtable);
     // restore saved state of scope count
     parser_opt->gen_var.scope_n = tmp_scope_n;
 
-    // TODO collect data for checking if all branches have return and check here
+    // TODO
+    parser_opt->sem_ctx.has_function_all_returns = false;
+    bool has_else_branch = false;
+    if (!__if_let_identif_body(parser_opt, &has_else_branch)) return false;
 
-    return __if_let_identif_body(parser_opt);
+    if (has_else_branch) {
+        parser_opt->sem_ctx.has_function_all_returns =
+            (has_if_return && parser_opt->sem_ctx.has_function_all_returns) ||
+            has_returns_tmp;
+    } else {
+        parser_opt->sem_ctx.has_function_all_returns = has_returns_tmp;
+    }
+
+    return true;
 }
 
-bool __if_let_identif_body(ParserOptions *parser_opt) {
+bool __if_let_identif_body(ParserOptions *parser_opt, bool *has_else_branch) {
     if (parser_opt->token.type == TOKEN_END_OF_FILE ||
         parser_opt->token.type == TOKEN_KEYWORD_FUNC ||
         parser_opt->token.type == TOKEN_IDENTIF ||
@@ -835,13 +864,14 @@ bool __if_let_identif_body(ParserOptions *parser_opt) {
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_ELSE) {
         if (!_next_token(parser_opt)) return false;
-        return __if_let_identif_body_else(parser_opt);
+        return __if_let_identif_body_else(parser_opt, has_else_branch);
     }
     parser_opt->return_code = STX_ERR;
     return false;
 }
 
-bool __if_let_identif_body_else(ParserOptions *parser_opt) {
+bool __if_let_identif_body_else(ParserOptions *parser_opt,
+                                bool *has_else_branch) {
     if (parser_opt->token.type == TOKEN_L_CRLY_BRACKET) {
         // save current scope counter
         int tmp_scope_n = parser_opt->gen_var.scope_n;
@@ -853,7 +883,15 @@ bool __if_let_identif_body_else(ParserOptions *parser_opt) {
             return false;
         }
 
+        *has_else_branch = true;
+
+        bool has_returns_tmp = parser_opt->sem_ctx.has_function_all_returns;
+        parser_opt->sem_ctx.has_function_all_returns = false;
+
         if (!_scope_body(parser_opt)) return false;
+
+        parser_opt->sem_ctx.has_function_all_returns =
+            has_returns_tmp || parser_opt->sem_ctx.has_function_all_returns;
 
         // pop if scope
         st_pop_scope(parser_opt->symtable);

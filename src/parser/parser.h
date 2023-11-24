@@ -22,7 +22,6 @@ typedef enum {
 typedef struct {
     LSTElement *current_fnc;
     bool has_function_all_returns;
-    bool is_scope_conditional;
 } SemanticContext;
 
 typedef struct {

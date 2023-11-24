@@ -34,8 +34,9 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt,
                                  bool *is_function);
 bool _conditional_command(ParserOptions *parser_opt);
 bool __if(ParserOptions *parser_opt);
-bool __if_let_identif_body(ParserOptions *parser_opt);
-bool __if_let_identif_body_else(ParserOptions *parser_opt);
+bool __if_let_identif_body(ParserOptions *parser_opt, bool *has_else_branch);
+bool __if_let_identif_body_else(ParserOptions *parser_opt,
+                                bool *has_else_branch);
 bool _while_command(ParserOptions *parser_opt);
 bool _function_call(ParserOptions *parser_opt, Type *return_type);
 bool _arg_list(ParserOptions *parser_opt, Parameters *args);

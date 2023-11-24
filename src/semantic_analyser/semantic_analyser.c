@@ -3,7 +3,6 @@
 void init_semantic_context(SemanticContext *sem_ctx) {
     sem_ctx->current_fnc = NULL;
     sem_ctx->has_function_all_returns = false;
-    sem_ctx->is_scope_conditional = false;
 }
 
 bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params) {
