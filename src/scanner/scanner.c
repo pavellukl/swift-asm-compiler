@@ -86,6 +86,35 @@ bool _skip_whitespaces(ScannerOptions* opt) {
     return newline_found;
 }
 
+void _remove_extra_whitespaces(ScannerBuffer *buf, int count) {
+    int read_index = 0; 
+    int write_index = 0;
+    int skip_count;
+    bool is_newline = true;
+
+    while (read_index < buf->i) {
+        if (is_newline) {
+            skip_count = count;
+            is_newline = false;
+        }
+
+        if (buf->buffer[read_index] == '\n') {
+            is_newline = true;
+        }
+
+        if (skip_count > 0 && (buf->buffer[read_index] == ' ' || buf->buffer[read_index] == '\t')) {
+            skip_count--;
+        } else {
+            buf->buffer[write_index++] = buf->buffer[read_index];
+        }
+
+        read_index++;
+    }
+
+    buf->buffer[--write_index] = '\0';
+    buf->i = write_index;
+}
+
 bool scanner_opt_init(ScannerOptions* opt, FILE* file) {
     int capacity = 128;
     opt->size = 0;
@@ -212,6 +241,9 @@ bool get_next_token(ParserOptions* parser_opt) {
     char next_char;
 
     int block_comment_count = 0;
+
+    bool new_line_online = false;
+    int whitespace_count = 0;
 
     bool new_line_before_token = false;
 
@@ -863,10 +895,12 @@ bool get_next_token(ParserOptions* parser_opt) {
                     char next_char2 = get_next_char(&parser_opt->sc_opt);
 
                     if (next_char1 == '"' && next_char2 == '"') {
-                        if (parser_opt->sc_opt.file[parser_opt->sc_opt.i - 4] ==
-                            '\n') {
+                        if (new_line_online == true) {
                             b_buffer.i--;
                             parser_opt->sc_opt.line_counter++;
+                            if (whitespace_count > 0){
+                                _remove_extra_whitespaces(&b_buffer, whitespace_count);
+                            }
                             current_state = STRING_END;
                         } else {
                             scanner_buf_free(&b_buffer);
@@ -875,6 +909,8 @@ bool get_next_token(ParserOptions* parser_opt) {
                         }
                     } else {
                         parser_opt->sc_opt.i -= 2;
+                        new_line_online = false;
+                        whitespace_count = 0;
                         if (!scanner_buf_insert(&b_buffer, current_char)) {
                             scanner_buf_free(&b_buffer);
                             parser_opt->return_code = INTER_ERR;
@@ -883,7 +919,13 @@ bool get_next_token(ParserOptions* parser_opt) {
                     }
                 } else {
                     if (current_char == '\n') {
+                        new_line_online = true;
                         parser_opt->sc_opt.line_counter++;
+                    } else if (!isspace(current_char)){
+                        new_line_online = false;
+                        whitespace_count = 0;
+                    } else if (isspace(current_char)){
+                        whitespace_count++;
                     }
                     if (!scanner_buf_insert(&b_buffer, current_char)) {
                         scanner_buf_free(&b_buffer);
