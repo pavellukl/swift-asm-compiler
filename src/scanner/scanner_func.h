@@ -17,6 +17,8 @@ TokenData is_keyword(char *keyword);
 
 bool _skip_whitespaces(ScannerOptions *opt);
 
+void _remove_extra_whitespaces(ScannerBuffer *buf, int count);
+
 void scanner_opt_free(ScannerOptions *opt);
 
 bool scanner_opt_init(ScannerOptions *opt, FILE *file);
