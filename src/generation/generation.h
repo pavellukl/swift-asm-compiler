@@ -37,11 +37,14 @@ void print_generation_to_file(GenerationVariables gen_opt, FILE *out);
 bool generate_function_start(GenerationVariables gen_var, LSTElement *fn);
 bool generate_inbuilt_functions(ListST *symtable, GenerationVariables gen_var);
 
-bool _generate_string_literal(GenerationVariables *gen_var, char *str);
-bool _generate_simply_expression(GenerationVariables *gen_var,
-                                       ASTNode *ast, Type expr_type);
+bool generate_variable(GenerationVariables *gen_var, ListST *symtable,
+                        char *identifier);
+bool generate_string_literal(GenerationVariables *gen_var, char *str);
+bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
+                                 ListST *symtable, Type expr_type);
 bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
-                                  int t, int f);
-bool generate_expression(GenerationVariables *gen_var, ASTNode *ast);
+                                  ListST *symtable, int t, int f);
+bool generate_expression(GenerationVariables *gen_var, ASTNode *ast,
+                         ListST *symtable);
 
 #endif /* GENERATION_H */

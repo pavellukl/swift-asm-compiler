@@ -65,8 +65,8 @@ bool generate_function_start(GenerationVariables gen_var, LSTElement *fn) {
 
     for (int i = fn->value.parameters.size - 1; i >= 0; i--) {
         SBUFFER_PRINTF(gen_var.selected,
-                       "  DEFVAR TF@%s\n"
-                       "  PUSHS TF@%s\n",
+                       "  DEFVAR TF@1%s\n"
+                       "  PUSHS TF@1%s\n",
                        fn->value.parameters.parameters_arr[i].identifier,
                        fn->value.parameters.parameters_arr[i].identifier);
     }
@@ -217,7 +217,22 @@ bool generate_inbuilt_functions(ListST *symtable, GenerationVariables gen_var) {
     return true;
 }
 
-bool _generate_string_literal(GenerationVariables *gen_var, char *str) {
+bool generate_variable(GenerationVariables *gen_var, ListST *symtable,
+                        char *identifier) {
+    int scope_id;
+    LSTElement *el = st_search_element(symtable, identifier, &scope_id);
+    if (el == NULL) return false;
+
+    if (scope_id == 0) {
+        SBUFFER_PRINTF(gen_var->selected, "GF@%s", identifier);
+    } else {
+        SBUFFER_PRINTF(gen_var->selected, "LF@%d%s", scope_id, identifier);
+    }
+
+    return true;
+}
+
+bool generate_string_literal(GenerationVariables *gen_var, char *str) {
     for (int i = 0; str[i] != '\0'; i++) {
         if ((str[i] >= 0 && str[i] <= 32) || str[i] == 35 || str[i] == 92) {
             SBUFFER_PRINTF(gen_var->selected, "\\0");
@@ -232,8 +247,8 @@ bool _generate_string_literal(GenerationVariables *gen_var, char *str) {
     return true;
 }
 
-bool _generate_simply_expression(GenerationVariables *gen_var,
-                                       ASTNode *ast, Type expr_type) {
+bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
+                                 ListST *symtable, Type expr_type) {
     if (ast->left == NULL && ast->right == NULL) {
         SBUFFER_PRINTF(gen_var->selected, "  PUSHS ");
         switch (ast->token.type)
@@ -253,7 +268,7 @@ bool _generate_simply_expression(GenerationVariables *gen_var,
             return true;
         case TOKEN_STRING:
             SBUFFER_PRINTF(gen_var->selected, "string@");
-            if (!_generate_string_literal(gen_var, ast->token.value.string))
+            if (!generate_string_literal(gen_var, ast->token.value.string))
                 return false;
             SBUFFER_PRINTF(gen_var->selected, "\n");
             return true;
@@ -265,9 +280,20 @@ bool _generate_simply_expression(GenerationVariables *gen_var,
             }
             return true;
         case TOKEN_IDENTIF:
-            // TODO: generate token_identif
+            // this should never fail - variable existence was tested before
+            if (!generate_variable(gen_var, symtable, ast->token.value.string))
+                return false;
+
+            // type conversion
             // ast->data_type has identifiers data type without nilable part
             // (as opposed to symtable)
+            if (expr_type == T_FLOAT && ast->data_type == T_INT) {
+                SBUFFER_PRINTF(gen_var->selected, "\n"
+                                                  "  INT2FLOATS\n");
+            } else {
+                SBUFFER_PRINTF(gen_var->selected, "\n");
+            }
+
             return true;
         case TOKEN_KEYWORD_NIL:
             SBUFFER_PRINTF(gen_var->selected, "nil@nil\n");
@@ -282,9 +308,9 @@ bool _generate_simply_expression(GenerationVariables *gen_var,
         expr_type = T_FLOAT;
     }
 
-    if (!_generate_simply_expression(gen_var, ast->right, expr_type))
+    if (!_generate_simply_expression(gen_var, ast->right, symtable, expr_type))
         return false;
-    if (!_generate_simply_expression(gen_var, ast->left, expr_type))
+    if (!_generate_simply_expression(gen_var, ast->left, symtable, expr_type))
         return false;
 
     switch (ast->token.type)
@@ -356,11 +382,12 @@ bool _generate_simply_expression(GenerationVariables *gen_var,
 }
 
 bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
-                                  int t, int f) {
+                                  ListST *symtable, int t, int f) {
     if (ast->token.type != TOKEN_AND
         && ast->token.type != TOKEN_OR
         && ast->token.type != TOKEN_NOT) {
-        if (!_generate_simply_expression(gen_var, ast, ast->data_type))
+        if (!_generate_simply_expression(
+                gen_var, ast, symtable, ast->data_type))
             return false;
         if (t == 0 || t == 1) {
             SBUFFER_PRINTF(gen_var->selected, "  PUSHS bool@true\n",
@@ -380,8 +407,9 @@ bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
 
     if (ast->token.type == TOKEN_AND) {
         if (!_generate_short_circuit_eval(
-                gen_var, ast->left, gen_var->counter_n++, f)
-            || !_generate_short_circuit_eval(gen_var, ast->right, t, f)) {
+                gen_var, ast->left, symtable, gen_var->counter_n++, f)
+            || !_generate_short_circuit_eval(
+                gen_var, ast->right, symtable, t, f)) {
             return false;
         }
         return true;
@@ -389,21 +417,23 @@ bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
 
     if (ast->token.type == TOKEN_OR) {
         if (!_generate_short_circuit_eval(
-                gen_var, ast->left, t, gen_var->counter_n++)
-            || !_generate_short_circuit_eval(gen_var, ast->right, t, f)) {
+                gen_var, ast->left, symtable, t, gen_var->counter_n++)
+            || !_generate_short_circuit_eval(
+                gen_var, ast->right, symtable, t, f)) {
             return false;
         }
         return true;
     }
 
     // TOKEN_NOT
-    if (!_generate_short_circuit_eval(gen_var, ast->left, f, t)) {
+    if (!_generate_short_circuit_eval(gen_var, ast->left, symtable, f, t)) {
         return false;
     }
     return true;
 }
 
-bool generate_expression(GenerationVariables *gen_var, ASTNode *ast) {
+bool generate_expression(GenerationVariables *gen_var, ASTNode *ast,
+                         ListST *symtable) {
     char *init_label;
     if (!clone_string(&init_label, gen_var->label->string)) return false;
     if (!sbuffer_printf(gen_var->label, "&%d", gen_var->expr_n++)) {
@@ -422,13 +452,14 @@ bool generate_expression(GenerationVariables *gen_var, ASTNode *ast) {
     if (ast->token.type != TOKEN_AND
         && ast->token.type != TOKEN_OR
         && ast->token.type != TOKEN_NOT) {
-        if (!_generate_simply_expression(gen_var, ast, ast->data_type)) {
+        if (!_generate_simply_expression(
+                gen_var, ast, symtable, ast->data_type)) {
             free(init_label);
             return false;
         }
     } else {
         gen_var->counter_n = 2;
-        if (!_generate_short_circuit_eval(gen_var, ast, 0, 1)) {
+        if (!_generate_short_circuit_eval(gen_var, ast, symtable, 0, 1)) {
             free(init_label);
             return false;
         }
