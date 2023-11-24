@@ -254,7 +254,8 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
         return false;
     }
 
-    bool is_value_defined = provided_value_node->data_type != T_VOID;
+    bool is_value_defined = provided_value_node->data_type != T_VOID ||
+                            _is_nilable_type(expected_type);
     LSTElementValue var_val = {0};
 
     // actual variable type to be saved in symtable
