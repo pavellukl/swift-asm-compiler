@@ -1,5 +1,5 @@
 // 5
 
-var x: Int!
+var x: Int
 
 x = x + 5

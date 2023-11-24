@@ -88,7 +88,7 @@ bool _get_token_types(ParserOptions *parser_opt,
             return true;
         case TOKEN_IDENTIF:
             // check for special end of expression with an identifier which does
-            // not fit syntactically - byt may fit outside of the expression
+            // not fit syntactically - but may fit outside of the expression
             if (item_last_pp_type == TERMINAL_INT
                 || item_last_pp_type == TERMINAL_FLOAT
                 || item_last_pp_type == TERMINAL_STRING
@@ -468,36 +468,6 @@ bool parse_check_optimize_expression(ParserOptions *parser_opt, ASTNode **ast) {
     _free_pp_list(&list);
 
     PRINTF_STDDEBUG("expression done\n")
-
-    // TODO: delete
-    // if (expected_type != NULL) {
-    //     // do type conversion if needed
-    //     if ((*expected_type == T_FLOAT || *expected_type == T_FLOAT_NIL) &&
-    //         expression.node->data_type == T_INT) {
-    //         expression.node->data_type = T_FLOAT;
-    //     }
-
-    //     // check data type compatibility
-    //     if (_remove_nilable(*expected_type) != expression.node->data_type
-    //         &&
-    //         (!_is_nilable_type(*expected_type) ||
-    //         expression.node->data_type != T_NIL)) {
-    //         _free_pp_list(&list);
-    //         parser_opt->return_code = EXPRTYPE_ERR;
-    //         return false;
-    //     }
-    // }
-
-    // // generate expression
-    // PRINTF_STDDEBUG("expression generation\n")
-    // if (!generate_expression(&parser_opt->gen_var, ast)) {
-    //     _free_pp_list(&list);
-    //     parser_opt->return_code = INTER_ERR;
-    //     return false;
-    // }
-
-    // PRINTF_STDDEBUG("expression cleanup\n")
-    // _free_pp_list(&list);
 
     return true;
 }

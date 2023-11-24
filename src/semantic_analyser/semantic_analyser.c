@@ -19,7 +19,9 @@ bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params) {
         if (param.identifier == NULL) continue;
 
         for (int j = i + 1; j < params->size; j++) {
-            Parameter tmp = params->parameters_arr[i];
+            Parameter tmp = params->parameters_arr[j];
+
+            if (tmp.identifier == NULL) continue;
 
             if (!strcmp(param.identifier, tmp.identifier)) {
                 parser_opt->return_code = OTHER_ERR;
@@ -56,7 +58,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
 
         // if parameter and argument names do not match
         if ((func_param.name != NULL || call_arg->name != NULL) &&
-            (call_arg->name == NULL ||
+            (func_param.name == NULL || call_arg->name == NULL ||
              strcmp(func_param.name, call_arg->name) != 0)) {
             parser_opt->return_code = FNCALL_ERR;
             return false;
@@ -126,7 +128,7 @@ bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
 
     // retype expression to float if expression is int and expected type is
     // float
-    if ((el->return_type == T_FLOAT || T_FLOAT_NIL) &&
+    if ((el->return_type == T_FLOAT || el->return_type == T_FLOAT_NIL) &&
         expression_node->data_type == T_INT && !is_function) {
         expression_node->data_type = T_FLOAT;
     }
@@ -153,12 +155,14 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
 
     // retype expression to float if expression is int and expected type is
     // float
-    if ((fnc->return_type == T_FLOAT || T_FLOAT_NIL) &&
+    if ((fnc->return_type == T_FLOAT || fnc->return_type == T_FLOAT_NIL) &&
         expression_node->data_type == T_INT) {
         expression_node->data_type = T_FLOAT;
     }
 
     // if function type and return expression type do not match
+    // TODO split into multiple checks, has to return FNRET_ERR and FNCALL_ERROR
+    // in some cases
     if (!_do_types_match(fnc->return_type, expression_node->data_type)) {
         parser_opt->return_code = FNRET_ERR;
         return false;
@@ -167,7 +171,6 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
     return true;
 }
 
-// TODO: check correctness
 bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
                      char *identifier, Type expected_type,
                      ASTNode *provided_value_node, bool is_function) {
@@ -184,7 +187,7 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
 
     // retype expression to float if expression is int and expected type is
     // float
-    if ((expected_type == T_FLOAT || T_FLOAT_NIL) &&
+    if ((expected_type == T_FLOAT || expected_type == T_FLOAT_NIL) &&
         provided_value_node->data_type == T_INT && !is_function) {
         provided_value_node->data_type = T_FLOAT;
     }
@@ -197,7 +200,7 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
     }
 
     // if expected and provided types do not match
-    if (expected_type != T_VOID &&
+    if (expected_type != T_VOID && provided_value_node->data_type != T_VOID &&
         !_do_types_match(expected_type, provided_value_node->data_type)) {
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;

@@ -43,7 +43,7 @@ else
 }
 
 if let a {
-    a = test(a)   
+    num = test(a)   
 } 
 else 
 {

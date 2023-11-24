@@ -1,6 +1,6 @@
-// 4
+// 7
 
-let x = 9
+var x = 9
 
 func test() {
     let y = x + x

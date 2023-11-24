@@ -33,11 +33,11 @@ func test() -> Int {
     }
 }
 
-func print() {
+func print34() {
     let x = "xxx"
 }
 
-func test() {
+func test1() {
     var x = 9
     return
 }

@@ -635,6 +635,7 @@ bool get_next_token(ParserOptions* parser_opt) {
                     token.line_index = parser_opt->sc_opt.line_counter;
                     token.eol_before = new_line_before_token;
                     token.id = parser_opt->sc_opt.id_counter++;
+                    parser_opt->sc_opt.i--;
                     parser_opt->token = token;
                     return true;
                 } else {

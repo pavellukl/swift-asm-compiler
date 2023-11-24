@@ -5,9 +5,10 @@ int main(int argc, char* argv[]) {
     fprintf(stdout, "Running %s with %d arguments\n", *argv, argc);
 
     // for debugging purposes
-    FILE* in = fopen(
-        "./tests/syntax_semantics/test_files/return_in_nonvoid_fnc.swift", "r");
-    // FILE* in = stdin;
+    // FILE* in =
+    //     fopen("./tests/syntax_semantics/test_files/wrong_arg_type.swift",
+    //     "r");
+    FILE* in = stdin;
 
     switch (compile(in, stdout)) {
         case COMP_OK:

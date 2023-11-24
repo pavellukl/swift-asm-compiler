@@ -41,7 +41,8 @@ bool _function_call(ParserOptions *parser_opt, Type *return_type);
 bool _arg_list(ParserOptions *parser_opt, Parameters *args);
 bool _comma_arg(ParserOptions *parser_opt, Parameters *args);
 bool _arg(ParserOptions *parser_opt, Parameters *args);
-bool __arg_name(ParserOptions *parser_opt, Parameter *arg);
+bool __arg_name(ParserOptions *parser_opt, Parameter *arg,
+                bool *is_name_identifier);
 bool __arg_name_colon(ParserOptions *parser_opt, Parameter *arg);
 bool _arg_val(ParserOptions *parser_opt, Parameter *arg);
 

@@ -452,11 +452,13 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
             // semantically check assignment
             if (!analyze_assignment(parser_opt, identif, expression_node,
                                     false)) {
-                _free_AST(expression_node);
+                // TODO: fix double free
+                // _free_AST(expression_node);
                 return false;
             }
 
-            _free_AST(expression_node);
+            // TODO: fix double free
+            // _free_AST(expression_node);
 
             return true;
         }
@@ -523,8 +525,8 @@ bool _return_command(ParserOptions *parser_opt) {
             // _free_AST(expression_node_ptr);
             return false;
         }
-
-        _free_AST(expression_node_ptr);
+        // TODO: fix double free
+        // _free_AST(expression_node_ptr);
 
         return true;
     }
@@ -604,7 +606,8 @@ bool _variable_def(ParserOptions *parser_opt) {
             return false;
         }
 
-        _free_AST(provided_expression_node_ptr);
+        // TODO double free fix
+        // _free_AST(provided_expression_node_ptr);
 
         return true;
     }
@@ -771,12 +774,13 @@ bool __if(ParserOptions *parser_opt) {
 
     // semantically analyze if (check if expression is of type bool)
     if (expression_node->data_type != T_BOOL) {
-        _free_AST(expression_node);
+        // TODO: fix double free
+        // _free_AST(expression_node);
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;
     }
-
-    _free_AST(expression_node);
+    // TODO: fix double free
+    // _free_AST(expression_node);
 
     // save current scope counter
     int tmp_scope_n = parser_opt->gen_var.scope_n;
@@ -857,12 +861,14 @@ bool _while_command(ParserOptions *parser_opt) {
 
         // semantically analyze while (check if expression is of type bool)
         if (expression_node->data_type != T_BOOL) {
-            _free_AST(expression_node);
+            // TODO: fix double free
+            //_free_AST(expression_node);
             parser_opt->return_code = EXPRTYPE_ERR;
             return false;
         }
 
-        _free_AST(expression_node);
+        // TODO: fix double free
+        // _free_AST(expression_node);
 
         // save current scope counter
         int tmp_scope_n = parser_opt->gen_var.scope_n;
@@ -1007,6 +1013,8 @@ bool _arg(ParserOptions *parser_opt, Parameters *args) {
                 break;
         }
 
+        if (!_next_token(parser_opt)) return false;
+
         // add argument to argument array
         if (!add_to_parameter_array(args, arg)) {
             parser_opt->return_code = INTER_ERR;
@@ -1015,19 +1023,26 @@ bool _arg(ParserOptions *parser_opt, Parameters *args) {
 
         return true;
     } else if (parser_opt->token.type == TOKEN_IDENTIF) {
-        // save argument identifier
-        if (!clone_string(&arg.identifier, parser_opt->token.value.string)) {
+        // save argument name
+        if (!clone_string(&arg.name, parser_opt->token.value.string)) {
             parser_opt->return_code = INTER_ERR;
             return false;
         };
 
         if (!_next_token(parser_opt)) {
-            free(arg.identifier);
+            free(arg.name);
             return false;
         }
-        if (!__arg_name(parser_opt, &arg)) {
-            free(arg.identifier);
+
+        bool is_name_identifier = false;
+        if (!__arg_name(parser_opt, &arg, &is_name_identifier)) {
+            free(arg.name);
             return false;
+        }
+
+        if (is_name_identifier) {
+            arg.identifier = arg.name;
+            arg.name = NULL;
         }
 
         // add argument to argument array
@@ -1044,9 +1059,11 @@ bool _arg(ParserOptions *parser_opt, Parameters *args) {
     return false;
 }
 
-bool __arg_name(ParserOptions *parser_opt, Parameter *arg) {
+bool __arg_name(ParserOptions *parser_opt, Parameter *arg,
+                bool *is_name_identifier) {
     if (parser_opt->token.type == TOKEN_R_BRACKET ||
         parser_opt->token.type == TOKEN_COMA) {
+        *is_name_identifier = true;
         return true;
     } else if (parser_opt->token.type == TOKEN_COLON) {
         if (!_next_token(parser_opt)) return false;
@@ -1058,8 +1075,7 @@ bool __arg_name(ParserOptions *parser_opt, Parameter *arg) {
 
 bool __arg_name_colon(ParserOptions *parser_opt, Parameter *arg) {
     if (parser_opt->token.type == TOKEN_IDENTIF) {
-        // save actual argument identifier, last identifier was it's name
-        arg->name = arg->identifier;
+        // save argument identifier
         if (!clone_string(&arg->identifier, parser_opt->token.value.string)) {
             parser_opt->return_code = INTER_ERR;
             return false;

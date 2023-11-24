@@ -11,7 +11,7 @@ while cnt > 0
 
 while false
 {
-    num = -1
+    num = 0 - 1
 }
 
 num = 10

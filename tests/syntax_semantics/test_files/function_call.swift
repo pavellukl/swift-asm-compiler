@@ -28,7 +28,8 @@ func test2() -> Int {
 func test4(of x: Int, by y: Int?, _ _: Int?, with z: String, _ e: Bool) {}
 
 
-let x = test2() + 6
+var x = test2()
+x = x + 6
 var y = "hello"
 var z = 72.999
 var _1 = true
@@ -36,12 +37,13 @@ var _1 = true
 var num: Int? = 9
 num = test3(x, y, z, _1, of: x)
 
-var factRes = factorial(num!)
+var num2: Int = num!
+var factRes = factorial(num2)
 
 num = test3(x, y, z, _1, of: nil)
 
 num = 9
 
-test4(num, of: x, _1, with: y, by: nil)
+test4(of: x, by: nil, num, with: y, _1)
 
 
