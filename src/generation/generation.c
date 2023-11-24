@@ -222,7 +222,7 @@ bool _generate_string_literal(GenerationVariables *gen_var, char *str) {
     return true;
 }
 
-bool _generate_arithmetical_expression(GenerationVariables *gen_var,
+bool _generate_simply_expression(GenerationVariables *gen_var,
                                        ASTNode *ast, Type expr_type) {
     if (ast->left == NULL && ast->right == NULL) {
         SBUFFER_PRINTF(gen_var->selected, "  PUSHS ");
@@ -267,9 +267,14 @@ bool _generate_arithmetical_expression(GenerationVariables *gen_var,
         }
     }
 
-    if (!_generate_arithmetical_expression(gen_var, ast->right, expr_type))
+    if (expr_type == T_BOOL &&
+       (ast->left->data_type == T_FLOAT || ast->right->data_type == T_FLOAT)) {
+        expr_type = T_FLOAT;
+    }
+
+    if (!_generate_simply_expression(gen_var, ast->right, expr_type))
         return false;
-    if (!_generate_arithmetical_expression(gen_var, ast->left, expr_type))
+    if (!_generate_simply_expression(gen_var, ast->left, expr_type))
         return false;
 
     switch (ast->token.type)
@@ -340,12 +345,12 @@ bool _generate_arithmetical_expression(GenerationVariables *gen_var,
     }
 }
 
-bool _generate_logical_expression(GenerationVariables *gen_var, ASTNode *ast,
+bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
                                   int t, int f) {
     if (ast->token.type != TOKEN_AND
         && ast->token.type != TOKEN_OR
         && ast->token.type != TOKEN_NOT) {
-        if (!_generate_arithmetical_expression(gen_var, ast, ast->data_type))
+        if (!_generate_simply_expression(gen_var, ast, ast->data_type))
             return false;
         if (t == 0 || t == 1) {
             SBUFFER_PRINTF(gen_var->selected, "  PUSHS bool@true\n",
@@ -364,25 +369,25 @@ bool _generate_logical_expression(GenerationVariables *gen_var, ASTNode *ast,
     }
 
     if (ast->token.type == TOKEN_AND) {
-        if (!_generate_logical_expression(
+        if (!_generate_short_circuit_eval(
                 gen_var, ast->left, gen_var->counter_n++, f)
-            || !_generate_logical_expression(gen_var, ast->right, t, f)) {
+            || !_generate_short_circuit_eval(gen_var, ast->right, t, f)) {
             return false;
         }
         return true;
     }
 
     if (ast->token.type == TOKEN_OR) {
-        if (!_generate_logical_expression(
+        if (!_generate_short_circuit_eval(
                 gen_var, ast->left, t, gen_var->counter_n++)
-            || !_generate_logical_expression(gen_var, ast->right, t, f)) {
+            || !_generate_short_circuit_eval(gen_var, ast->right, t, f)) {
             return false;
         }
         return true;
     }
 
     // TOKEN_NOT
-    if (!_generate_logical_expression(gen_var, ast->left, f, t)) {
+    if (!_generate_short_circuit_eval(gen_var, ast->left, f, t)) {
         return false;
     }
     return true;
@@ -407,13 +412,13 @@ bool generate_expression(GenerationVariables *gen_var, ASTNode *ast) {
     if (ast->token.type != TOKEN_AND
         && ast->token.type != TOKEN_OR
         && ast->token.type != TOKEN_NOT) {
-        if (!_generate_arithmetical_expression(gen_var, ast, ast->data_type)) {
+        if (!_generate_simply_expression(gen_var, ast, ast->data_type)) {
             free(init_label);
             return false;
         }
     } else {
         gen_var->counter_n = 2;
-        if (!_generate_logical_expression(gen_var, ast, 0, 1)) {
+        if (!_generate_short_circuit_eval(gen_var, ast, 0, 1)) {
             free(init_label);
             return false;
         }
