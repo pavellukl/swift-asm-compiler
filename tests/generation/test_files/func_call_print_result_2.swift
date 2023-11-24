@@ -6,4 +6,4 @@ func func_return(_ a: Int) -> Int {
 
 var b = func_return(1)
 
-print(b)
+write(b)
