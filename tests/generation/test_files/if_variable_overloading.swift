@@ -22,11 +22,11 @@ if (a == 0) {
     write("3_")
 } else {
     var a = 0
-    if (a) {
+    if (a == 1) {
         write("9_")
     } else if (false) {
         write("10_")
-    } else if (!a) {
+    } else if (a == 1) {
         write("11_")
     } else {
         write("12_")
