@@ -6,8 +6,7 @@ int main(int argc, char* argv[]) {
 
     // for debugging purposes
     // FILE* in =
-    //     fopen("./tests/syntax_semantics/test_files/wrong_arg_type.swift",
-    //     "r");
+    //     fopen("./tests/syntax_semantics/test_files/variables.swift", "r");
     FILE* in = stdin;
 
     switch (compile(in, stdout)) {

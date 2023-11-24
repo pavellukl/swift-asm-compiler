@@ -27,10 +27,11 @@ func test2(_ x: Int) -> Int {
    
     let _1 = true
     var _0 = false
-
-    __ = test2(xxx)
-    __ = test3(__)
     
-    let tst1 = test2(xxx)
-    var tst2 = test3(xxx)
+    let _xxx = xxx!
+    __ = test2(_xxx)
+    __ = test3(with: __)
+    
+    let tst1 = test2(_xxx)
+    var tst2 = test3(with: _xxx)
 

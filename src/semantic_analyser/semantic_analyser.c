@@ -160,11 +160,21 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
         expression_node->data_type = T_FLOAT;
     }
 
-    // if function type and return expression type do not match
-    // TODO split into multiple checks, has to return FNRET_ERR and FNCALL_ERROR
-    // in some cases
-    if (!_do_types_match(fnc->return_type, expression_node->data_type)) {
+    // if return without expression in non void fnc
+    if (fnc->return_type != T_VOID && expression_node->data_type == T_VOID) {
         parser_opt->return_code = FNRET_ERR;
+        return false;
+    }
+
+    // if return with expression in void fnc
+    if (fnc->return_type == T_VOID && expression_node->data_type != T_VOID) {
+        parser_opt->return_code = FNRET_ERR;
+        return false;
+    }
+
+    // if function type and return expression type do not match
+    if (!_do_types_match(fnc->return_type, expression_node->data_type)) {
+        parser_opt->return_code = FNCALL_ERR;
         return false;
     }
 
