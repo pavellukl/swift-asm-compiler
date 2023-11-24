@@ -64,10 +64,11 @@ bool generate_function_start(GenerationVariables gen_var, LSTElement *fn) {
                                        "  CREATEFRAME\n", fn->identifier);
 
     for (int i = fn->value.parameters.size - 1; i >= 0; i--) {
-        SBUFFER_PRINTF(gen_var.selected, "  DEFVAR TF@%s\n"
-                                         "  PUSHS TF@%s\n",
-                                        fn->value.parameters.parameters_arr[i],
-                                        fn->value.parameters.parameters_arr[i]);
+        SBUFFER_PRINTF(gen_var.selected,
+                       "  DEFVAR TF@%s\n"
+                       "  PUSHS TF@%s\n",
+                       fn->value.parameters.parameters_arr[i].identifier,
+                       fn->value.parameters.parameters_arr[i].identifier);
     }
 
     SBUFFER_PRINTF(gen_var.selected, "  PUSHFRAME\n");
