@@ -34,8 +34,8 @@ bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params) {
     return true;
 }
 
-bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
-                           Parameters *arguments, Type *return_type) {
+bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
+                                    Arguments *arguments, Type *return_type) {
     //  get called function
     LSTElement *func =
         st_search_element(parser_opt->symtable, identifier, NULL);
@@ -56,7 +56,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
     // if parameters are infinite
     if (func->value.parameters.infinite) {
         for (int i = 0; i < arguments->size; i++) {
-            Parameter call_arg = arguments->parameters_arr[i];
+            Argument call_arg = arguments->argument_arr[i];
 
             // if argument has a name
             if (call_arg.name != NULL) {
@@ -82,6 +82,29 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
                     return false;
                 }
             }
+
+            if (!generate_argument(&parser_opt->gen_var, parser_opt->symtable,
+                                   call_arg, T_VOID)) {
+                parser_opt->return_code = INTER_ERR;
+                return false;
+            };
+        }
+
+        // last parameter for infinite function is the number of arguments
+        if (!generate_argument(&parser_opt->gen_var, parser_opt->symtable,
+                               (Argument){.identifier = NULL,
+                                          .name = NULL,
+                                          .par_type = T_INT,
+                                          .token_type = TOKEN_INT,
+                                          .value.int_value = arguments->size},
+                               T_VOID)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        };
+
+        if (!generate_fnc_call(parser_opt->gen_var, identifier)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
         }
 
         return true;
@@ -92,7 +115,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
     // check validity of arguments against function parameters
     for (int i = 0; i < arguments->size; i++) {
         Parameter func_param = func->value.parameters.parameters_arr[i];
-        Parameter *call_arg = &arguments->parameters_arr[i];
+        Argument *call_arg = &arguments->argument_arr[i];
 
         // if parameter and argument names do not match
         if ((func_param.name != NULL || call_arg->name != NULL) &&
@@ -125,7 +148,7 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
         }
         // if argument is literal
         else {
-            // retype literal to float if expression is int and expected type is
+            // retype literal to float if argument is int and expected type is
             // float
             if ((func_param.par_type == T_FLOAT ||
                  func_param.par_type == T_FLOAT_NIL) &&
@@ -139,10 +162,21 @@ bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
             parser_opt->return_code = FNCALL_ERR;
             return false;
         }
+
+        if (!generate_argument(&parser_opt->gen_var, parser_opt->symtable,
+                               *call_arg, T_VOID)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        };
     }
 
     // save function return type
     if (return_type != NULL) *return_type = func->return_type;
+
+    if (!generate_fnc_call(parser_opt->gen_var, identifier)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
 
     return true;
 }

@@ -31,8 +31,8 @@ bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params);
  * @param arguments passed arguments
  * @param return_type pointer to type where function return type will be stored
  */
-bool analyze_function_call(ParserOptions *parser_opt, char *identifier,
-                           Parameters *arguments, Type *return_type);
+bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
+                                    Arguments *arguments, Type *return_type);
 
 /**
  * @brief analyzes assignment, assigns varible defined_value flag

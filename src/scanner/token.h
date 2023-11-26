@@ -52,7 +52,7 @@ typedef enum {
 
 typedef union {
     char* string;
-    int int_value;
+    long long int int_value;
     double float_value;
     bool boolean;
 } TokenValue;

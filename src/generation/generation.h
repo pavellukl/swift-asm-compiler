@@ -73,7 +73,31 @@ bool generate_function_beginning(GenerationVariables gen_var, LSTElement *fn);
  * @return true If generation was successful.
  * @return false If an error occured.
  */
-bool generate_inbuilt_functions(ListST *symtable, GenerationVariables gen_var);
+bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable);
+
+/**
+ * @brief Generates function call instruction.
+ *
+ * @param gen_var Pointer to the generation variables.
+ * @param identifier Identifier of the called function.
+ * @return true If generation was successful.
+ * @return false If an error occured.
+ */
+bool generate_fnc_call(GenerationVariables gen_var, char *identifier);
+
+/**
+ * @brief Generates function call argument.
+ *
+ * @param gen_var Pointer to the generation variables.
+ * @param symtable Pointer to the symtable.
+ * @param arg Argument structure of the argument.
+ * @param expected_type Expected type of the argument (type of the matching
+ * parameter)
+ * @return true If generation was successful.
+ * @return false If an error occured.
+ */
+bool generate_argument(GenerationVariables *gen_var, ListST *symtable,
+                       Argument arg, Type expected_type);
 
 /**
  * @brief Generates a variable. eg. LF@8var

@@ -399,26 +399,24 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
         if (!_next_token(parser_opt)) return false;
 
         // init arg array
-        Parameters args;
-        init_parameter_array(&args);
+        Arguments args;
+        init_argument_array(&args);
 
         // save arguments
         if (!_arg_list(parser_opt, &args)) {
-            destroy_parameter_array(&args);
+            destroy_argument_array(&args);
             return false;
         }
 
+        // generation is done here
         // semantically check function call
-        if (!analyze_function_call(parser_opt, identif, &args, NULL)) {
-            destroy_parameter_array(&args);
+        if (!analyze_generate_function_call(parser_opt, identif, &args, NULL)) {
+            destroy_argument_array(&args);
             return false;
         }
-
-        // TODO handle retyping arg values when generating
-        //! will probably need parameter Struct
 
         // unallocate argument array
-        destroy_parameter_array(&args);
+        destroy_argument_array(&args);
 
         if (parser_opt->token.type != TOKEN_R_BRACKET) {
             parser_opt->return_code = STX_ERR;
@@ -979,30 +977,28 @@ bool _function_call(ParserOptions *parser_opt, Type *return_type) {
     }
 
     // init arg array
-    Parameters args;
-    init_parameter_array(&args);
+    Arguments args;
+    init_argument_array(&args);
 
     // save arguments
     if (!_arg_list(parser_opt, &args)) {
         free(func_identif);
-        destroy_parameter_array(&args);
+        destroy_argument_array(&args);
         return false;
     }
 
     // semantically check function call
-    if (!analyze_function_call(parser_opt, func_identif, &args, return_type)) {
+    if (!analyze_generate_function_call(parser_opt, func_identif, &args,
+                                        return_type)) {
         free(func_identif);
-        destroy_parameter_array(&args);
+        destroy_argument_array(&args);
         return false;
     }
-
-    // TODO handle retyping arg values when generating
-    //! will probably need parameter Struct
 
     // free token string value
     free(func_identif);
     // unallocate argument array
-    destroy_parameter_array(&args);
+    destroy_argument_array(&args);
 
     if (parser_opt->token.type != TOKEN_R_BRACKET) {
         parser_opt->return_code = STX_ERR;
@@ -1013,7 +1009,7 @@ bool _function_call(ParserOptions *parser_opt, Type *return_type) {
     return true;
 }
 
-bool _arg_list(ParserOptions *parser_opt, Parameters *args) {
+bool _arg_list(ParserOptions *parser_opt, Arguments *args) {
     if (parser_opt->token.type == TOKEN_R_BRACKET) {
         return true;
     } else if (parser_opt->token.type == TOKEN_IDENTIF ||
@@ -1027,7 +1023,7 @@ bool _arg_list(ParserOptions *parser_opt, Parameters *args) {
     return false;
 }
 
-bool _comma_arg(ParserOptions *parser_opt, Parameters *args) {
+bool _comma_arg(ParserOptions *parser_opt, Arguments *args) {
     if (parser_opt->token.type == TOKEN_R_BRACKET) {
         return true;
     } else if (parser_opt->token.type == TOKEN_COMA) {
@@ -1038,30 +1034,45 @@ bool _comma_arg(ParserOptions *parser_opt, Parameters *args) {
     return false;
 }
 
-bool _arg(ParserOptions *parser_opt, Parameters *args) {
+bool _arg(ParserOptions *parser_opt, Arguments *args) {
     // init argument
-    Parameter arg = {.name = NULL, .identifier = NULL, .par_type = T_VOID};
+    Argument arg = {
+        .name = NULL, .identifier = NULL, .par_type = T_VOID, .value = {0}};
 
     if (parser_opt->token.type == TOKEN_FLOAT ||
         parser_opt->token.type == TOKEN_INT ||
         parser_opt->token.type == TOKEN_STRING ||
+        parser_opt->token.type == TOKEN_BOOL ||
         parser_opt->token.type == TOKEN_KEYWORD_NIL) {
         switch (parser_opt->token.type) {
-            // save argument type if argument is a literal
+                // save argument type if argument is a literal and value
             case TOKEN_FLOAT:
                 arg.par_type = T_FLOAT;
+                arg.token_type = TOKEN_FLOAT;
+                arg.value = parser_opt->token.value;
                 break;
 
             case TOKEN_INT:
                 arg.par_type = T_INT;
+                arg.token_type = TOKEN_INT;
+                arg.value = parser_opt->token.value;
                 break;
 
             case TOKEN_STRING:
                 arg.par_type = T_STRING;
+                arg.token_type = TOKEN_STRING;
+                arg.value = parser_opt->token.value;
+                break;
+
+            case TOKEN_BOOL:
+                arg.par_type = T_BOOL;
+                arg.token_type = TOKEN_BOOL;
+                arg.value = parser_opt->token.value;
                 break;
 
             case TOKEN_KEYWORD_NIL:
                 arg.par_type = T_NIL;
+                arg.token_type = TOKEN_KEYWORD_NIL;
                 break;
 
             // never happens, here to make the compiler happy
@@ -1072,7 +1083,7 @@ bool _arg(ParserOptions *parser_opt, Parameters *args) {
         if (!_next_token(parser_opt)) return false;
 
         // add argument to argument array
-        if (!add_to_parameter_array(args, arg)) {
+        if (!add_to_argument_array(args, arg)) {
             parser_opt->return_code = INTER_ERR;
             return false;
         };
@@ -1102,7 +1113,7 @@ bool _arg(ParserOptions *parser_opt, Parameters *args) {
         }
 
         // add argument to argument array
-        if (!add_to_parameter_array(args, arg)) {
+        if (!add_to_argument_array(args, arg)) {
             free(arg.name);
             free(arg.identifier);
             parser_opt->return_code = INTER_ERR;
@@ -1115,7 +1126,7 @@ bool _arg(ParserOptions *parser_opt, Parameters *args) {
     return false;
 }
 
-bool __arg_name(ParserOptions *parser_opt, Parameter *arg,
+bool __arg_name(ParserOptions *parser_opt, Argument *arg,
                 bool *is_name_identifier) {
     if (parser_opt->token.type == TOKEN_R_BRACKET ||
         parser_opt->token.type == TOKEN_COMA) {
@@ -1129,7 +1140,7 @@ bool __arg_name(ParserOptions *parser_opt, Parameter *arg,
     return false;
 }
 
-bool __arg_name_colon(ParserOptions *parser_opt, Parameter *arg) {
+bool __arg_name_colon(ParserOptions *parser_opt, Argument *arg) {
     if (parser_opt->token.type == TOKEN_IDENTIF) {
         // save argument identifier
         if (!clone_string(&arg->identifier, parser_opt->token.value.string)) {
@@ -1152,27 +1163,41 @@ bool __arg_name_colon(ParserOptions *parser_opt, Parameter *arg) {
     return false;
 }
 
-bool _arg_val(ParserOptions *parser_opt, Parameter *arg) {
+bool _arg_val(ParserOptions *parser_opt, Argument *arg) {
     if (parser_opt->token.type == TOKEN_INT ||
         parser_opt->token.type == TOKEN_FLOAT ||
         parser_opt->token.type == TOKEN_STRING ||
+        parser_opt->token.type == TOKEN_BOOL ||
         parser_opt->token.type == TOKEN_KEYWORD_NIL) {
         switch (parser_opt->token.type) {
-            // save argument type if argument is a literal
+            // save argument type if argument is a literal and value
             case TOKEN_FLOAT:
                 arg->par_type = T_FLOAT;
+                arg->token_type = TOKEN_FLOAT;
+                arg->value = parser_opt->token.value;
                 break;
 
             case TOKEN_INT:
                 arg->par_type = T_INT;
+                arg->token_type = TOKEN_INT;
+                arg->value = parser_opt->token.value;
                 break;
 
             case TOKEN_STRING:
                 arg->par_type = T_STRING;
+                arg->token_type = TOKEN_STRING;
+                arg->value = parser_opt->token.value;
+                break;
+
+            case TOKEN_BOOL:
+                arg->par_type = T_BOOL;
+                arg->token_type = TOKEN_BOOL;
+                arg->value = parser_opt->token.value;
                 break;
 
             case TOKEN_KEYWORD_NIL:
                 arg->par_type = T_NIL;
+                arg->token_type = TOKEN_KEYWORD_NIL;
                 break;
 
             // never happens, here to make the compiler happy

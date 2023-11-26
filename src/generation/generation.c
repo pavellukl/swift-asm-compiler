@@ -76,7 +76,7 @@ bool generate_function_beginning(GenerationVariables gen_var, LSTElement *fn) {
     return true;
 }
 
-bool generate_inbuilt_functions(ListST *symtable, GenerationVariables gen_var) {
+bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
     SBuffer *init_buffer = gen_var.selected;
 
     gen_var.selected = gen_var.functions;
@@ -231,6 +231,26 @@ bool generate_inbuilt_functions(ListST *symtable, GenerationVariables gen_var) {
     return true;
 }
 
+bool generate_fnc_call(GenerationVariables gen_var, char *identifier) {
+    SBUFFER_PRINTF(gen_var.selected, "  CALL _%s\n", identifier);
+    return true;
+}
+
+bool generate_argument(GenerationVariables *gen_var, ListST *symtable,
+                       Argument arg, Type expected_type) {
+    SBUFFER_PRINTF(gen_var->selected, "  PUSHS ");
+
+    if (arg.token_type == TOKEN_IDENTIF) {
+        if (!generate_variable(gen_var, symtable, arg.identifier)) return false;
+    } else {
+        TokenData token = {.type = arg.token_type, .value = arg.value};
+        if (!generate_literal(gen_var, token, expected_type)) return false;
+    }
+
+    SBUFFER_PRINTF(gen_var->selected, "\n");
+    return true;
+}
+
 bool generate_variable(GenerationVariables *gen_var, ListST *symtable,
                         char *identifier) {
     int scope_id;
@@ -268,7 +288,7 @@ bool generate_literal(GenerationVariables *gen_var, TokenData token,
     case TOKEN_INT:
         if (expected_type == T_FLOAT) {
             SBUFFER_PRINTF(gen_var->selected, "float@%a",
-                            (float) token.value.int_value);
+                           (double)token.value.int_value);
         } else {
             SBUFFER_PRINTF(
                 gen_var->selected, "int@%d", token.value.int_value);

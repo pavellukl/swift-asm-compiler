@@ -2,6 +2,7 @@
 #define LIST_ST_H
 
 #include "../../helpers/list.h"
+#include "../../scanner/token.h"
 
 typedef enum {
     T_VOID,
@@ -18,6 +19,20 @@ typedef enum {
 
 typedef enum { CONSTANT, VARIABLE, FUNCTION } Variant;
 
+typedef struct Argument {
+    char* name;
+    char* identifier;
+    Type par_type;
+    TokenValue value;
+    TokenType token_type;
+} Argument;
+
+typedef struct Arguments {
+    int size;
+    int capacity;
+    Argument* argument_arr;
+} Arguments;
+
 typedef struct Parameter {
     char* name;
     char* identifier;
@@ -32,9 +47,9 @@ typedef struct Parameters {
 } Parameters;
 
 typedef union {
-    int int_value;
+    long long int int_value;
     char* string_value;
-    float float_value;
+    double float_value;
     bool bool_value;
     Parameters parameters;
 } LSTElementValue;
