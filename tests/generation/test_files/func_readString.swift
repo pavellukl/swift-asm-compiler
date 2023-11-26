@@ -1,6 +1,6 @@
-/*abcde abcde */
+/*abcde*/
 /*abcde
- abcde
+ gggg
 */
 
 var a = readString()

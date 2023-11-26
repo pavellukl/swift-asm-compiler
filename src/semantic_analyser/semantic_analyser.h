@@ -42,8 +42,8 @@ bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
  * @param assign_node node representing the assigned value
  * @param is_function whether the assigned value is a function
  */
-bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
-                        ASTNode *assign_node, bool is_function);
+bool analyze_generate_assignment(ParserOptions *parser_opt, char *identifier,
+                                 ASTNode *expression_node, bool is_function);
 
 /**
  * @brief analyzes return statement

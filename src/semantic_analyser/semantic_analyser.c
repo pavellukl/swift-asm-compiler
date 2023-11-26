@@ -84,7 +84,7 @@ bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
                 }
             }
 
-            if (!generate_argument(&parser_opt->gen_var, parser_opt->symtable,
+            if (!generate_argument(parser_opt->gen_var, parser_opt->symtable,
                                    call_arg, T_VOID)) {
                 parser_opt->return_code = INTER_ERR;
                 return false;
@@ -92,7 +92,7 @@ bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
         }
 
         // last parameter for infinite function is the number of arguments
-        if (!generate_argument(&parser_opt->gen_var, parser_opt->symtable,
+        if (!generate_argument(parser_opt->gen_var, parser_opt->symtable,
                                (Argument){.identifier = NULL,
                                           .name = NULL,
                                           .par_type = T_INT,
@@ -164,7 +164,7 @@ bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
             return false;
         }
 
-        if (!generate_argument(&parser_opt->gen_var, parser_opt->symtable,
+        if (!generate_argument(parser_opt->gen_var, parser_opt->symtable,
                                *call_arg, T_VOID)) {
             parser_opt->return_code = INTER_ERR;
             return false;
@@ -182,8 +182,8 @@ bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
     return true;
 }
 
-bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
-                        ASTNode *expression_node, bool is_function) {
+bool analyze_generate_assignment(ParserOptions *parser_opt, char *identifier,
+                                 ASTNode *expression_node, bool is_function) {
     // get variable that's being assigned to
     LSTElement *el = st_search_element(parser_opt->symtable, identifier, NULL);
 
@@ -213,6 +213,14 @@ bool analyze_assignment(ParserOptions *parser_opt, char *identifier,
     }
 
     el->defined_value = true;
+
+    // pop the return value of the function or expression from the stack to
+    // the desired variable
+    if (!generate_assignment(parser_opt->gen_var, parser_opt->symtable,
+                             identifier)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
 
     return true;
 }

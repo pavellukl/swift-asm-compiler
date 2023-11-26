@@ -441,9 +441,9 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
             if (!_function_call(parser_opt, &expression_node_ptr->data_type))
                 return false;
 
-            // semantically check assignment
-            if (!analyze_assignment(parser_opt, identif, expression_node_ptr,
-                                    true)) {
+            // semantically check and generate assignment
+            if (!analyze_generate_assignment(parser_opt, identif,
+                                             expression_node_ptr, true)) {
                 return false;
             }
 
@@ -456,9 +456,9 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
                 return false;
             }
 
-            // semantically check assignment
-            if (!analyze_assignment(parser_opt, identif, expression_node,
-                                    false)) {
+            // semantically check and generate assignment
+            if (!analyze_generate_assignment(parser_opt, identif,
+                                             expression_node, false)) {
                 // TODO: fix double free
                 // _free_AST(expression_node);
                 return false;
@@ -612,6 +612,17 @@ bool _variable_def(ParserOptions *parser_opt) {
             free(identif);
             // TODO double free fix
             // _free_AST(provided_expression_node_ptr);
+            return false;
+        }
+
+        if (!generate_variable_definition(&parser_opt->gen_var,
+                                          parser_opt->symtable, identif,
+                                          expected_var_type,
+                                          provided_expression_node_ptr,
+                                          is_function)) {
+            // TODO double free fix
+            // _free_AST(provided_expression_node_ptr);
+            parser_opt->return_code = INTER_ERR;
             return false;
         }
 
@@ -1495,6 +1506,12 @@ void parse_check_optimize_generate(ParserOptions *parser_opt) {
 
     // operate upon code
     _program(parser_opt);
+
+    // paste scope of the main into main
+    if (!sbuffer_printf(parser_opt->gen_var.main, "%s",
+                        parser_opt->gen_var.scope->string)) {
+        parser_opt->return_code = INTER_ERR;
+    }
 
     return;
 }

@@ -8,6 +8,7 @@
 #include "../symtable/ListST/ListST.h"
 #include "../symtable/symtable.h"
 #include "../helpers/utils.h"
+#include "../debug.h"
 
 typedef struct {
     SBuffer *selected;
@@ -76,9 +77,22 @@ bool generate_function_beginning(GenerationVariables gen_var, LSTElement *fn);
 bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable);
 
 /**
+ * @brief Generates assignment instruction.
+ * 
+ * @param gen_var Generation variables.
+ * @param symtable Pointer to the symtable.
+ * @param assign_to_identif Identifier of the variable to which the value is
+ *                          assigned.
+ * @return true If generation was successful.
+ * @return false If an error occured.
+ */
+bool generate_assignment(GenerationVariables gen_var, ListST *symtable,
+                         char *assign_to_identif);
+
+/**
  * @brief Generates function call instruction.
  *
- * @param gen_var Pointer to the generation variables.
+ * @param gen_var Generation variables.
  * @param identifier Identifier of the called function.
  * @return true If generation was successful.
  * @return false If an error occured.
@@ -86,9 +100,27 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable);
 bool generate_fnc_call(GenerationVariables gen_var, char *identifier);
 
 /**
+ * @brief Generates variable definition.
+ * 
+ * @param gen_var Pointer to the generation variables.
+ * @param symtable Pointer to the symtable.
+ * @param identifier Identifier of the variable.
+ * @param provided_expression_node Expression node
+ *                                 (type is T_VOID if no expression)
+ * @param is_function Whether the assigned value is a function.
+ * @return true If generation was successful.
+ * @return false If an error occured.
+ */
+bool generate_variable_definition(GenerationVariables *gen_var,
+                                  ListST *symtable, char *identifier,
+                                  Type expected_var_type,
+                                  ASTNode *provided_expression_node,
+                                  bool is_function);
+
+/**
  * @brief Generates function call argument.
  *
- * @param gen_var Pointer to the generation variables.
+ * @param gen_var Generation variables.
  * @param symtable Pointer to the symtable.
  * @param arg Argument structure of the argument.
  * @param expected_type Expected type of the argument (type of the matching
@@ -96,41 +128,41 @@ bool generate_fnc_call(GenerationVariables gen_var, char *identifier);
  * @return true If generation was successful.
  * @return false If an error occured.
  */
-bool generate_argument(GenerationVariables *gen_var, ListST *symtable,
+bool generate_argument(GenerationVariables gen_var, ListST *symtable,
                        Argument arg, Type expected_type);
 
 /**
  * @brief Generates a variable. eg. LF@8var
  * 
- * @param gen_var Pointer to the generation variables.
+ * @param gen_var Generation variables.
  * @param symtable Pointer to the symtable.
  * @param identifier Identifier of the variable.
  * @return true If generation was successful.
  * @return false If an error occured.
  */
-bool generate_variable(GenerationVariables *gen_var, ListST *symtable,
+bool generate_variable(GenerationVariables gen_var, ListST *symtable,
                         char *identifier);
 
 /**
  * @brief Generates string literal.
  * 
- * @param gen_var Pointer to the generation variables.
+ * @param gen_var Generation variables.
  * @param str String to be generated.
  * @return true If generation was successful.
  * @return false If an error occured.
  */
-bool generate_string_literal(GenerationVariables *gen_var, char *str);
+bool generate_string_literal(GenerationVariables gen_var, char *str);
 
 /**
  * @brief Generates a literal.
  * 
- * @param gen_var Pointer to the generation variables.
+ * @param gen_var Generation variables.
  * @param token Token containing literal to be generated.
  * @param expected_type Expected type of the generated literal.
  * @return true If generation was successful.
  * @return false If an error occured.
  */
-bool generate_literal(GenerationVariables *gen_var, TokenData token,
+bool generate_literal(GenerationVariables gen_var, TokenData token,
                       Type expected_type);
 
 /**

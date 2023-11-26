@@ -60,18 +60,18 @@ bool generate_function_beginning(GenerationVariables gen_var, LSTElement *fn) {
     if (fn->variant != FUNCTION) return false;
     if (fn->value.parameters.infinite) return false;
 
-    SBUFFER_PRINTF(gen_var.selected, "\nLABEL _%s\n"
-                                       "  CREATEFRAME\n", fn->identifier);
+    SBUFFER_PRINTF(gen_var.functions, "\nLABEL _%s\n"
+                                      "  CREATEFRAME\n", fn->identifier);
 
     for (int i = fn->value.parameters.size - 1; i >= 0; i--) {
-        SBUFFER_PRINTF(gen_var.selected,
+        SBUFFER_PRINTF(gen_var.functions,
                        "  DEFVAR TF@%s1\n"
                        "  POPS TF@%s1\n",
                        fn->value.parameters.parameters_arr[i].identifier,
                        fn->value.parameters.parameters_arr[i].identifier);
     }
 
-    SBUFFER_PRINTF(gen_var.selected, "  PUSHFRAME\n");
+    SBUFFER_PRINTF(gen_var.functions, "  PUSHFRAME\n");
 
     return true;
 }
@@ -140,6 +140,7 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
     // conditions returning nil
     SBUFFER_PRINTF(gen_var.selected,
                    "  DEFVAR LF@cond\n"
+                   "  DEFVAR LF@length\n"
                    "  LT LF@cond LF@i1 int@0\n"  // i < 0
                    "  JUMPIFEQ _substring_return_nil LF@cond bool@true\n"
                    "  LT LF@cond LF@j1 int@0\n"  // j < 0
@@ -231,14 +232,64 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
     return true;
 }
 
-bool generate_fnc_call(GenerationVariables gen_var, char *identifier) {
-    SBUFFER_PRINTF(gen_var.selected, "  CALL _%s\n", identifier);
+bool generate_assignment(GenerationVariables gen_var, ListST *symtable,
+                         char *assign_to_identif) {
+    SBUFFER_PRINTF(gen_var.scope, "  POPS ");
+    if (!generate_variable(gen_var, symtable, assign_to_identif)) return false;
+    SBUFFER_PRINTF(gen_var.scope, "\n");
     return true;
 }
 
-bool generate_argument(GenerationVariables *gen_var, ListST *symtable,
+bool generate_fnc_call(GenerationVariables gen_var, char *identifier) {
+    SBUFFER_PRINTF(gen_var.scope, "  CALL _%s\n", identifier);
+    return true;
+}
+
+
+bool generate_variable_definition(GenerationVariables *gen_var,
+                                  ListST *symtable, char *identifier,
+                                  Type expected_var_type,
+                                  ASTNode *provided_expression_node,
+                                  bool is_function) {
+    // variable declaration
+    SBUFFER_PRINTF(gen_var->selected, "  DEFVAR ");
+    SBuffer *init_scope = gen_var->scope;
+    gen_var->scope = gen_var->selected;
+    if (!generate_variable(*gen_var, symtable, identifier)) return false;
+    gen_var->scope = init_scope;
+    SBUFFER_PRINTF(gen_var->selected, "\n");
+
+    // generate assignment rvalue calculation
+    if (is_function) {
+        // it is a function call return value
+        // function call is already generated
+
+    } else if (provided_expression_node->data_type != T_VOID) {
+        // it is an expression
+        generate_expression(gen_var, provided_expression_node, symtable);
+
+    } else if (expected_var_type == T_INT_NIL ||
+               expected_var_type == T_FLOAT_NIL ||
+               expected_var_type == T_STRING_NIL ||
+               expected_var_type == T_BOOL_NIL) {
+        // it is none but the variable is one of the nillable types
+        // -> automatically initialized with nil
+        SBUFFER_PRINTF(gen_var->scope, "  PUSHS nil@nil\n");
+
+    } else {
+        // it is uninitialized
+        return true;
+    } 
+
+    // generate assignment
+    if (!generate_assignment(*gen_var, symtable, identifier)) return false;
+
+    return true;
+}
+
+bool generate_argument(GenerationVariables gen_var, ListST *symtable,
                        Argument arg, Type expected_type) {
-    SBUFFER_PRINTF(gen_var->selected, "  PUSHS ");
+    SBUFFER_PRINTF(gen_var.scope, "  PUSHS ");
 
     if (arg.token_type == TOKEN_IDENTIF) {
         if (!generate_variable(gen_var, symtable, arg.identifier)) return false;
@@ -247,71 +298,69 @@ bool generate_argument(GenerationVariables *gen_var, ListST *symtable,
         if (!generate_literal(gen_var, token, expected_type)) return false;
     }
 
-    SBUFFER_PRINTF(gen_var->selected, "\n");
+    SBUFFER_PRINTF(gen_var.scope, "\n");
     return true;
 }
 
-bool generate_variable(GenerationVariables *gen_var, ListST *symtable,
+bool generate_variable(GenerationVariables gen_var, ListST *symtable,
                         char *identifier) {
     int scope_id;
     LSTElement *el = st_search_element(symtable, identifier, &scope_id);
     if (el == NULL) return false;
 
     if (scope_id == 0) {
-        SBUFFER_PRINTF(gen_var->selected, "GF@%s", identifier);
+        SBUFFER_PRINTF(gen_var.scope, "GF@%s", identifier);
     } else {
-        SBUFFER_PRINTF(gen_var->selected, "LF@%d%s", scope_id, identifier);
+        SBUFFER_PRINTF(gen_var.scope, "LF@%d%s", scope_id, identifier);
     }
 
     return true;
 }
 
-bool generate_string_literal(GenerationVariables *gen_var, char *str) {
+bool generate_string_literal(GenerationVariables gen_var, char *str) {
     for (int i = 0; str[i] != '\0'; i++) {
         if ((str[i] >= 0 && str[i] <= 32) || str[i] == 35 || str[i] == 92) {
-            SBUFFER_PRINTF(gen_var->selected, "\\0");
+            SBUFFER_PRINTF(gen_var.scope, "\\0");
             if (str[i] < 10) {
-                SBUFFER_PRINTF(gen_var->selected, "0");
+                SBUFFER_PRINTF(gen_var.scope, "0");
             }
-            SBUFFER_PRINTF(gen_var->selected, "%d", str[i]);
+            SBUFFER_PRINTF(gen_var.scope, "%d", str[i]);
         } else {
-            SBUFFER_PRINTF(gen_var->selected, "%c", str[i]);
+            SBUFFER_PRINTF(gen_var.scope, "%c", str[i]);
         }
     }
     return true;
 }
 
-bool generate_literal(GenerationVariables *gen_var, TokenData token,
+bool generate_literal(GenerationVariables gen_var, TokenData token,
                       Type expected_type) {
     switch (token.type)
     {
     case TOKEN_INT:
         if (expected_type == T_FLOAT) {
-            SBUFFER_PRINTF(gen_var->selected, "float@%a",
+            SBUFFER_PRINTF(gen_var.scope, "float@%a",
                            (double)token.value.int_value);
         } else {
-            SBUFFER_PRINTF(
-                gen_var->selected, "int@%d", token.value.int_value);
+            SBUFFER_PRINTF(gen_var.scope, "int@%d", token.value.int_value);
         }
         return true;
     case TOKEN_FLOAT:
-        SBUFFER_PRINTF(
-            gen_var->selected, "float@%a", token.value.float_value);
+        SBUFFER_PRINTF(gen_var.scope, "float@%a", token.value.float_value);
         return true;
     case TOKEN_STRING:
-        SBUFFER_PRINTF(gen_var->selected, "string@");
+        SBUFFER_PRINTF(gen_var.scope, "string@");
         if (!generate_string_literal(gen_var, token.value.string))
             return false;
         return true;
     case TOKEN_BOOL:
         if (token.value.boolean == true) {
-            SBUFFER_PRINTF(gen_var->selected, "bool@true");
+            SBUFFER_PRINTF(gen_var.scope, "bool@true");
         } else {
-            SBUFFER_PRINTF(gen_var->selected, "bool@false");
+            SBUFFER_PRINTF(gen_var.scope, "bool@false");
         }
         return true;
     case TOKEN_KEYWORD_NIL:
-        SBUFFER_PRINTF(gen_var->selected, "nil@nil");
+        SBUFFER_PRINTF(gen_var.scope, "nil@nil");
         return true;
     default:
         return false;
@@ -321,27 +370,27 @@ bool generate_literal(GenerationVariables *gen_var, TokenData token,
 bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
                                  ListST *symtable, Type expr_type) {
     if (ast->left == NULL && ast->right == NULL) {
-        SBUFFER_PRINTF(gen_var->selected, "  PUSHS ");
+        SBUFFER_PRINTF(gen_var->scope, "  PUSHS ");
 
         // it can be a variable or a literal
         if (ast->token.type == TOKEN_IDENTIF) {
             // this should never fail - variable existence was tested before
-            if (!generate_variable(gen_var, symtable, ast->token.value.string))
+            if (!generate_variable(*gen_var, symtable, ast->token.value.string))
                 return false;
 
             // type conversion
             // ast->data_type has identifiers data type without nilable part
             // (as opposed to symtable)
             if (expr_type == T_FLOAT && ast->data_type == T_INT) {
-                SBUFFER_PRINTF(gen_var->selected, "\n"
-                                                  "  INT2FLOATS");
+                SBUFFER_PRINTF(gen_var->scope, "\n"
+                                               "  INT2FLOATS");
             }
         } else {
-            if (!generate_literal(gen_var, ast->token, expr_type))
+            if (!generate_literal(*gen_var, ast->token, expr_type))
                 return false;
         }
 
-        SBUFFER_PRINTF(gen_var->selected, "\n");
+        SBUFFER_PRINTF(gen_var->scope, "\n");
         return true;
     }
 
@@ -359,63 +408,63 @@ bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
     {
     case TOKEN_ADD:
         if (ast->data_type == T_STRING) {
-            SBUFFER_PRINTF(gen_var->selected,
+            SBUFFER_PRINTF(gen_var->scope,
                                         "  POPS TF@temp1\n"
                                         "  POPS TF@temp0\n"
                                         "  CONCAT TF@temp0 TF@temp0 TF@temp1\n"
-                                        "  PUSHS TF@temp0");
+                                        "  PUSHS TF@temp0\n");
         } else {
-            SBUFFER_PRINTF(gen_var->selected, "  ADDS\n");
+            SBUFFER_PRINTF(gen_var->scope, "  ADDS\n");
         }
         return true;
     case TOKEN_SUB:
-        SBUFFER_PRINTF(gen_var->selected, "  SUBS\n");
+        SBUFFER_PRINTF(gen_var->scope, "  SUBS\n");
         return true;
     case TOKEN_MUL:
-        SBUFFER_PRINTF(gen_var->selected, "  MULS\n");
+        SBUFFER_PRINTF(gen_var->scope, "  MULS\n");
         return true;
     case TOKEN_DIV:
         if (ast->left->data_type == T_INT) {
-            SBUFFER_PRINTF(gen_var->selected, "  IDIVS\n");
+            SBUFFER_PRINTF(gen_var->scope, "  IDIVS\n");
         } else {
-            SBUFFER_PRINTF(gen_var->selected, "  DIVS\n");
+            SBUFFER_PRINTF(gen_var->scope, "  DIVS\n");
         }
         return true;
     case TOKEN_EQUAL:
-        SBUFFER_PRINTF(gen_var->selected, "  EQS\n");
+        SBUFFER_PRINTF(gen_var->scope, "  EQS\n");
         return true;
     case TOKEN_NOT_EQUAL:
-        SBUFFER_PRINTF(gen_var->selected, "  EQS\n"
-                                          "  NOTS\n");
+        SBUFFER_PRINTF(gen_var->scope, "  EQS\n"
+                                       "  NOTS\n");
         return true;
     case TOKEN_LESSER:
-        SBUFFER_PRINTF(gen_var->selected, "  LTS\n");
+        SBUFFER_PRINTF(gen_var->scope, "  LTS\n");
         return true;
     case TOKEN_LESSER_EQUAL:
-        SBUFFER_PRINTF(gen_var->selected, "  GTS\n"
-                                          "  NOTS\n");
+        SBUFFER_PRINTF(gen_var->scope, "  GTS\n"
+                                       "  NOTS\n");
         return true;
     case TOKEN_GREATER:
-        SBUFFER_PRINTF(gen_var->selected, "  GTS\n");
+        SBUFFER_PRINTF(gen_var->scope, "  GTS\n");
         return true;
     case TOKEN_GREATER_EQUAL:
-        SBUFFER_PRINTF(gen_var->selected, "  LTS\n"
-                                          "  NOTS\n");
+        SBUFFER_PRINTF(gen_var->scope, "  LTS\n"
+                                       "  NOTS\n");
         return true;
     case TOKEN_NIL_COALESCING:
-        SBUFFER_PRINTF(gen_var->selected, "  PUSHS nil@nil\n"
-                                          "  JUMPIFEGQS %s-%d\n"
-                                          "  POPS TF@temp0\n"
-                                          "  POPS\n"
-                                          "  PUSHS TF@temp0\n"
-                                          "  JUMP %s-%d\n"
-                                          "LABEL %s-%d\n"
-                                          "  POPS\n"
-                                          "LABEL %s-%d\n",
-                                        gen_var->label, gen_var->counter_n,
-                                        gen_var->label, gen_var->counter_n+1,
-                                        gen_var->label, gen_var->counter_n,
-                                        gen_var->label, gen_var->counter_n+1);
+        SBUFFER_PRINTF(gen_var->scope, "  PUSHS nil@nil\n"
+                                       "  JUMPIFEGQS %s-%d\n"
+                                       "  POPS TF@temp0\n"
+                                       "  POPS\n"
+                                       "  PUSHS TF@temp0\n"
+                                       "  JUMP %s-%d\n"
+                                       "LABEL %s-%d\n"
+                                       "  POPS\n"
+                                       "LABEL %s-%d\n",
+                                gen_var->label->string, gen_var->counter_n,
+                                gen_var->label->string, gen_var->counter_n+1,
+                                gen_var->label->string, gen_var->counter_n,
+                                gen_var->label->string, gen_var->counter_n+1);
         gen_var->counter_n += 2;
         return true;
     default:
@@ -432,16 +481,16 @@ bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
                 gen_var, ast, symtable, ast->data_type))
             return false;
         if (t == 0 || t == 1) {
-            SBUFFER_PRINTF(gen_var->selected, "  PUSHS bool@true\n",
-                                              "  JUMPIFEQS %s-%d\n",
+            SBUFFER_PRINTF(gen_var->scope, "  PUSHS bool@true\n",
+                                           "  JUMPIFEQS %s-%d\n",
                                                     gen_var->label->string, t);
             if (f == 0 || f == 1) {
-                SBUFFER_PRINTF(gen_var->selected, "  JUMP %s-%d\n",
+                SBUFFER_PRINTF(gen_var->scope, "  JUMP %s-%d\n",
                                                     gen_var->label->string, f);
             }
         } else if (f == 0 || f == 1) {
-            SBUFFER_PRINTF(gen_var->selected, "  PUSHS bool@false\n",
-                                              "  JUMPIFEQS %s-%d\n",
+            SBUFFER_PRINTF(gen_var->scope, "  PUSHS bool@false\n",
+                                           "  JUMPIFEQS %s-%d\n",
                                                 gen_var->label->string, f);
         }
         return true;
@@ -484,9 +533,9 @@ bool generate_expression(GenerationVariables *gen_var, ASTNode *ast,
     }
     gen_var->counter_n = 0;
 
-    if (!sbuffer_printf(gen_var->selected, "  CREATEFRAME\n"
-                                           "  DEFVAR TF@temp0\n"
-                                           "  DEFVAR TF@temp1\n")) {
+    if (!sbuffer_printf(gen_var->scope, "  CREATEFRAME\n"
+                                        "  DEFVAR TF@temp0\n"
+                                        "  DEFVAR TF@temp1\n")) {
         free(init_label);
         return false;
     }
@@ -505,12 +554,12 @@ bool generate_expression(GenerationVariables *gen_var, ASTNode *ast,
             free(init_label);
             return false;
         }
-        if (!sbuffer_printf(gen_var->selected, "LABEL %s-0\n"
-                                               "  PUSHS bool@true\n"
-                                               "  JUMP %send\n"
-                                               "LABEL %s-1\n"
-                                               "  PUSHS bool@false\n"
-                                               "LABEL %send\n",
+        if (!sbuffer_printf(gen_var->scope, "LABEL %s-0\n"
+                                            "  PUSHS bool@true\n"
+                                            "  JUMP %send\n"
+                                            "LABEL %s-1\n"
+                                            "  PUSHS bool@false\n"
+                                            "LABEL %send\n",
                             gen_var->label->string, gen_var->label->string,
                             gen_var->label->string, gen_var->label->string)) {
             free(init_label);
@@ -518,8 +567,7 @@ bool generate_expression(GenerationVariables *gen_var, ASTNode *ast,
         }
     }
 
-    bool res = sbuffer_overwrite_content(
-        gen_var->label, "%s", init_label);
+    bool res = sbuffer_overwrite_content(gen_var->label, "%s", init_label);
     free(init_label);
     return res;
 }
