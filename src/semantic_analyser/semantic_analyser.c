@@ -55,7 +55,8 @@ bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
 
     // if parameters are infinite
     if (func->value.parameters.infinite) {
-        for (int i = 0; i < arguments->size; i++) {
+        // push arguments in reverse when function has infinite parameters
+        for (int i = arguments->size - 1; i >= 0; i--) {
             Argument call_arg = arguments->argument_arr[i];
 
             // if argument has a name

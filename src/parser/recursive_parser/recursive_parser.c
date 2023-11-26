@@ -1038,6 +1038,7 @@ bool _arg(ParserOptions *parser_opt, Arguments *args) {
     // init argument
     Argument arg = {
         .name = NULL, .identifier = NULL, .par_type = T_VOID, .value = {0}};
+    arg.value.string = NULL;
 
     if (parser_opt->token.type == TOKEN_FLOAT ||
         parser_opt->token.type == TOKEN_INT ||
@@ -1061,7 +1062,11 @@ bool _arg(ParserOptions *parser_opt, Arguments *args) {
             case TOKEN_STRING:
                 arg.par_type = T_STRING;
                 arg.token_type = TOKEN_STRING;
-                arg.value = parser_opt->token.value;
+                if (!clone_string(&arg.value.string,
+                                  parser_opt->token.value.string)) {
+                    parser_opt->return_code = INTER_ERR;
+                    return false;
+                }
                 break;
 
             case TOKEN_BOOL:
@@ -1080,10 +1085,14 @@ bool _arg(ParserOptions *parser_opt, Arguments *args) {
                 break;
         }
 
-        if (!_next_token(parser_opt)) return false;
+        if (!_next_token(parser_opt)) {
+            free(arg.value.string);
+            return false;
+        }
 
         // add argument to argument array
         if (!add_to_argument_array(args, arg)) {
+            free(arg.value.string);
             parser_opt->return_code = INTER_ERR;
             return false;
         };
@@ -1104,6 +1113,7 @@ bool _arg(ParserOptions *parser_opt, Arguments *args) {
         bool is_name_identifier = false;
         if (!__arg_name(parser_opt, &arg, &is_name_identifier)) {
             free(arg.name);
+            free(arg.value.string);
             return false;
         }
 
@@ -1116,6 +1126,7 @@ bool _arg(ParserOptions *parser_opt, Arguments *args) {
         if (!add_to_argument_array(args, arg)) {
             free(arg.name);
             free(arg.identifier);
+            free(arg.value.string);
             parser_opt->return_code = INTER_ERR;
             return false;
         };
@@ -1186,7 +1197,11 @@ bool _arg_val(ParserOptions *parser_opt, Argument *arg) {
             case TOKEN_STRING:
                 arg->par_type = T_STRING;
                 arg->token_type = TOKEN_STRING;
-                arg->value = parser_opt->token.value;
+                if (!clone_string(&arg->value.string,
+                                  parser_opt->token.value.string)) {
+                    parser_opt->return_code = INTER_ERR;
+                    return false;
+                }
                 break;
 
             case TOKEN_BOOL:

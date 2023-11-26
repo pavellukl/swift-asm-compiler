@@ -31,6 +31,9 @@ void destroy_argument_array(Arguments *arguments) {
     for (int i = 0; i < arguments->size; i++) {
         free(arguments->argument_arr[i].identifier);
         free(arguments->argument_arr[i].name);
+        if (arguments->argument_arr[i].token_type == TOKEN_STRING) {
+            free(arguments->argument_arr[i].value.string);
+        }
     }
     free(arguments->argument_arr);
 }
