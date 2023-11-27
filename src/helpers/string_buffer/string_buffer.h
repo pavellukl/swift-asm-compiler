@@ -6,6 +6,7 @@
 #include <stdarg.h>
 #include <stdbool.h>
 #include <string.h>
+#include "../utils.h"
 
 #define SBUFFER_INIT_CAPACITY 64
 

@@ -396,9 +396,9 @@ bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
         expr_type = T_FLOAT;
     }
 
-    if (!_generate_simply_expression(gen_var, ast->right, symtable, expr_type))
-        return false;
     if (!_generate_simply_expression(gen_var, ast->left, symtable, expr_type))
+        return false;
+    if (!_generate_simply_expression(gen_var, ast->right, symtable, expr_type))
         return false;
 
     switch (ast->token.type)
@@ -449,14 +449,13 @@ bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
                                        "  NOTS\n");
         return true;
     case TOKEN_NIL_COALESCING:
-        SBUFFER_PRINTF(gen_var->scope, "  PUSHS nil@nil\n"
-                                       "  JUMPIFEGQS %s-%d\n"
+        SBUFFER_PRINTF(gen_var->scope, "  POPS TF@temp1\n"
                                        "  POPS TF@temp0\n"
-                                       "  POPS\n"
+                                       "  JUMPIFEQ %s-%d TF@temp0 nil@nil\n"
                                        "  PUSHS TF@temp0\n"
                                        "  JUMP %s-%d\n"
                                        "LABEL %s-%d\n"
-                                       "  POPS\n"
+                                       "  PUSHS TF@temp1\n"
                                        "LABEL %s-%d\n",
                                 gen_var->label->string, gen_var->counter_n,
                                 gen_var->label->string, gen_var->counter_n+1,
@@ -494,20 +493,18 @@ bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
     }
 
     if (ast->token.type == TOKEN_AND) {
-        if (!_generate_short_circuit_eval(
-                gen_var, ast->left, symtable, gen_var->counter_n++, f)
-            || !_generate_short_circuit_eval(
-                gen_var, ast->right, symtable, t, f)) {
+        if (!_generate_short_circuit_eval(gen_var, ast->left, symtable,
+                                          gen_var->counter_n++, f) ||
+            !_generate_short_circuit_eval(gen_var, ast->right, symtable, t, f)){
             return false;
         }
         return true;
     }
 
     if (ast->token.type == TOKEN_OR) {
-        if (!_generate_short_circuit_eval(
-                gen_var, ast->left, symtable, t, gen_var->counter_n++)
-            || !_generate_short_circuit_eval(
-                gen_var, ast->right, symtable, t, f)) {
+        if (!_generate_short_circuit_eval(gen_var, ast->left, symtable, t,
+                                          gen_var->counter_n++) ||
+            !_generate_short_circuit_eval(gen_var, ast->right, symtable, t, f)){
             return false;
         }
         return true;

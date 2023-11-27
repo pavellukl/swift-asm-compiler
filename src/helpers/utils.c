@@ -8,3 +8,18 @@ bool clone_string(char **dest, char *src) {
     strcpy(*dest, src);
     return true;
 }
+
+char *vformatted_string(const char *format, va_list args) {
+    va_list args_copy;
+    va_copy(args_copy, args);
+
+    size_t append_size = vsnprintf(NULL, 0, format, args);
+    char *append = malloc(append_size + 1);
+    if (append == NULL) {
+        return NULL;
+    }
+
+    vsprintf(append, format, args_copy);
+
+    return append;
+}

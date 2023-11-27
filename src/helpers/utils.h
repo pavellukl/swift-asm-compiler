@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <string.h>
+#include <stdarg.h>
+#include <stdio.h>
 
 /**
  * @brief Allocates memory space for the src string and copies its value to the
@@ -13,5 +15,15 @@
  *         false If malloc error occured.
 */
 bool clone_string(char **dest, char *src);
+
+/**
+ * @brief Mallocs new string containing string according to format and args.
+ * 
+ * @param format Format of the new string.
+ * @param args Matching arguments to the format.
+ * @return char* New string created.
+ * @return NULL On an malloc error.
+ */
+char *vformatted_string(const char *format, va_list args);
 
 #endif /* UTILS_H */
