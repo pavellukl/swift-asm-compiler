@@ -51,8 +51,8 @@ void print_generation_to_file(GenerationVariables gen_opt, FILE *out) {
     fprintf(out, "%s", gen_opt.main->string);
 
     if (gen_opt.functions->size > 0) {
-        fprintf(out, "  exit int@0\n");
-        fprintf(out, "%s\n", gen_opt.functions->string);
+        fprintf(out, "  exit int@0\n\n");
+        fprintf(out, "%s", gen_opt.functions->string);
     }
 }
 
@@ -473,38 +473,41 @@ bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
     if (ast->token.type != TOKEN_AND
         && ast->token.type != TOKEN_OR
         && ast->token.type != TOKEN_NOT) {
-        if (!_generate_simply_expression(
-                gen_var, ast, symtable, ast->data_type))
+        if (!_generate_simply_expression(gen_var, ast, symtable,
+                                         ast->data_type)) {
             return false;
-        if (t == 0 || t == 1) {
-            SBUFFER_PRINTF(gen_var->scope, "  PUSHS bool@true\n",
-                                           "  JUMPIFEQS %s-%d\n",
-                                                    gen_var->label->string, t);
-            if (f == 0 || f == 1) {
-                SBUFFER_PRINTF(gen_var->scope, "  JUMP %s-%d\n",
-                                                    gen_var->label->string, f);
-            }
-        } else if (f == 0 || f == 1) {
-            SBUFFER_PRINTF(gen_var->scope, "  PUSHS bool@false\n",
-                                           "  JUMPIFEQS %s-%d\n",
-                                                gen_var->label->string, f);
         }
+        SBUFFER_PRINTF(gen_var->scope, "  PUSHS bool@true\n"
+                                       "  JUMPIFEQS %s-%d\n"
+                                       "  JUMP %s-%d\n",
+                                        gen_var->label->string, t,
+                                        gen_var->label->string, f);
         return true;
     }
 
     if (ast->token.type == TOKEN_AND) {
+        int new_label_id = gen_var->counter_n++;
         if (!_generate_short_circuit_eval(gen_var, ast->left, symtable,
-                                          gen_var->counter_n++, f) ||
-            !_generate_short_circuit_eval(gen_var, ast->right, symtable, t, f)){
+                                          new_label_id, f)) {
+            return false;
+        }
+        SBUFFER_PRINTF(gen_var->scope, "LABEL %s-%d\n",
+                                        gen_var->label->string, new_label_id);
+        if (!_generate_short_circuit_eval(gen_var, ast->right, symtable, t, f)){
             return false;
         }
         return true;
     }
 
     if (ast->token.type == TOKEN_OR) {
+        int new_label_id = gen_var->counter_n++;
         if (!_generate_short_circuit_eval(gen_var, ast->left, symtable, t,
-                                          gen_var->counter_n++) ||
-            !_generate_short_circuit_eval(gen_var, ast->right, symtable, t, f)){
+                                          new_label_id)) {
+            return false;
+        }
+        SBUFFER_PRINTF(gen_var->scope, "LABEL %s-%d\n",
+                                        gen_var->label->string, new_label_id);
+        if (!_generate_short_circuit_eval(gen_var, ast->right, symtable, t, f)){
             return false;
         }
         return true;
