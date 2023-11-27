@@ -59,12 +59,21 @@ void print_generation_to_file(GenerationVariables gen_opt, FILE *out);
  * @brief Generates a function label and creating new frame with data loading
  *        into variables.
  * 
- * @param gen_var Pointer to the generation variables.
+ * @param gen_var Generation variables.
  * @param fn Function which beginning should be generated.j
  * @return true If generation was successful.
  * @return false If an error occured.
  */
 bool generate_function_beginning(GenerationVariables gen_var, LSTElement *fn);
+
+/**
+ * @brief Generates function end.
+ * 
+ * @param gen_var Generation variables.
+ * @return true If generation was successful.
+ * @return false If an error occured.
+ */
+bool generate_function_end(GenerationVariables gen_var);
 
 /**
  * @brief Generates inbuilt functions.
