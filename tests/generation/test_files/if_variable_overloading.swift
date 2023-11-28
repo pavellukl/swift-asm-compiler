@@ -10,7 +10,7 @@ if (a == 0) {
     write("2_")
 } else if (!(a == 0)) {
     var a = 2
-    if (!(a == 0)) {
+    if ((a == 0)) {
         write("5_")
     } else if (false) {
         write("6_")

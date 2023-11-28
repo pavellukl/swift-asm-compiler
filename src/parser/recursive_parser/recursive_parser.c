@@ -879,6 +879,18 @@ bool __if(ParserOptions *parser_opt) {
             return false;
         }
 
+        if (!sbuffer_printf(parser_opt->gen_var.scope, "  PUSHS ")
+            || !generate_variable(parser_opt->gen_var.scope,
+                                  parser_opt->symtable, identifier)
+            || !sbuffer_printf(parser_opt->gen_var.scope, "\n"
+                                                          "  PUSHS nil@nil\n"
+                                                          "  JUMPIFEQS %sf\n",
+                                         parser_opt->gen_var.label->string)) {
+            free(identifier);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
         // free token string value
         free(identifier);
 
@@ -888,6 +900,18 @@ bool __if(ParserOptions *parser_opt) {
         if (!_scope_body(parser_opt)) return false;
 
         bool has_if_return = parser_opt->sem_ctx.has_function_all_returns;
+
+        // print general if label and add suffix "end"
+        int last_i = parser_opt->gen_var.label->size - 2;
+        while (parser_opt->gen_var.label->string[last_i] == 'f') {
+            last_i--;
+        }
+
+        SBUFFER_PRINTF(parser_opt->gen_var.scope, "  JUMP %.*send\n"
+                                                  "LABEL %sf\n",
+                                    last_i+1, parser_opt->gen_var.label->string,
+                                    parser_opt->gen_var.label->string);
+        SBUFFER_PRINTF(parser_opt->gen_var.label, "f");
 
         // pop if scope
         st_pop_scope(parser_opt->symtable);
