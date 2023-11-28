@@ -86,6 +86,18 @@ bool _function_definition(ParserOptions *parser_opt) {
             return false;
         }
 
+        // save main scope
+        char *tmp_main_scope;
+        if (!clone_string(&tmp_main_scope, parser_opt->gen_var.scope->string)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+        if (!sbuffer_reinit(&parser_opt->gen_var.scope)) {
+            free(tmp_main_scope);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
         // save scope counters of the main scope
         int tmp_scope_n = parser_opt->gen_var.scope_n;
         int tmp_if_n = parser_opt->gen_var.if_n;
@@ -100,6 +112,7 @@ bool _function_definition(ParserOptions *parser_opt) {
         // push function scope
         STError err = st_push_func_scope(parser_opt->symtable, func);
         if (err != E_OK) {
+            free(tmp_main_scope);
             parser_opt->return_code = INTER_ERR;
             return false;
         }
@@ -111,11 +124,13 @@ bool _function_definition(ParserOptions *parser_opt) {
         // set functions name as a prefix for labels
         char *tmp_label;
         if (!clone_string(&tmp_label, parser_opt->gen_var.label->string)) {
+            free(tmp_main_scope);
             parser_opt->return_code = INTER_ERR;
             return false;
         }
         if (!sbuffer_printf(parser_opt->gen_var.label, "_%s",
                             func->identifier)) {
+            free(tmp_main_scope);
             free(tmp_label);
             parser_opt->return_code = INTER_ERR;
             return false;
@@ -126,6 +141,7 @@ bool _function_definition(ParserOptions *parser_opt) {
 
         // generate function head (label and parameter passing)
         if (!generate_function_beginning(parser_opt->gen_var, func)) {
+            free(tmp_main_scope);
             free(tmp_label);
             parser_opt->return_code = INTER_ERR;
             return false;
@@ -137,6 +153,7 @@ bool _function_definition(ParserOptions *parser_opt) {
         // if a non void function is missing return
         if (scope_body_res && func->return_type != T_VOID &&
             !parser_opt->sem_ctx.has_function_all_returns) {
+            free(tmp_main_scope);
             free(tmp_label);
             parser_opt->return_code = FNCALL_ERR;
             return false;
@@ -146,11 +163,15 @@ bool _function_definition(ParserOptions *parser_opt) {
         // rest of the function
         if (!sbuffer_printf(parser_opt->gen_var.selected, "%s",
                             parser_opt->gen_var.scope->string)
-            || !sbuffer_reinit(&parser_opt->gen_var.scope)) {
+            || !sbuffer_reinit(&parser_opt->gen_var.scope)
+            || !sbuffer_printf(parser_opt->gen_var.scope, "%s",
+                               tmp_main_scope)) {
+            free(tmp_main_scope);
             free(tmp_label);
             parser_opt->return_code = INTER_ERR;
             return false;
         }
+        free(tmp_main_scope);
 
         // restore prefix for labels
         if (!sbuffer_overwrite_content(parser_opt->gen_var.label, "%s",
@@ -778,6 +799,7 @@ bool __varlet_identif(ParserOptions *parser_opt, Type *expected_var_type,
         if (!_next_token(parser_opt)) return false;
 
         if (!_look_ahead_for_fn(parser_opt, is_function)) return false;
+
 
         if (*is_function) {
             // save provided value type, in this case it's the return type of

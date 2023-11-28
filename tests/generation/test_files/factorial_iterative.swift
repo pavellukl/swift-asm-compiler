@@ -1,4 +1,4 @@
-/*Vysledek je: 40320
+/*Vysledek je: 0x1.3bp+15
 */
 /*8*/
 
