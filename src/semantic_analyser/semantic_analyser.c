@@ -259,10 +259,12 @@ bool analyze_generate_return(ParserOptions *parser_opt, LSTElement *fnc,
         return false;
     }
 
-    if (!generate_expression(&parser_opt->gen_var, expression_node,
-                             parser_opt->symtable)) {
-        parser_opt->return_code = INTER_ERR;
-        return false;
+    if (fnc->return_type != T_VOID) {
+        if (!generate_expression(&parser_opt->gen_var, expression_node,
+                                parser_opt->symtable)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
     }
 
     if (!generate_function_end(parser_opt->gen_var.scope)) {
