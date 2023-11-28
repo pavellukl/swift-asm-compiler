@@ -76,9 +76,9 @@ bool generate_function_beginning(GenerationVariables gen_var, LSTElement *fn) {
     return true;
 }
 
-bool generate_function_end(GenerationVariables gen_var) {
-    SBUFFER_PRINTF(gen_var.functions, "  POPFRAME\n"
-                                      "  RETURN\n");
+bool generate_function_end(SBuffer *sbuffer) {
+    SBUFFER_PRINTF(sbuffer, "  POPFRAME\n"
+                            "  RETURN\n");
     return true;
 }
 
@@ -95,7 +95,7 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
                    "  DEFVAR LF@result\n"
                    "  READ LF@result string\n"
                    "  PUSHS LF@result\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     el = st_search_element(symtable, "readInt", &scope);
     if (el == NULL || !generate_function_beginning(gen_var, el)) return false;
@@ -103,7 +103,7 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
                    "  DEFVAR LF@result\n"
                    "  READ LF@result int\n"
                    "  PUSHS LF@result\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     el = st_search_element(symtable, "readDouble", &scope);
     if (el == NULL || !generate_function_beginning(gen_var, el)) return false;
@@ -111,28 +111,28 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
                    "  DEFVAR LF@result\n"
                    "  READ LF@result float\n"
                    "  PUSHS LF@result\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     el = st_search_element(symtable, "Int2Double", &scope);
     if (el == NULL || !generate_function_beginning(gen_var, el)) return false;
     SBUFFER_PRINTF(gen_var.selected,
                    "  INT2FLOAT LF@term1 LF@term1\n"
                    "  PUSHS LF@term1\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     el = st_search_element(symtable, "Double2Int", &scope);
     if (el == NULL || !generate_function_beginning(gen_var, el)) return false;
     SBUFFER_PRINTF(gen_var.selected,
                    "  FLOAT2INT LF@term1 LF@term1\n"
                    "  PUSHS LF@term1\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     el = st_search_element(symtable, "length", &scope);
     if (el == NULL || !generate_function_beginning(gen_var, el)) return false;
     SBUFFER_PRINTF(gen_var.selected,
                    "  STRLEN LF@s1 LF@s1\n"
                    "  PUSHS LF@s1\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     el = st_search_element(symtable, "substring", &scope);
     if (el == NULL || !generate_function_beginning(gen_var, el)) return false;
@@ -172,12 +172,12 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
     // return
     SBUFFER_PRINTF(gen_var.selected,
                    "  PUSHS LF@substring\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
     // nil return
     SBUFFER_PRINTF(gen_var.selected,
                    "LABEL _substring_return_nil\n"
                    "  PUSHS nil@nil\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     el = st_search_element(symtable, "ord", &scope);
     if (el == NULL || !generate_function_beginning(gen_var, el)) return false;
@@ -192,14 +192,14 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
                    "LABEL _ord?0t\n"
                    "  PUSHS int@0\n"
                    "LABEL _ord?0end\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     el = st_search_element(symtable, "chr", &scope);
     if (el == NULL || !generate_function_beginning(gen_var, el)) return false;
     SBUFFER_PRINTF(gen_var.selected,
                    "  INT2CHAR LF@i1 LF@i1\n"
                    "  PUSHS LF@i1\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     el = st_search_element(symtable, "write", &scope);
     if (el == NULL) return false;
@@ -223,7 +223,7 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
                    "  ADD LF@counter LF@counter int@1\n"
                    "  JUMP _write%%0\n"
                    "LABEL _write%%0end\n");
-    if (!generate_function_end(gen_var)) return false;
+    if (!generate_function_end(gen_var.functions)) return false;
 
     gen_var.selected = init_buffer;
     return true;
@@ -529,6 +529,8 @@ bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
 
 bool generate_expression(GenerationVariables *gen_var, ASTNode *ast,
                          ListST *symtable) {
+    gen_var->expr_n++;
+
     char *init_label;
     if (!clone_string(&init_label, gen_var->label->string)) return false;
     if (!sbuffer_printf(gen_var->label, "&%d", gen_var->expr_n++)) {

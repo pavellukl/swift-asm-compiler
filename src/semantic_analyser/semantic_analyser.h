@@ -24,7 +24,7 @@ void init_semantic_context(SemanticContext *sem_ctx);
 bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params);
 
 /**
- * @brief analyzes function call
+ * @brief Analyzes and generates function call.
  *
  * @param parser_opt parser options pointer to save possible semantic error code
  * @param identifier identifier of called function
@@ -35,7 +35,7 @@ bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
                                     Arguments *arguments, Type *return_type);
 
 /**
- * @brief analyzes assignment, assigns varible defined_value flag
+ * @brief Analyzes and generates assignment, assigns varible defined_value flag.
  *
  * @param parser_opt parser options pointer to save possible semantic error code
  * @param identifier indentifier of the variable that's being assigned to
@@ -46,15 +46,15 @@ bool analyze_generate_assignment(ParserOptions *parser_opt, char *identifier,
                                  ASTNode *expression_node, bool is_function);
 
 /**
- * @brief analyzes return statement
+ * @brief Analyzes and generates return statement.
  *
  * @param parser_opt parser options pointer to save possible semantic error code
  * @param fnc pointer to symtable entry of function within which to analyze
  * return
  * @param expression_node node representing the expression after return
  */
-bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
-                    ASTNode *expression_node);
+bool analyze_generate_return(ParserOptions *parser_opt, LSTElement *fnc,
+                             ASTNode *expression_node);
 
 /**
  * @brief analyzes variable definition, and adds variable to symtable

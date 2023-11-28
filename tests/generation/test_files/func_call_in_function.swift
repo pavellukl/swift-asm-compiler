@@ -9,4 +9,5 @@ func func_with_args1(_ a: Int, _ b: Int) -> Int {
     return a * b
 }
 
-func_with_args0(1, 8)
+var a = func_with_args0(1, 8)
+write(a)

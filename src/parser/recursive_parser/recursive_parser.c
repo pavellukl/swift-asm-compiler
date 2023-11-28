@@ -577,9 +577,10 @@ bool _return_command(ParserOptions *parser_opt) {
         ASTNode *expression_node_ptr = &expression_node;
         if (!__return(parser_opt, &expression_node_ptr)) return false;
 
-        // semantically check return statement
-        if (!analyze_return(parser_opt, parser_opt->sem_ctx.current_fnc,
-                            expression_node_ptr)) {
+        // semantically check and generate return statement
+        if (!analyze_generate_return(parser_opt,
+                                     parser_opt->sem_ctx.current_fnc,
+                                     expression_node_ptr)) {
             // TODO why double free???
             // _free_AST(expression_node_ptr);
             return false;

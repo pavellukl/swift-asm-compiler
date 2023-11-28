@@ -225,8 +225,8 @@ bool analyze_generate_assignment(ParserOptions *parser_opt, char *identifier,
     return true;
 }
 
-bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
-                    ASTNode *expression_node) {
+bool analyze_generate_return(ParserOptions *parser_opt, LSTElement *fnc,
+                             ASTNode *expression_node) {
     // return can not be in the global scope
     if (st_is_global_active(parser_opt->symtable)) {
         //! semantic check returning syntax error
@@ -256,6 +256,17 @@ bool analyze_return(ParserOptions *parser_opt, LSTElement *fnc,
     // if function type and return expression type do not match
     if (!_do_types_match(fnc->return_type, expression_node->data_type)) {
         parser_opt->return_code = FNCALL_ERR;
+        return false;
+    }
+
+    if (!generate_expression(&parser_opt->gen_var, expression_node,
+                             parser_opt->symtable)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+
+    if (!generate_function_end(parser_opt->gen_var.scope)) {
+        parser_opt->return_code = INTER_ERR;
         return false;
     }
 

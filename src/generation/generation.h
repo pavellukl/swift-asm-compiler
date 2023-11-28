@@ -69,11 +69,11 @@ bool generate_function_beginning(GenerationVariables gen_var, LSTElement *fn);
 /**
  * @brief Generates function end.
  * 
- * @param gen_var Generation variables.
+ * @param sbuffer Where to generate function end.
  * @return true If generation was successful.
  * @return false If an error occured.
  */
-bool generate_function_end(GenerationVariables gen_var);
+bool generate_function_end(SBuffer *sbuffer);
 
 /**
  * @brief Generates inbuilt functions.
