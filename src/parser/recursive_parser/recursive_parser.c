@@ -436,13 +436,75 @@ bool _command(ParserOptions *parser_opt) {
     } else if (parser_opt->token.type == TOKEN_KEYWORD_VAR ||
                parser_opt->token.type == TOKEN_KEYWORD_LET) {
         return _variable_def(parser_opt);
-    } else if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
-        return _conditional_command(parser_opt);
-    } else if (parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
-        return _while_command(parser_opt);
+    } else if (parser_opt->token.type != TOKEN_KEYWORD_IF
+               && parser_opt->token.type != TOKEN_KEYWORD_WHILE) {
+        parser_opt->return_code = STX_ERR;
+        return false;
     }
-    parser_opt->return_code = STX_ERR;
-    return false;
+    // now it is only while or if
+    
+    // save label
+    char *tmp_label;
+    if (!clone_string(&tmp_label, parser_opt->gen_var.label->string)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+    // for current if/while id
+    int current_id;
+
+    if (parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
+        current_id = parser_opt->gen_var.while_n++;
+        if (!sbuffer_printf(parser_opt->gen_var.label, "%%%d", current_id)) {
+            free(tmp_label);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+        // print start of while
+        if (!sbuffer_printf(parser_opt->gen_var.scope, "LABEL %s\n",
+                            parser_opt->gen_var.label->string)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+        if (!_while_command(parser_opt)) {
+            free(tmp_label);
+            return false;
+        }
+    } else { // if
+        current_id = parser_opt->gen_var.if_n++;
+        if (!sbuffer_printf(parser_opt->gen_var.label, "?%d", current_id)) {
+            free(tmp_label);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+        if (!_conditional_command(parser_opt)) {
+            free(tmp_label);
+            return false;
+        }
+    }
+
+    // restore label
+    if (!sbuffer_overwrite_content(parser_opt->gen_var.label, "%s", tmp_label)){
+        free(tmp_label);
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+    free(tmp_label);
+
+    // generate end of if/while
+    if (parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
+        if (!sbuffer_printf(parser_opt->gen_var.scope, "LABEL %s%%%dend\n",
+                            parser_opt->gen_var.label->string, current_id)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+    } else { // if
+        if (!sbuffer_printf(parser_opt->gen_var.scope, "LABEL %s?%dend\n",
+                            parser_opt->gen_var.label->string, current_id)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+    }
+    return true;
 }
 
 bool __identif(ParserOptions *parser_opt, char *identif) {
@@ -801,8 +863,6 @@ bool __if(ParserOptions *parser_opt) {
             return false;
         }
 
-        // save current scope counter
-        int tmp_scope_n = parser_opt->gen_var.scope_n;
         // push if scope
         STError err =
             st_push_scope(parser_opt->symtable, ++parser_opt->gen_var.scope_n);
@@ -825,7 +885,6 @@ bool __if(ParserOptions *parser_opt) {
         // TODO
         bool has_returns_tmp = parser_opt->sem_ctx.has_function_all_returns;
         parser_opt->sem_ctx.has_function_all_returns = false;
-
         if (!_scope_body(parser_opt)) return false;
 
         bool has_if_return = parser_opt->sem_ctx.has_function_all_returns;
@@ -835,8 +894,6 @@ bool __if(ParserOptions *parser_opt) {
 
         // restore initial type of var
         el->return_type = initial_var_type;
-        // restore saved state of scope count
-        parser_opt->gen_var.scope_n = tmp_scope_n;
 
         parser_opt->sem_ctx.has_function_all_returns = false;
         bool has_else_branch = false;
@@ -869,11 +926,25 @@ bool __if(ParserOptions *parser_opt) {
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;
     }
+
+    if (!generate_expression(&parser_opt->gen_var, expression_node,
+                             parser_opt->symtable)) {
+        // TODO: fix double free
+        // _free_AST(expression_node);
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+
     // TODO: fix double free
     // _free_AST(expression_node);
 
-    // save current scope counter
-    int tmp_scope_n = parser_opt->gen_var.scope_n;
+    if (!sbuffer_printf(parser_opt->gen_var.scope, "  PUSHS bool@false\n"
+                                                   "  JUMPIFEQS %sf\n",
+                                        parser_opt->gen_var.label->string)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+
     // push if scope
     STError err =
         st_push_scope(parser_opt->symtable, ++parser_opt->gen_var.scope_n);
@@ -890,13 +961,22 @@ bool __if(ParserOptions *parser_opt) {
 
     if (!_scope_body(parser_opt)) return false;
 
+    // print general if label and add suffix "end"
+    int last_i = parser_opt->gen_var.label->size - 2;
+    while (parser_opt->gen_var.label->string[last_i] == 'f') {
+        last_i--;
+    }
+
+    SBUFFER_PRINTF(parser_opt->gen_var.scope, "  JUMP %.*send\n"
+                                              "LABEL %sf\n",
+                                    last_i+1, parser_opt->gen_var.label->string,
+                                    parser_opt->gen_var.label->string);
+    SBUFFER_PRINTF(parser_opt->gen_var.label, "f");
+
     bool has_if_return = parser_opt->sem_ctx.has_function_all_returns;
 
     // pop if scope
     st_pop_scope(parser_opt->symtable);
-    // restore saved state of scope count
-    parser_opt->gen_var.scope_n = tmp_scope_n;
-
     // TODO
     parser_opt->sem_ctx.has_function_all_returns = false;
     bool has_else_branch = false;
@@ -962,6 +1042,7 @@ bool __if_let_identif_body_else(ParserOptions *parser_opt,
 
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
+        // TODO: why isn't has_else_branch = true here as well?
         return _conditional_command(parser_opt);
     }
     parser_opt->return_code = STX_ERR;
@@ -988,8 +1069,6 @@ bool _while_command(ParserOptions *parser_opt) {
         // TODO: fix double free
         // _free_AST(expression_node);
 
-        // save current scope counter
-        int tmp_scope_n = parser_opt->gen_var.scope_n;
         // push while scope
         STError err =
             st_push_scope(parser_opt->symtable, ++parser_opt->gen_var.scope_n);
@@ -1002,8 +1081,6 @@ bool _while_command(ParserOptions *parser_opt) {
 
         // pop while scope
         st_pop_scope(parser_opt->symtable);
-        // restore saved state of scope count
-        parser_opt->gen_var.scope_n = tmp_scope_n;
 
         return true;
     }
@@ -1556,6 +1633,13 @@ void parse_function_definition(ParserOptions *parser_opt) {
 void parse_check_optimize_generate(ParserOptions *parser_opt) {
     // get first token
     if (!_next_token(parser_opt)) return;
+
+    // generate local frame for global scope (for variables in if and while)
+    if (!sbuffer_printf(parser_opt->gen_var.main, "  CREATEFRAME\n"
+                                                  "  PUSHFRAME\n")) {
+        parser_opt->return_code = INTER_ERR;
+        return;
+    }
 
     // operate upon code
     _program(parser_opt);
