@@ -232,7 +232,9 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
 bool generate_assignment(GenerationVariables gen_var, ListST *symtable,
                          char *assign_to_identif) {
     SBUFFER_PRINTF(gen_var.scope, "  POPS ");
-    if (!generate_variable(gen_var, symtable, assign_to_identif)) return false;
+    if (!generate_variable(gen_var.scope, symtable, assign_to_identif)) {
+        return false;
+    }
     SBUFFER_PRINTF(gen_var.scope, "\n");
     return true;
 }
@@ -250,10 +252,9 @@ bool generate_variable_definition(GenerationVariables *gen_var,
                                   bool is_function) {
     // variable declaration
     SBUFFER_PRINTF(gen_var->selected, "  DEFVAR ");
-    SBuffer *init_scope = gen_var->scope;
-    gen_var->scope = gen_var->selected;
-    if (!generate_variable(*gen_var, symtable, identifier)) return false;
-    gen_var->scope = init_scope;
+    if (!generate_variable(gen_var->selected, symtable, identifier)) {
+        return false;
+    }
     SBUFFER_PRINTF(gen_var->selected, "\n");
 
     // generate assignment rvalue calculation
@@ -289,26 +290,30 @@ bool generate_argument(GenerationVariables gen_var, ListST *symtable,
     SBUFFER_PRINTF(gen_var.scope, "  PUSHS ");
 
     if (arg.token_type == TOKEN_IDENTIF) {
-        if (!generate_variable(gen_var, symtable, arg.identifier)) return false;
+        if (!generate_variable(gen_var.scope, symtable, arg.identifier)) {
+            return false;
+        }
     } else {
         TokenData token = {.type = arg.token_type, .value = arg.value};
-        if (!generate_literal(gen_var, token, expected_type)) return false;
+        if (!generate_literal(gen_var, token, expected_type)) {
+            return false;
+        }
     }
 
     SBUFFER_PRINTF(gen_var.scope, "\n");
     return true;
 }
 
-bool generate_variable(GenerationVariables gen_var, ListST *symtable,
+bool generate_variable(SBuffer *sbuffer, ListST *symtable,
                         char *identifier) {
     int scope_id;
     LSTElement *el = st_search_element(symtable, identifier, &scope_id);
     if (el == NULL) return false;
 
     if (scope_id == 0) {
-        SBUFFER_PRINTF(gen_var.scope, "GF@%s", identifier);
+        SBUFFER_PRINTF(sbuffer, "GF@%s", identifier);
     } else {
-        SBUFFER_PRINTF(gen_var.scope, "LF@%d%s", scope_id, identifier);
+        SBUFFER_PRINTF(sbuffer, "LF@%s%d", identifier, scope_id);
     }
 
     return true;
@@ -372,8 +377,10 @@ bool _generate_simply_expression(GenerationVariables *gen_var, ASTNode *ast,
         // it can be a variable or a literal
         if (ast->token.type == TOKEN_IDENTIF) {
             // this should never fail - variable existence was tested before
-            if (!generate_variable(*gen_var, symtable, ast->token.value.string))
+            if (!generate_variable(gen_var->scope, symtable,
+                                   ast->token.value.string)) {
                 return false;
+            }
 
             // type conversion
             // ast->data_type has identifiers data type without nilable part

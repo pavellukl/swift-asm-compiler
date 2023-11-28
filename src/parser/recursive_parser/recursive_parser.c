@@ -44,89 +44,130 @@ bool _program(ParserOptions *parser_opt) {
 bool _function_definition(ParserOptions *parser_opt) {
     //! in first run add function to symtable
     //! in second run generate and run semantic check
-    if (parser_opt->token.type == TOKEN_KEYWORD_FUNC) {
-        // define function if identif is not in symtable and on first run, only
-        // check function head
-        if (parser_opt->is_first_run) {
-            LSTElement func = {
-                .variant = FUNCTION, .return_type = T_VOID, .identifier = NULL};
-
-            // initialize parameter array for function
-            init_parameter_array(&func.value.parameters);
-
-            if (!_function_head(parser_opt, &func, NULL)) {
-                destroy_parameter_array(&func.value.parameters);
-                free(func.identifier);
-                return false;
-            }
-
-            // add function to symtable
-            STError err = st_add_element(parser_opt->symtable, func.identifier,
-                                         func.return_type, func.variant,
-                                         func.value, true);
-
-            if (err != E_OK) {
-                parser_opt->return_code = INTER_ERR;
-                return false;
-            }
-
-            return true;
-        } else if (!parser_opt->is_first_run) {
-            LSTElement *func;
-
-            // check function head
-            if (!_function_head(parser_opt, NULL, &func)) return false;
-
-            // semantically check function head
-            if (!analyze_function_dec(parser_opt, &func->value.parameters)) {
-                return false;
-            }
-
-            // save current scope counter
-            int tmp_scope_n = parser_opt->gen_var.scope_n;
-            // push function scope
-            STError err = st_push_func_scope(parser_opt->symtable, func,
-                                             ++parser_opt->gen_var.scope_n);
-            if (err != E_OK) {
-                parser_opt->return_code = INTER_ERR;
-                return false;
-            }
-
-            // set current function of semantic context
-            parser_opt->sem_ctx.current_fnc = func;
-            parser_opt->sem_ctx.has_function_all_returns = false;
-
-            // check function body
-            bool scope_body_res = _scope_body(parser_opt);
-
-            // if a non void function is missing return
-            if (scope_body_res && func->return_type != T_VOID &&
-                !parser_opt->sem_ctx.has_function_all_returns) {
-                parser_opt->return_code = FNCALL_ERR;
-                return false;
-            }
-
-            // reset current function of semantic context
-            parser_opt->sem_ctx.current_fnc = NULL;
-            parser_opt->sem_ctx.has_function_all_returns = false;
-
-            // pop function scope
-            st_pop_scope(parser_opt->symtable);
-            // restore saved state of scope count
-            parser_opt->gen_var.scope_n = tmp_scope_n;
-
-            // TODO generate function head
-            // TODO generate function body
-            //! generating will probably have to be done in recursive descent
-            //! functions
-
-            return scope_body_res;
-        }
-
+    if (parser_opt->token.type != TOKEN_KEYWORD_FUNC) {
+        parser_opt->return_code = STX_ERR;
         return false;
     }
 
-    parser_opt->return_code = STX_ERR;
+    // define function if identif is not in symtable and on first run, only
+    // check function head
+    if (parser_opt->is_first_run) {
+        LSTElement func = {
+            .variant = FUNCTION, .return_type = T_VOID, .identifier = NULL};
+
+        // initialize parameter array for function
+        init_parameter_array(&func.value.parameters);
+
+        if (!_function_head(parser_opt, &func, NULL)) {
+            destroy_parameter_array(&func.value.parameters);
+            free(func.identifier);
+            return false;
+        }
+
+        // add function to symtable
+        STError err = st_add_element(parser_opt->symtable, func.identifier,
+                                        func.return_type, func.variant,
+                                        func.value, true);
+
+        if (err != E_OK) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
+        return true;
+    } else if (!parser_opt->is_first_run) {
+        LSTElement *func;
+
+        // check function head
+        if (!_function_head(parser_opt, NULL, &func)) return false;
+
+        // semantically check function head
+        if (!analyze_function_dec(parser_opt, &func->value.parameters)) {
+            return false;
+        }
+
+        // save current scope counter
+        int tmp_scope_n = parser_opt->gen_var.scope_n;
+        // push function scope
+        STError err = st_push_func_scope(parser_opt->symtable, func,
+                                            ++parser_opt->gen_var.scope_n);
+        if (err != E_OK) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
+        // set current function of semantic context
+        parser_opt->sem_ctx.current_fnc = func;
+        parser_opt->sem_ctx.has_function_all_returns = false;
+
+        // set functions name as a prefix for labels
+        char *tmp_label;
+        if (!clone_string(&tmp_label, parser_opt->gen_var.label->string)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+        if (!sbuffer_printf(parser_opt->gen_var.label, "_%s",
+                            func->identifier)) {
+            free(tmp_label);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
+        // set functions as a selected buffer for default generation
+        parser_opt->gen_var.selected = parser_opt->gen_var.functions;
+
+        // generate function head (label and parameter passing)
+        if (!generate_function_beginning(parser_opt->gen_var, func)) {
+            free(tmp_label);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
+        // check and generate function body
+        bool scope_body_res = _scope_body(parser_opt);
+
+        // if a non void function is missing return
+        if (scope_body_res && func->return_type != T_VOID &&
+            !parser_opt->sem_ctx.has_function_all_returns) {
+            free(tmp_label);
+            parser_opt->return_code = FNCALL_ERR;
+            return false;
+        }
+
+        // variable definitions are already in the buffer, now we can paste the
+        // rest of the function
+        if (!sbuffer_printf(parser_opt->gen_var.selected, "%s",
+                            parser_opt->gen_var.scope->string)
+            || !sbuffer_reinit(&parser_opt->gen_var.scope)) {
+            free(tmp_label);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
+        // restore prefix for labels
+        if (!sbuffer_overwrite_content(parser_opt->gen_var.label, "%s",
+                                       tmp_label)) {
+            free(tmp_label);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+        free(tmp_label);
+
+        // reset selected buffer for default generation
+        parser_opt->gen_var.selected = parser_opt->gen_var.main;
+
+        // reset current function of semantic context
+        parser_opt->sem_ctx.current_fnc = NULL;
+        parser_opt->sem_ctx.has_function_all_returns = false;
+
+        // pop function scope
+        st_pop_scope(parser_opt->symtable);
+        // restore saved state of scope count
+        parser_opt->gen_var.scope_n = tmp_scope_n;
+
+        return scope_body_res;
+    }
+
     return false;
 }
 

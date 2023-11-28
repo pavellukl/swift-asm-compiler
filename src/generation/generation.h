@@ -143,13 +143,13 @@ bool generate_argument(GenerationVariables gen_var, ListST *symtable,
 /**
  * @brief Generates a variable. eg. LF@8var
  * 
- * @param gen_var Generation variables.
+ * @param sbuffer Where to generate a variable.
  * @param symtable Pointer to the symtable.
  * @param identifier Identifier of the variable.
  * @return true If generation was successful.
  * @return false If an error occured.
  */
-bool generate_variable(GenerationVariables gen_var, ListST *symtable,
+bool generate_variable(SBuffer *sbuffer, ListST *symtable,
                         char *identifier);
 
 /**
