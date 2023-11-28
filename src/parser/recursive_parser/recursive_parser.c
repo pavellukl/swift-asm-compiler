@@ -86,11 +86,19 @@ bool _function_definition(ParserOptions *parser_opt) {
             return false;
         }
 
-        // save current scope counter
+        // save scope counters of the main scope
         int tmp_scope_n = parser_opt->gen_var.scope_n;
+        int tmp_if_n = parser_opt->gen_var.if_n;
+        int tmp_while_n = parser_opt->gen_var.while_n;
+        int tmp_expr_n = parser_opt->gen_var.expr_n;
+        // reinit all counters to 0 
+        parser_opt->gen_var.scope_n = 0;
+        parser_opt->gen_var.if_n = 0;
+        parser_opt->gen_var.while_n = 0;
+        parser_opt->gen_var.expr_n = 0;
+
         // push function scope
-        STError err = st_push_func_scope(parser_opt->symtable, func,
-                                            ++parser_opt->gen_var.scope_n);
+        STError err = st_push_func_scope(parser_opt->symtable, func);
         if (err != E_OK) {
             parser_opt->return_code = INTER_ERR;
             return false;
@@ -162,8 +170,11 @@ bool _function_definition(ParserOptions *parser_opt) {
 
         // pop function scope
         st_pop_scope(parser_opt->symtable);
-        // restore saved state of scope count
+        // restore saved states of counters of the main scope
         parser_opt->gen_var.scope_n = tmp_scope_n;
+        parser_opt->gen_var.if_n = tmp_if_n;
+        parser_opt->gen_var.while_n = tmp_while_n;
+        parser_opt->gen_var.expr_n = tmp_expr_n;
 
         return scope_body_res;
     }

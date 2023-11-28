@@ -136,15 +136,14 @@ LSTElement* st_search_func(ListST* list, char* identifier);
 bool st_is_global_active(ListST* list);
 
 /**
- * Pushes new scope with @p identifier and adds parameters of passed function to
+ * Pushes new function scope and adds parameters of passed function to
  * the new scope
  *
  * @param ListST*       pointer to list
  * @param LSTElement*   pointer to function element
- * @param int         identifier of pushed scope
  *
  * @return STError      result of the operation
  */
-STError st_push_func_scope(ListST* list, LSTElement* element, int identifier);
+STError st_push_func_scope(ListST* list, LSTElement* element);
 
 #endif /* SYMTABLE_H */

@@ -52,7 +52,7 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     // first run preparations
     PRINTF_STDDEBUG("first run prep\n");
     parser_opt.is_first_run = true;
-    if (st_push_scope(parser_opt.symtable, parser_opt.gen_var.scope_n) !=
+    if (st_push_scope(parser_opt.symtable, 0) !=
         E_OK) {
         return COMP_INTER_ERR;
     };

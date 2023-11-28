@@ -506,12 +506,12 @@ bool st_is_global_active(ListST* list) {
     return true;
 }
 
-STError st_push_func_scope(ListST* list, LSTElement* element, int identifier) {
+STError st_push_func_scope(ListST* list, LSTElement* element) {
     if (list == NULL) return E_LIST;
 
     if (list->firstItem == NULL) return E_LIST;
 
-    if (st_push_scope(list, identifier) != E_OK) return E_ALLOC;
+    if (st_push_scope(list, 1) != E_OK) return E_ALLOC;
 
     if (element->value.parameters.parameters_arr != NULL) {
         for (int i = 0; i < element->value.parameters.size; i++) {
