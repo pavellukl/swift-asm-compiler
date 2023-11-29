@@ -12,7 +12,7 @@ func decrement(of n: Int, by m: Int) -> Int {
 // Definice funkce pro vypocet hodnoty faktorialu
 func factorial(_ n : Int) -> Int {
     var result : Int?
-    if (n < 2) {
+    if (n < (2)) {
         result = 1
     } else {
         let decremented_n = decrement(of: n, by: 1)

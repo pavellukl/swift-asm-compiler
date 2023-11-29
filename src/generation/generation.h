@@ -202,6 +202,13 @@ bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
                                   ListST *symtable, int t, int f);
 
 /**
+ * @brief Creates new empty ast node.
+ * 
+ * @return ASTNode* New ast node or NULL if malloc error occured.
+ */
+ASTNode* ast_init();
+
+/**
  * @brief Generates an expression.
  * 
  * @param gen_var Pointer to the generation variables.

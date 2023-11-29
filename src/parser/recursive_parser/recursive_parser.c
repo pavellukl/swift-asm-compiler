@@ -596,8 +596,7 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
 
             if (!generate_expression(&parser_opt->gen_var, expression_node,
                                 parser_opt->symtable)) {
-                // TODO: fix double free
-                // _free_AST(expression_node);
+                _free_AST(expression_node);
                 parser_opt->return_code = INTER_ERR;
                 return false;
             }
@@ -605,13 +604,11 @@ bool __identif(ParserOptions *parser_opt, char *identif) {
             // semantically check and generate assignment
             if (!analyze_generate_assignment(parser_opt, identif,
                                              expression_node, false)) {
-                // TODO: fix double free
-                // _free_AST(expression_node);
+                _free_AST(expression_node);
                 return false;
             }
 
-            // TODO: fix double free
-            // _free_AST(expression_node);
+            _free_AST(expression_node);
 
             return true;
         }
@@ -667,20 +664,17 @@ bool _return_command(ParserOptions *parser_opt) {
     if (parser_opt->token.type == TOKEN_KEYWORD_RETURN) {
         if (!_next_token(parser_opt)) return false;
 
-        ASTNode expression_node = {.data_type = T_VOID};
-        ASTNode *expression_node_ptr = &expression_node;
+        ASTNode *expression_node_ptr;
         if (!__return(parser_opt, &expression_node_ptr)) return false;
 
         // semantically check and generate return statement
         if (!analyze_generate_return(parser_opt,
                                      parser_opt->sem_ctx.current_fnc,
                                      expression_node_ptr)) {
-            // TODO why double free???
-            // _free_AST(expression_node_ptr);
+            _free_AST(expression_node_ptr);
             return false;
         }
-        // TODO: fix double free
-        // _free_AST(expression_node_ptr);
+        _free_AST(expression_node_ptr);
 
         parser_opt->sem_ctx.has_function_all_returns = true;
 
@@ -700,6 +694,13 @@ bool __return(ParserOptions *parser_opt, ASTNode **expression_node) {
         parser_opt->token.type == TOKEN_KEYWORD_IF ||
         parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
         // since no expression was provided after return, type stays void
+        *expression_node = ast_init();
+        if (*expression_node == NULL) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+        (*expression_node)->data_type = T_VOID;
+        (*expression_node)->token.type = TOKEN_KEYWORD_INT; // do not free token
         return true;
     }
 
@@ -739,15 +740,13 @@ bool _variable_def(ParserOptions *parser_opt) {
         }
 
         Type expected_var_type = T_VOID;
-        ASTNode provided_expression_node = {.data_type = T_VOID};
-        ASTNode *provided_expression_node_ptr = &provided_expression_node;
+        ASTNode *provided_expression_node_ptr;
         bool is_function = false;
 
         if (!__varlet_identif(parser_opt, &expected_var_type,
                               &provided_expression_node_ptr, &is_function)) {
             free(identif);
-            // TODO double free fix
-            // _free_AST(provided_expression_node_ptr);
+            _free_AST(provided_expression_node_ptr);
             return false;
         }
 
@@ -756,8 +755,7 @@ bool _variable_def(ParserOptions *parser_opt) {
                              expected_var_type, provided_expression_node_ptr,
                              is_function)) {
             free(identif);
-            // TODO double free fix
-            // _free_AST(provided_expression_node_ptr);
+            _free_AST(provided_expression_node_ptr);
             return false;
         }
 
@@ -766,14 +764,12 @@ bool _variable_def(ParserOptions *parser_opt) {
                                           expected_var_type,
                                           provided_expression_node_ptr,
                                           is_function)) {
-            // TODO double free fix
-            // _free_AST(provided_expression_node_ptr);
+            _free_AST(provided_expression_node_ptr);
             parser_opt->return_code = INTER_ERR;
             return false;
         }
 
-        // TODO double free fix
-        // _free_AST(provided_expression_node_ptr);
+        _free_AST(provided_expression_node_ptr);
 
         return true;
     }
@@ -801,6 +797,14 @@ bool __varlet_identif(ParserOptions *parser_opt, Type *expected_var_type,
 
 
         if (*is_function) {
+            *provided_expression_node = ast_init();
+            if (*provided_expression_node == NULL) {
+                parser_opt->return_code = INTER_ERR;
+                return false;
+            }
+            (*provided_expression_node)->data_type = T_VOID;
+            // do not free token
+            (*provided_expression_node)->token.type = TOKEN_KEYWORD_INT;
             // save provided value type, in this case it's the return type of
             // the function
             if (!_function_call(parser_opt,
@@ -834,8 +838,14 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt,
         parser_opt->token.type == TOKEN_KEYWORD_LET ||
         parser_opt->token.type == TOKEN_KEYWORD_IF ||
         parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
-        // provided value type is void, which it's already initialized to, no
-        // changes needed
+        *provided_expression_node = ast_init();
+        if (*provided_expression_node == NULL) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+        (*provided_expression_node)->data_type = T_VOID;
+        // do not free token
+        (*provided_expression_node)->token.type = TOKEN_KEYWORD_INT;
         return true;
     } else if (parser_opt->token.type == TOKEN_ASSIGN) {
         if (!_next_token(parser_opt)) return false;
@@ -843,6 +853,14 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt,
         if (!_look_ahead_for_fn(parser_opt, is_function)) return false;
 
         if (*is_function) {
+            *provided_expression_node = ast_init();
+            if (*provided_expression_node == NULL) {
+                parser_opt->return_code = INTER_ERR;
+                return false;
+            }
+            (*provided_expression_node)->data_type = T_VOID;
+            // do not free token
+            (*provided_expression_node)->token.type = TOKEN_KEYWORD_INT;
             // save provided value type, in this case it's the return type of
             // the function
             if (!_function_call(parser_opt,
@@ -970,24 +988,28 @@ bool __if(ParserOptions *parser_opt) {
         return false;
     }
 
+    // semantically analyze if expression exists 
+    if (expression_node->data_type == T_VOID) {
+        _free_AST(expression_node);
+        parser_opt->return_code = STX_ERR;
+        return false;
+    }
+
     // semantically analyze if (check if expression is of type bool)
     if (expression_node->data_type != T_BOOL) {
-        // TODO: fix double free
-        // _free_AST(expression_node);
+        _free_AST(expression_node);
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;
     }
 
     if (!generate_expression(&parser_opt->gen_var, expression_node,
                              parser_opt->symtable)) {
-        // TODO: fix double free
-        // _free_AST(expression_node);
+        _free_AST(expression_node);
         parser_opt->return_code = INTER_ERR;
         return false;
     }
 
-    // TODO: fix double free
-    // _free_AST(expression_node);
+    _free_AST(expression_node);
 
     if (!sbuffer_printf(parser_opt->gen_var.scope, "  PUSHS bool@false\n"
                                                    "  JUMPIFEQS %sf\n",
@@ -1108,24 +1130,28 @@ bool _while_command(ParserOptions *parser_opt) {
         return false;
     }
 
+    // semantically analyze if expression exists 
+    if (expression_node->data_type == T_VOID) {
+        _free_AST(expression_node);
+        parser_opt->return_code = STX_ERR;
+        return false;
+    }
+
     // semantically analyze while (check if expression is of type bool)
     if (expression_node->data_type != T_BOOL) {
-        // TODO: fix double free
-        //_free_AST(expression_node);
+        _free_AST(expression_node);
         parser_opt->return_code = EXPRTYPE_ERR;
         return false;
     }
 
     if (!generate_expression(&parser_opt->gen_var, expression_node,
                              parser_opt->symtable)) {
-        // TODO: fix double free
-        // _free_AST(expression_node);
+        _free_AST(expression_node);
         parser_opt->return_code = INTER_ERR;
         return false;
     }
 
-    // TODO: fix double free
-    // _free_AST(expression_node);
+    _free_AST(expression_node);
 
     if (!sbuffer_printf(parser_opt->gen_var.scope, "  PUSHS bool@false\n"
                                                    "  JUMPIFEQS %send\n",

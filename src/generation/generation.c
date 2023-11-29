@@ -527,8 +527,22 @@ bool _generate_short_circuit_eval(GenerationVariables *gen_var, ASTNode *ast,
     return true;
 }
 
+ASTNode* ast_init() {
+    ASTNode *node = malloc(sizeof(ASTNode));
+    if (node == NULL) {
+        return NULL;
+    }
+    node->data_type = T_VOID;
+    node->token.type = TOKEN_KEYWORD_INT;
+    node->left = NULL;
+    node->right = NULL;
+    return node;
+}
+
 bool generate_expression(GenerationVariables *gen_var, ASTNode *ast,
                          ListST *symtable) {
+    if (ast == NULL || ast->data_type == T_VOID) return true;
+
     gen_var->expr_n++;
 
     char *init_label;

@@ -31,6 +31,4 @@ int main() {
         default:
             return 99;
     }
-
-    // fclose(in);
 }
