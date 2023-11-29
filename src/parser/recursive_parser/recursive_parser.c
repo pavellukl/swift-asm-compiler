@@ -741,7 +741,6 @@ bool _variable_def(ParserOptions *parser_opt) {
         Type expected_var_type = T_VOID;
         ASTNode provided_expression_node = {.data_type = T_VOID};
         ASTNode *provided_expression_node_ptr = &provided_expression_node;
-        // TODO handle generation differently according to this bool
         bool is_function = false;
 
         if (!__varlet_identif(parser_opt, &expected_var_type,
@@ -875,7 +874,6 @@ bool _conditional_command(ParserOptions *parser_opt) {
 }
 
 bool __if(ParserOptions *parser_opt) {
-    // TODO handle defined values of variables in branches
     if (parser_opt->token.type == TOKEN_KEYWORD_LET) {
         if (!_next_token(parser_opt)) return false;
 
@@ -927,7 +925,6 @@ bool __if(ParserOptions *parser_opt) {
         // free token string value
         free(identifier);
 
-        // TODO
         bool has_returns_tmp = parser_opt->sem_ctx.has_function_all_returns;
         parser_opt->sem_ctx.has_function_all_returns = false;
         if (!_scope_body(parser_opt)) return false;
@@ -964,9 +961,6 @@ bool __if(ParserOptions *parser_opt) {
         } else {
             parser_opt->sem_ctx.has_function_all_returns = has_returns_tmp;
         }
-
-        // TODO collect data for checking if all branches have return and check
-        // here
 
         return true;
     }
@@ -1011,8 +1005,6 @@ bool __if(ParserOptions *parser_opt) {
         return false;
     }
 
-    // TODO
-
     bool has_returns_tmp = parser_opt->sem_ctx.has_function_all_returns;
     parser_opt->sem_ctx.has_function_all_returns = false;
 
@@ -1034,7 +1026,6 @@ bool __if(ParserOptions *parser_opt) {
 
     // pop if scope
     st_pop_scope(parser_opt->symtable);
-    // TODO
     parser_opt->sem_ctx.has_function_all_returns = false;
     bool has_else_branch = false;
     if (!__if_let_identif_body(parser_opt, &has_else_branch)) return false;
@@ -1099,7 +1090,6 @@ bool __if_let_identif_body_else(ParserOptions *parser_opt,
 
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
-        // TODO: why isn't has_else_branch = true here as well?
         return _conditional_command(parser_opt);
     }
     parser_opt->return_code = STX_ERR;
@@ -1710,7 +1700,7 @@ void parse_function_definition(ParserOptions *parser_opt) {
 
 void parse_check_optimize_generate(ParserOptions *parser_opt) {
     // get first token
-    if (!_next_token(parser_opt)) return;
+    if (!_first_token(parser_opt)) return;
 
     // generate local frame for global scope (for variables in if and while)
     if (!sbuffer_printf(parser_opt->gen_var.main, "  CREATEFRAME\n"
