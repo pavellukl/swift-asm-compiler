@@ -1,3 +1,10 @@
+/**
+ * @file precedence_table.h
+ * @brief Contains definitions of structs and macros for the precedence table.
+ * 
+ * @author Jan Klanica (xklani00)
+ */
+
 #ifndef PRECEDENCE_TABLE_H
 #define PRECEDENCE_TABLE_H
 
@@ -19,7 +26,10 @@ typedef enum {
 typedef const PPOperation PrecedenceTable[][NONTERMINAL_EXPRESSION];
 
 
-/** @brief Precedence table written in format to easily initialize a variable.*/
+/** 
+ * @brief Precedence table written in the format to easily initialize
+ * a variable.
+ */
 #define PRECEDENCE_TABLE                                                       \
 {                                                                              \
    [TERMINAL_ADD][TERMINAL_ADD]            = PP_REDUCE,                        \

@@ -1,3 +1,11 @@
+/**
+ * @file precedence_parser.h
+ * @brief Contains definitions of structs and functions for the precedence
+ *        parser.
+ * 
+ * @author Jan Klanica (xklani00)
+ */
+
 #ifndef PRECEDENCE_PARSER_H
 #define PRECEDENCE_PARSER_H
 

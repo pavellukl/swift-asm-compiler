@@ -1,3 +1,10 @@
+/**
+ * @file arguments.c
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #include "arguments.h"
 
 void init_argument_array(Arguments *arguments) {

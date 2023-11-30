@@ -1,6 +1,14 @@
+/**
+ * @file token.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef TOKEN_H
 #define TOKEN_H
 
+// TODO: comments
 typedef enum {
     TOKEN_IDENTIF,
     TOKEN_KEYWORD_DOUBLE,        // Double
@@ -50,6 +58,7 @@ typedef enum {
     TOKEN_END_OF_FILE
 } TokenType;
 
+// TODO: comments
 typedef union {
     char* string;
     long long int int_value;
@@ -57,6 +66,7 @@ typedef union {
     bool boolean;
 } TokenValue;
 
+// TODO: comments
 typedef struct {
     TokenType type;
     int id;

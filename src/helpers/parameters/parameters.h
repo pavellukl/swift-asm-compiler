@@ -1,3 +1,10 @@
+/**
+ * @file parameters.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef PARAMETERS_H
 #define PARAMETERS_H
 

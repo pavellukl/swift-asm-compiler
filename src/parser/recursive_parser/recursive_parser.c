@@ -1,3 +1,10 @@
+/**
+ * @file recursive_parser.c
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #include "recursive_parser.h"
 
 bool _look_ahead_for_fn(ParserOptions *parser_opt, bool *is_function) {

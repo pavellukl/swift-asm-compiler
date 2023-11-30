@@ -1,3 +1,10 @@
+/**
+ * @file scanner.c
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #include <ctype.h>
 #include <stdbool.h>
 #include <stdio.h>

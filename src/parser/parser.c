@@ -1,3 +1,10 @@
+/**
+ * @file parser.c
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #include "parser.h"
 
 bool _next_token(ParserOptions *parser_opt) {

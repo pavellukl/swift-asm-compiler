@@ -1,3 +1,11 @@
+/**
+ * @file compiler.c
+ * @brief Contains definitions of structs and functions for the compiler.
+ * 
+ * @author Jan Klanica (xklani00)
+ * @author Pavel Lukl (xklukl00)
+ */
+
 #ifndef COMPILER_H
 #define COMPILER_H
 
@@ -10,7 +18,7 @@
 #include "../parser/recursive_parser/recursive_parser.h"
 #include "../semantic_analyser/semantic_analyser.h"
 
-/// @brief Possible return values of compiler.
+/// @brief Possible return values of the compiler.
 typedef enum {
     COMP_OK,
     COMP_LEX_ERR,
@@ -34,6 +42,12 @@ typedef enum {
  */
 CompilerReturnCode compile(FILE *in, FILE *out);
 
+/**
+ * @brief Converts parser return code to the compiler return code.
+ * 
+ * @param rp_retrun_value Parser return code to be converted.
+ * @return CompilerReturnCode
+ */
 CompilerReturnCode _get_return_code(ParserReturnCode rp_retrun_value);
 
 #endif /* COMPILER_H */

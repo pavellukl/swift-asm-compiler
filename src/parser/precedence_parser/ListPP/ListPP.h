@@ -1,3 +1,11 @@
+/**
+ * @file ListPP.h
+ * @brief Contains definitions of structs and functions for the list used in the
+ *        precedence parsing.
+ * 
+ * @author Jan Klanica (xklani00)
+ */
+
 #ifndef LIST_PP_H
 #define LIST_PP_H
 
@@ -19,9 +27,12 @@ typedef enum {
     TERMINAL_R_BRACKET, TERMINAL_EMPTY, NONTERMINAL_EXPRESSION, FLAG_HANDLE
 } PPListItemType;
 
+/** 
+ * @brief Item of the list in the precedence parsing.
+ */
 typedef struct {
-    PPListItemType pp_type;
-    ASTNode *node;
+    PPListItemType pp_type; /* type identifier of the list item */
+    ASTNode *node; /* expression abstract syntax tree node */
 } PPListItem;
 
 LIST_DEC(PPListItem, PP, pp)

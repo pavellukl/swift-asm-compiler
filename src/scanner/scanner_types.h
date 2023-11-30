@@ -1,3 +1,10 @@
+/**
+ * @file scanner_types.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef SCANNER_TYPES_H
 #define SCANNER_TYPES_H
 
@@ -10,6 +17,7 @@
 #include "StackTokenData/StackTokenData.h"
 #include "token.h"
 
+// TODO: comments
 typedef enum {
     START,
     DIV,
@@ -56,6 +64,7 @@ typedef enum {
     AND
 } AutomatState;
 
+// TODO: comments
 typedef struct {
     char *file;
     int i;
@@ -65,6 +74,7 @@ typedef struct {
     StackTokenData *returned_tokens;
 } ScannerOptions;
 
+// TODO: comments
 typedef struct {
     char *buffer;
     int i;

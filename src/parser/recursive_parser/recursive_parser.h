@@ -1,3 +1,10 @@
+/**
+ * @file recursive_parser.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef RECURSIVE_PARSER_H
 #define RECURSIVE_PARSER_H
 
@@ -6,8 +13,12 @@
 #include "../parser.h"
 #include "../precedence_parser/precedence_parser.h"
 
+
+// TODO: comments
 bool add_inbuilt_functions_to_symtable(ListST *symtable);
+// TODO: comments
 void parse_check_optimize_generate(ParserOptions *parser_opt);
+// TODO: comments
 void parse_function_definition(ParserOptions *parser_opt);
 
 bool _program(ParserOptions *parser_opt);

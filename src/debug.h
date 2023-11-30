@@ -1,3 +1,10 @@
+/**
+ * @file debug.h
+ * @brief Contains definitions of debuging macros.
+ * 
+ * @author Jan Klanica (xklani00)
+ */
+
 #ifndef DEBUG_H
 #define DEBUG_H
 

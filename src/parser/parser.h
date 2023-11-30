@@ -1,3 +1,10 @@
+/**
+ * @file parser.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef PARSER_H
 #define PARSER_H
 
@@ -38,7 +45,9 @@ typedef struct {
 #include "../semantic_analyser/semantic_analyser.h"
 #include "../scanner/scanner_func.h"
 
+// TODO: comments
 bool _next_token(ParserOptions *parser_opt);
+// TODO: comments
 bool _first_token(ParserOptions *parser_opt);
 
 #endif /* PARSER_H */

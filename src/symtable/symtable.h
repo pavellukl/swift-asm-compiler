@@ -1,3 +1,10 @@
+/**
+ * @file symtable.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef SYMTABLE_H
 #define SYMTABLE_H
 

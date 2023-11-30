@@ -1,3 +1,10 @@
+/**
+ * @file arguments.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef ARGUMENTS_H
 #define ARGUMENTS_H
 

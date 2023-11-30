@@ -1,3 +1,10 @@
+/**
+ * @file string_buffer.c
+ * @brief Contains the implementation of the string buffer.
+ * 
+ * @author Jan Klanica (xklani00)
+ */
+
 #include "string_buffer.h"
 
 SBuffer *sbuffer_init() {

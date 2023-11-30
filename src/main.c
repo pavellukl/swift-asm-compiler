@@ -1,8 +1,19 @@
-#include "main.h"
+/**
+ * @file main.c
+ * @brief Contains main body of the console compiler aplication.
+ * 
+ * @author Jan Klanica (xklani00)
+ */
+
+#include <stdio.h>
+#include "debug.h"
+#include "compiler/compiler.h"
 
 int main() {
+    // TODO: remove
     // for debugging purposes
     // FILE* in = fopen("./tests/generation/test_files/if.swift", "r");
+    // TODO: remove pointer and address it directly
     FILE* in = stdin;
 
     switch (compile(in, stdout)) {

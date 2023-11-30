@@ -1,3 +1,11 @@
+/**
+ * @file generation.h
+ * @brief Contains definitions of structs and functions for the generation.
+ * 
+ * @author Jan Klanica (xklani00)
+ * @author Denis Milistenfer (xmilis00)
+ */
+
 #ifndef GENERATION_H
 #define GENERATION_H
 
@@ -10,17 +18,18 @@
 #include "../helpers/utils.h"
 #include "../debug.h"
 
+/** @brief Handy struct for passing variables in recursive descent parser */
 typedef struct {
-    SBuffer *selected;
-    SBuffer *main;
-    SBuffer *functions;
-    SBuffer *scope;
-    SBuffer *label;
-    int scope_n;
-    int if_n;
-    int while_n;
-    int expr_n;
-    int counter_n;
+    SBuffer *selected; /* main or functions */
+    SBuffer *main; /* buffer for main scope */
+    SBuffer *functions; /* buffer for functions scope */
+    SBuffer *scope; /* buffer for side saving content of the scope */
+    SBuffer *label; /* buffer for default label name */
+    int scope_n; /* counter of scopes */
+    int if_n; /* counter of if occurrence */
+    int while_n; /* counter of while occurrence */
+    int expr_n; /* counter of expression occurrence */
+    int counter_n; /* simple counter for expression */
 } GenerationVariables;
 
 /** @brief Abstract syntax tree node for an expression. */

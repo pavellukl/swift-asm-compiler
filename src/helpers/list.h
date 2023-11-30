@@ -1,3 +1,10 @@
+/**
+ * @file list.h
+ * @brief Contains definitions of structs, functions and macros for the list.
+ * 
+ * @author Jan Klanica (xklani00)
+ */
+
 #ifndef LIST_H
 #define LIST_H
 

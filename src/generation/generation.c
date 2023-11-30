@@ -1,3 +1,11 @@
+/**
+ * @file generation.c
+ * @brief Contains the implementation of the generation.
+ * 
+ * @author Jan Klanica (xklani00)
+ * @author Denis Milistenfer (xmilis00)
+ */
+
 #include "generation.h"
 
 bool generation_init(GenerationVariables *gen_var) {

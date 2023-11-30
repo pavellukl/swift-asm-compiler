@@ -1,3 +1,10 @@
+/**
+ * @file utils.c
+ * @brief Contains the implementation of the utility functions.
+ *
+ * @author Jan Klanica (xklani00)
+ */
+
 #include "utils.h"
 
 bool clone_string(char **dest, char *src) {

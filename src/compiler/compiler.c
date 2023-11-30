@@ -1,3 +1,11 @@
+/**
+ * @file compiler.c
+ * @brief Contains the implementation of the compiler.
+ * 
+ * @author Jan Klanica (xklani00)
+ * @author Pavel Lukl (xklukl00)
+ */
+
 #include "compiler.h"
 
 CompilerReturnCode _get_return_code(ParserReturnCode rp_return_value) {

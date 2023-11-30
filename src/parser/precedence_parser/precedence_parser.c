@@ -1,3 +1,10 @@
+/**
+ * @file precedence_parser.c
+ * @brief Contains the implementation of the precedence parser.
+ * 
+ * @author Jan Klanica (xklani00)
+ */
+
 #include "precedence_parser.h"
 
 void _free_AST(ASTNode *node) {

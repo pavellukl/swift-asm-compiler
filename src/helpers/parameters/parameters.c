@@ -1,3 +1,10 @@
+/**
+ * @file parameters.c
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #include "parameters.h"
 
 void init_parameter_array(Parameters *params) {

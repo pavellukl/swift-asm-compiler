@@ -1,3 +1,10 @@
+/**
+ * @file string_buffer.h
+ * @brief Contains definitions of structs and functions for the string buffer.
+ * 
+ * @author Jan Klanica (xklani00)
+ */
+
 #ifndef STRING_BUFFER_H
 #define STRING_BUFFER_H
 

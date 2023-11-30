@@ -1,3 +1,11 @@
+/**
+ * @file semantic_analyser.h
+ * @brief Contains definitions of functions for the semantic analysis.
+ * 
+ * @author Pavel Lukl (xluklp00)
+ * @author Jan Klanica (xklani00)
+ */
+
 #ifndef SEMANTIC_ANALYSER_H
 #define SEMANTIC_ANALYSER_H
 

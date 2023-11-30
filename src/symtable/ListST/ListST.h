@@ -1,3 +1,10 @@
+/**
+ * @file ListST.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef LIST_ST_H
 #define LIST_ST_H
 
@@ -19,6 +26,7 @@ typedef enum {
 
 typedef enum { CONSTANT, VARIABLE, FUNCTION } Variant;
 
+// TODO: comments
 typedef struct Argument {
     char* name;
     char* identifier;
@@ -27,18 +35,21 @@ typedef struct Argument {
     TokenType token_type;
 } Argument;
 
+// TODO: comments
 typedef struct Arguments {
     int size;
     int capacity;
     Argument* argument_arr;
 } Arguments;
 
+// TODO: comments
 typedef struct Parameter {
     char* name;
     char* identifier;
     Type par_type;
 } Parameter;
 
+// TODO: comments
 typedef struct Parameters {
     bool infinite;
     int size;
@@ -46,6 +57,7 @@ typedef struct Parameters {
     Parameter* parameters_arr;
 } Parameters;
 
+// TODO: comments
 typedef union {
     long long int int_value;
     char* string_value;
@@ -54,6 +66,7 @@ typedef union {
     Parameters parameters;
 } LSTElementValue;
 
+// TODO: comments
 typedef struct LSTElement {
     char* identifier;
     Type return_type;
@@ -62,6 +75,7 @@ typedef struct LSTElement {
     LSTElementValue value;
 } LSTElement;
 
+// TODO: comments
 typedef struct ListElement {
     int identifier;
     LSTElement** local_table;  // hash table

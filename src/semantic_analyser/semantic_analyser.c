@@ -1,3 +1,12 @@
+/**
+ * @file semantic_analyser.c
+ * @brief Contains the implementation of the functions for the semantic
+ *        analysis.
+ * 
+ * @author Pavel Lukl (xluklp00)
+ * @author Jan Klanica (xklani00)
+ */
+
 #include "semantic_analyser.h"
 
 void init_semantic_context(SemanticContext *sem_ctx) {

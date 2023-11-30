@@ -1,3 +1,10 @@
+/**
+ * @file StackTokenData.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef STACK_TOKEN_DATA_H
 #define STACK_TOKEN_DATA_H
 

@@ -1,3 +1,10 @@
+/**
+ * @file symtable.c
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #include "symtable.h"
 
 unsigned int _get_hash(char* str) {

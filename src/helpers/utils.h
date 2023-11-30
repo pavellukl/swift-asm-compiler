@@ -1,3 +1,10 @@
+/**
+ * @file utils.h
+ * @brief Contains definitions of the utility functions.
+ *
+ * @author Jan Klanica (xklani00)
+ */
+
 #ifndef UTILS_H
 #define UTILS_H
 
