@@ -2,7 +2,10 @@
 
 int main() {
     // for debugging purposes
-    // FILE* in = fopen("./tests/generation/test_files/if.swift", "r");
+    // FILE* in = fopen(
+    //     "./tests/syntax_semantics/test_files/"
+    //     "while_cycle.swift",
+    //     "r");
     FILE* in = stdin;
 
     switch (compile(in, stdout)) {

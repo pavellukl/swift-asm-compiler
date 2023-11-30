@@ -35,7 +35,14 @@ bool _program(ParserOptions *parser_opt) {
                parser_opt->token.type == TOKEN_KEYWORD_IF ||
                parser_opt->token.type == TOKEN_KEYWORD_WHILE ||
                parser_opt->token.type == TOKEN_IDENTIF) {
-        return _command(parser_opt) && _program(parser_opt);
+        if (!parser_opt->token.eol_before &&
+            parser_opt->sem_ctx.n_scope_commands > 0) {
+            parser_opt->sem_ctx.is_eol_before_required = true;
+        }
+        parser_opt->sem_ctx.n_scope_commands++;
+        if (!_command(parser_opt)) return false;
+
+        return _program(parser_opt);
     }
     parser_opt->return_code = STX_ERR;
     return false;
@@ -402,9 +409,13 @@ bool _scope_body(ParserOptions *parser_opt) {
     }
     if (!_next_token(parser_opt)) return false;
 
+    unsigned int tmp = parser_opt->sem_ctx.n_scope_commands;
+    parser_opt->sem_ctx.n_scope_commands = 0;
     if (!_command_sequence(parser_opt)) {
         return false;
     }
+
+    parser_opt->sem_ctx.n_scope_commands = tmp;
 
     if (parser_opt->token.type != TOKEN_R_CRLY_BRACKET) {
         parser_opt->return_code = STX_ERR;
@@ -424,7 +435,15 @@ bool _command_sequence(ParserOptions *parser_opt) {
                parser_opt->token.type == TOKEN_KEYWORD_LET ||
                parser_opt->token.type == TOKEN_KEYWORD_IF ||
                parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
-        return _command(parser_opt) && _command_sequence(parser_opt);
+        if (!parser_opt->token.eol_before &&
+            parser_opt->sem_ctx.n_scope_commands > 0) {
+            parser_opt->sem_ctx.is_eol_before_required = true;
+        }
+        parser_opt->sem_ctx.n_scope_commands++;
+
+        if (!_command(parser_opt)) return false;
+
+        return _command_sequence(parser_opt);
     }
     parser_opt->return_code = STX_ERR;
     return false;
@@ -457,8 +476,8 @@ bool _command(ParserOptions *parser_opt) {
     } else if (parser_opt->token.type == TOKEN_KEYWORD_VAR ||
                parser_opt->token.type == TOKEN_KEYWORD_LET) {
         return _variable_def(parser_opt);
-    } else if (parser_opt->token.type != TOKEN_KEYWORD_IF
-               && parser_opt->token.type != TOKEN_KEYWORD_WHILE) {
+    } else if (parser_opt->token.type != TOKEN_KEYWORD_IF &&
+               parser_opt->token.type != TOKEN_KEYWORD_WHILE) {
         parser_opt->return_code = STX_ERR;
         return false;
     }
