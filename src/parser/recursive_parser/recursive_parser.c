@@ -42,7 +42,14 @@ bool _program(ParserOptions *parser_opt) {
                parser_opt->token.type == TOKEN_KEYWORD_IF ||
                parser_opt->token.type == TOKEN_KEYWORD_WHILE ||
                parser_opt->token.type == TOKEN_IDENTIF) {
-        return _command(parser_opt) && _program(parser_opt);
+        if (!parser_opt->token.eol_before &&
+            parser_opt->sem_ctx.n_scope_commands > 0) {
+            parser_opt->sem_ctx.is_eol_before_required = true;
+        }
+        parser_opt->sem_ctx.n_scope_commands++;
+        if (!_command(parser_opt)) return false;
+
+        return _program(parser_opt);
     }
     parser_opt->return_code = STX_ERR;
     return false;
@@ -409,9 +416,13 @@ bool _scope_body(ParserOptions *parser_opt) {
     }
     if (!_next_token(parser_opt)) return false;
 
+    unsigned int tmp = parser_opt->sem_ctx.n_scope_commands;
+    parser_opt->sem_ctx.n_scope_commands = 0;
     if (!_command_sequence(parser_opt)) {
         return false;
     }
+
+    parser_opt->sem_ctx.n_scope_commands = tmp;
 
     if (parser_opt->token.type != TOKEN_R_CRLY_BRACKET) {
         parser_opt->return_code = STX_ERR;
@@ -431,7 +442,15 @@ bool _command_sequence(ParserOptions *parser_opt) {
                parser_opt->token.type == TOKEN_KEYWORD_LET ||
                parser_opt->token.type == TOKEN_KEYWORD_IF ||
                parser_opt->token.type == TOKEN_KEYWORD_WHILE) {
-        return _command(parser_opt) && _command_sequence(parser_opt);
+        if (!parser_opt->token.eol_before &&
+            parser_opt->sem_ctx.n_scope_commands > 0) {
+            parser_opt->sem_ctx.is_eol_before_required = true;
+        }
+        parser_opt->sem_ctx.n_scope_commands++;
+
+        if (!_command(parser_opt)) return false;
+
+        return _command_sequence(parser_opt);
     }
     parser_opt->return_code = STX_ERR;
     return false;
@@ -464,8 +483,8 @@ bool _command(ParserOptions *parser_opt) {
     } else if (parser_opt->token.type == TOKEN_KEYWORD_VAR ||
                parser_opt->token.type == TOKEN_KEYWORD_LET) {
         return _variable_def(parser_opt);
-    } else if (parser_opt->token.type != TOKEN_KEYWORD_IF
-               && parser_opt->token.type != TOKEN_KEYWORD_WHILE) {
+    } else if (parser_opt->token.type != TOKEN_KEYWORD_IF &&
+               parser_opt->token.type != TOKEN_KEYWORD_WHILE) {
         parser_opt->return_code = STX_ERR;
         return false;
     }
@@ -507,7 +526,8 @@ bool _command(ParserOptions *parser_opt) {
             parser_opt->return_code = INTER_ERR;
             return false;
         }
-        if (!_conditional_command(parser_opt)) {
+        bool tmp = false;
+        if (!_conditional_command(parser_opt, &tmp)) {
             free(tmp_label);
             return false;
         }
@@ -893,16 +913,16 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt,
     return false;
 }
 
-bool _conditional_command(ParserOptions *parser_opt) {
+bool _conditional_command(ParserOptions *parser_opt, bool *has_else_branch) {
     if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
         if (!_next_token(parser_opt)) return false;
-        return __if(parser_opt);
+        return __if(parser_opt, has_else_branch);
     }
     parser_opt->return_code = STX_ERR;
     return false;
 }
 
-bool __if(ParserOptions *parser_opt) {
+bool __if(ParserOptions *parser_opt, bool *has_else_branch) {
     if (parser_opt->token.type == TOKEN_KEYWORD_LET) {
         if (!_next_token(parser_opt)) return false;
 
@@ -979,10 +999,10 @@ bool __if(ParserOptions *parser_opt) {
         el->return_type = initial_var_type;
 
         parser_opt->sem_ctx.has_function_all_returns = false;
-        bool has_else_branch = false;
-        if (!__if_let_identif_body(parser_opt, &has_else_branch)) return false;
+        *has_else_branch = false;
+        if (!__if_let_identif_body(parser_opt, has_else_branch)) return false;
 
-        if (has_else_branch) {
+        if (*has_else_branch) {
             parser_opt->sem_ctx.has_function_all_returns =
                 (has_if_return &&
                  parser_opt->sem_ctx.has_function_all_returns) ||
@@ -1060,10 +1080,10 @@ bool __if(ParserOptions *parser_opt) {
     // pop if scope
     st_pop_scope(parser_opt->symtable);
     parser_opt->sem_ctx.has_function_all_returns = false;
-    bool has_else_branch = false;
-    if (!__if_let_identif_body(parser_opt, &has_else_branch)) return false;
+    *has_else_branch = false;
+    if (!__if_let_identif_body(parser_opt, has_else_branch)) return false;
 
-    if (has_else_branch) {
+    if (*has_else_branch) {
         parser_opt->sem_ctx.has_function_all_returns =
             (has_if_return && parser_opt->sem_ctx.has_function_all_returns) ||
             has_returns_tmp;
@@ -1123,7 +1143,7 @@ bool __if_let_identif_body_else(ParserOptions *parser_opt,
 
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
-        return _conditional_command(parser_opt);
+        return _conditional_command(parser_opt, has_else_branch);
     }
     parser_opt->return_code = STX_ERR;
     return false;

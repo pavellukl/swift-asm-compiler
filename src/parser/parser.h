@@ -8,9 +8,9 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#include "../generation/generation.h"
 #include "../scanner/scanner_types.h"
 #include "../symtable/symtable.h"
-#include "../generation/generation.h"
 
 typedef enum {
     OK,
@@ -29,6 +29,8 @@ typedef enum {
 typedef struct {
     LSTElement *current_fnc;
     bool has_function_all_returns;
+    unsigned int n_scope_commands;
+    bool is_eol_before_required;
 } SemanticContext;
 
 typedef struct {

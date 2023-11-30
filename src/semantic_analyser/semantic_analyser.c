@@ -12,6 +12,8 @@
 void init_semantic_context(SemanticContext *sem_ctx) {
     sem_ctx->current_fnc = NULL;
     sem_ctx->has_function_all_returns = false;
+    sem_ctx->n_scope_commands = 0;
+    sem_ctx->is_eol_before_required = false;
 }
 
 bool analyze_function_dec(ParserOptions *parser_opt, Parameters *params) {
