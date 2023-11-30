@@ -315,7 +315,10 @@ bool _reduce_list_until_handle(ParserOptions *parser_opt, ListPP *list) {
     list_pp_delete_first(list);  // deletes handle
 
     // add result of the rule to the list
-    if (list_pp_insert_first(list, new_item) == LIST_ALLOC_ERR) return false;
+    if (list_pp_insert_first(list, new_item) == LIST_ALLOC_ERR) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
 
     return true;
 }

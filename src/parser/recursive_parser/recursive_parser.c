@@ -746,7 +746,6 @@ bool _variable_def(ParserOptions *parser_opt) {
         if (!__varlet_identif(parser_opt, &expected_var_type,
                               &provided_expression_node_ptr, &is_function)) {
             free(identif);
-            _free_AST(provided_expression_node_ptr);
             return false;
         }
 
@@ -808,8 +807,10 @@ bool __varlet_identif(ParserOptions *parser_opt, Type *expected_var_type,
             // save provided value type, in this case it's the return type of
             // the function
             if (!_function_call(parser_opt,
-                                &(*provided_expression_node)->data_type))
+                                &(*provided_expression_node)->data_type)) {
+                _free_AST(*provided_expression_node);
                 return false;
+            }
 
             return true;
         } else {
@@ -864,8 +865,11 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt,
             // save provided value type, in this case it's the return type of
             // the function
             if (!_function_call(parser_opt,
-                                &(*provided_expression_node)->data_type))
+                                &(*provided_expression_node)->data_type)) {
+
+                _free_AST(*provided_expression_node);
                 return false;
+            }
 
             return true;
         } else {
