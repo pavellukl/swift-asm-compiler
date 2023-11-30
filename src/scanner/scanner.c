@@ -1121,7 +1121,9 @@ bool get_next_token(ParserOptions* parser_opt) {
                 return true;
 
             case WHITE_SPACE:
-                new_line_before_token = _skip_whitespaces(&parser_opt->sc_opt);
+                new_line_before_token =
+                    _skip_whitespaces(&parser_opt->sc_opt) ||
+                    new_line_before_token;
                 current_char = get_next_char(&parser_opt->sc_opt);
                 current_state = START;
                 break;

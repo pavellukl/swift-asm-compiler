@@ -4,7 +4,7 @@ int main() {
     // for debugging purposes
     // FILE* in = fopen(
     //     "./tests/syntax_semantics/test_files/"
-    //     "while_cycle.swift",
+    //     "fnc_return0.swift",
     //     "r");
     FILE* in = stdin;
 

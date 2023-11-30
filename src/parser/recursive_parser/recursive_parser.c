@@ -519,7 +519,8 @@ bool _command(ParserOptions *parser_opt) {
             parser_opt->return_code = INTER_ERR;
             return false;
         }
-        if (!_conditional_command(parser_opt)) {
+        bool tmp = false;
+        if (!_conditional_command(parser_opt, &tmp)) {
             free(tmp_label);
             return false;
         }
@@ -905,16 +906,16 @@ bool __varlet_identif_colon_type(ParserOptions *parser_opt,
     return false;
 }
 
-bool _conditional_command(ParserOptions *parser_opt) {
+bool _conditional_command(ParserOptions *parser_opt, bool *has_else_branch) {
     if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
         if (!_next_token(parser_opt)) return false;
-        return __if(parser_opt);
+        return __if(parser_opt, has_else_branch);
     }
     parser_opt->return_code = STX_ERR;
     return false;
 }
 
-bool __if(ParserOptions *parser_opt) {
+bool __if(ParserOptions *parser_opt, bool *has_else_branch) {
     if (parser_opt->token.type == TOKEN_KEYWORD_LET) {
         if (!_next_token(parser_opt)) return false;
 
@@ -991,10 +992,10 @@ bool __if(ParserOptions *parser_opt) {
         el->return_type = initial_var_type;
 
         parser_opt->sem_ctx.has_function_all_returns = false;
-        bool has_else_branch = false;
-        if (!__if_let_identif_body(parser_opt, &has_else_branch)) return false;
+        *has_else_branch = false;
+        if (!__if_let_identif_body(parser_opt, has_else_branch)) return false;
 
-        if (has_else_branch) {
+        if (*has_else_branch) {
             parser_opt->sem_ctx.has_function_all_returns =
                 (has_if_return &&
                  parser_opt->sem_ctx.has_function_all_returns) ||
@@ -1072,10 +1073,10 @@ bool __if(ParserOptions *parser_opt) {
     // pop if scope
     st_pop_scope(parser_opt->symtable);
     parser_opt->sem_ctx.has_function_all_returns = false;
-    bool has_else_branch = false;
-    if (!__if_let_identif_body(parser_opt, &has_else_branch)) return false;
+    *has_else_branch = false;
+    if (!__if_let_identif_body(parser_opt, has_else_branch)) return false;
 
-    if (has_else_branch) {
+    if (*has_else_branch) {
         parser_opt->sem_ctx.has_function_all_returns =
             (has_if_return && parser_opt->sem_ctx.has_function_all_returns) ||
             has_returns_tmp;
@@ -1135,7 +1136,7 @@ bool __if_let_identif_body_else(ParserOptions *parser_opt,
 
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
-        return _conditional_command(parser_opt);
+        return _conditional_command(parser_opt, has_else_branch);
     }
     parser_opt->return_code = STX_ERR;
     return false;
