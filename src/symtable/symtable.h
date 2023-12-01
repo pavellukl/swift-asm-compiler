@@ -2,7 +2,7 @@
  * @file symtable.h
  * @brief TODO: file header
  *
- * @author your name (you@domain.com)
+ * @author Veronika Čalkovská (xcalko00)
  * @author Pave Lukl (xluklp00)
  */
 
@@ -10,12 +10,12 @@
 #define SYMTABLE_H
 
 #include <stdbool.h>
-#include <stdio.h>
-#include <string.h>
+
 
 #include "../helpers/parameters/parameters.h"
 #include "../helpers/utils.h"
 #include "ListST/ListST.h"
+
 
 #define HASH_SIZE 109
 
