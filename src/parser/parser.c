@@ -2,8 +2,8 @@
  * @file parser.c
  * @brief Implementation of the get_next_token wrapper functions
  *
- * @author Pavel Lukl (xluklp00)
  * @author Jan Klanica (xklani00)
+ * @author Pavel Lukl (xluklp00)
  */
 
 #include "parser.h"

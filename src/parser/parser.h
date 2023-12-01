@@ -3,8 +3,8 @@
  * @brief Header file containing structures for parsing and wrapper functions
  * for get_next_token functions
  *
- * @author Pavel Lukl (xluklp00)
  * @author Jan Klanica (xklani00)
+ * @author Pavel Lukl (xluklp00)
  */
 
 #ifndef PARSER_H
