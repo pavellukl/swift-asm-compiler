@@ -209,16 +209,16 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
                 _free_AST(items[0].node);
                 _free_AST(items[2].node);
             } else {
+                // data type tests
+                if (!analyze_binary_operation(parser_opt,
+                    items[1].node->token.type, items[0].node->data_type,
+                    items[2].node->data_type, &items[1].node->data_type)) {
+                    return false;
+                }
                 // build new_item (data type already set)
                 new_item->node = items[1].node;
                 new_item->node->left = items[0].node;
                 new_item->node->right = items[2].node;
-                // data type tests
-                if (!analyze_binary_operation(parser_opt,
-                    items[1].node->token.type, items[0].node->data_type,
-                    items[2].node->data_type, &new_item->node->data_type)) {
-                    return false;
-                }
             }
             break;
     }
