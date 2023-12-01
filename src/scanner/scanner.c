@@ -1,8 +1,10 @@
 /**
  * @file scanner.c
- * @brief TODO: file header
- * 
- * @author your name (you@domain.com)
+ * @brief contains implemenation of the scanner (get_next_token and some other
+ * service functions)
+ *
+ * @author Denis Milistenfer (xmilis00)
+ * @author Pavel Lukl (xluklp00)
  */
 
 #include <ctype.h>

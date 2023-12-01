@@ -1,8 +1,10 @@
 /**
  * @file recursive_parser.c
- * @brief TODO: file header
- * 
- * @author your name (you@domain.com)
+ * @brief contains function implementation for the recursive descent, some
+ * wrapper and utlitily functions
+ *
+ * @author Pavel Lukl (xluklp00)
+ * @author Jan Klanica (xklani00)
  */
 
 #include "recursive_parser.h"
