@@ -240,26 +240,17 @@ bool _function_head(ParserOptions *parser_opt, LSTElement *func,
     }
     // if on second run
     else if (!parser_opt->is_first_run) {
-        // if function wasn't already defined on the first run
-        // TODO can be removed if everything is working as it should
-        if (el == NULL || el->variant != FUNCTION) {
-            parser_opt->return_code = INTER_ERR;
-            return false;
+        *func_ptr = el;
+        // we have all the data and the checks were done in the first run,
+        // we can stop recursive descent once we consume all tokens until
+        // left curly bracket
+        while (parser_opt->token.type != TOKEN_L_CRLY_BRACKET) {
+            if (!_next_token(parser_opt)) {
+                return false;
+            };
         }
-        // if function is found, save the data for semantic analysis
-        else {
-            *func_ptr = el;
-            // we have all the data and the checks were done in the first run,
-            // we can stop recursive descent once we consume all tokens until
-            // left curly bracket
-            while (parser_opt->token.type != TOKEN_L_CRLY_BRACKET) {
-                if (!_next_token(parser_opt)) {
-                    return false;
-                };
-            }
 
-            return true;
-        }
+        return true;
     }
 
     // save new function name

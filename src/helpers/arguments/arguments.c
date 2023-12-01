@@ -1,8 +1,9 @@
 /**
  * @file arguments.c
- * @brief TODO: file header
- * 
- * @author your name (you@domain.com)
+ * @brief Contains implementation of the functions operating upon Arguments
+ * struct
+ *
+ * @author Pavel Lukl (xluklp00)
  */
 
 #include "arguments.h"

@@ -1,8 +1,10 @@
 /**
  * @file recursive_parser.h
- * @brief TODO: file header
- * 
- * @author your name (you@domain.com)
+ * @brief contains function definitions for the recursive descent and some
+ * wrapper functions
+ *
+ * @author Pavel Lukl (xluklp00)
+ * @author Jan Klanica (xklani00)
  */
 
 #ifndef RECURSIVE_PARSER_H
@@ -13,12 +15,27 @@
 #include "../parser.h"
 #include "../precedence_parser/precedence_parser.h"
 
-
-// TODO: comments
+/**
+ * @brief this function adds inbuilt functions to the symtable
+ *
+ * @param symtable the symtable struct pointer
+ */
 bool add_inbuilt_functions_to_symtable(ListST *symtable);
-// TODO: comments
+
+/**
+ * @brief this function implements the second run of the compiler
+ *
+ * @param parser_opt parser options struct pointer which contains data that
+ * needs to be passed around throughout the compiler
+ */
 void parse_check_optimize_generate(ParserOptions *parser_opt);
-// TODO: comments
+
+/**
+ * @brief this functions implements the first run of the compiler
+ *
+ * @param parser_opt parser options struct pointer which contains data that
+ * needs to be passed around throughout the compiler
+ */
 void parse_function_definition(ParserOptions *parser_opt);
 
 bool _program(ParserOptions *parser_opt);

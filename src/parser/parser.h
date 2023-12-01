@@ -1,8 +1,10 @@
 /**
  * @file parser.h
- * @brief TODO: file header
- * 
- * @author your name (you@domain.com)
+ * @brief Header file containing structures for parsing and wrapper functions
+ * for get_next_token functions
+ *
+ * @author Pavel Lukl (xluklp00)
+ * @author Jan Klanica (xklani00)
  */
 
 #ifndef PARSER_H
@@ -47,9 +49,20 @@ typedef struct {
 #include "../semantic_analyser/semantic_analyser.h"
 #include "../scanner/scanner_func.h"
 
-// TODO: comments
+/**
+ * @brief wrapper function for getting the next token, also handles newlines
+ * where necessary
+ *
+ * @param parser_opt parser options struct pointer which contains data that
+ * needs to be passed around throughout the compiler
+ */
 bool _next_token(ParserOptions *parser_opt);
-// TODO: comments
+/**
+ * @brief wrapper function for getting the first token
+ *
+ * @param parser_opt parser options struct pointer which contains data that
+ * needs to be passed around throughout the compiler
+ */
 bool _first_token(ParserOptions *parser_opt);
 
 #endif /* PARSER_H */

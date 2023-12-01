@@ -1,9 +1,10 @@
 /**
  * @file generation.c
  * @brief Contains the implementation of the generation.
- * 
+ *
  * @author Jan Klanica (xklani00)
  * @author Denis Milistenfer (xmilis00)
+ * @author Pavel Lukl (xluklp00)
  */
 
 #include "generation.h"

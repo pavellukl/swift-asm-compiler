@@ -1,9 +1,10 @@
 /**
  * @file generation.h
  * @brief Contains definitions of structs and functions for the generation.
- * 
+ *
  * @author Jan Klanica (xklani00)
  * @author Denis Milistenfer (xmilis00)
+ * @author Pavel Lukl (xluklp00)
  */
 
 #ifndef GENERATION_H

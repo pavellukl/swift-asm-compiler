@@ -1,8 +1,9 @@
 /**
  * @file parameters.c
- * @brief TODO: file header
- * 
- * @author your name (you@domain.com)
+ * @brief Contains implementation of the functions operating upon Parameters
+ * struct
+ *
+ * @author Pavel Lukl (xluklp00)
  */
 
 #include "parameters.h"

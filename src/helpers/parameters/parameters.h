@@ -1,8 +1,8 @@
 /**
  * @file parameters.h
- * @brief TODO: file header
- * 
- * @author your name (you@domain.com)
+ * @brief Header file for functions operating upon the Parameter struct
+ *
+ * @author Pavel Lukl (xluklp00)
  */
 
 #ifndef PARAMETERS_H

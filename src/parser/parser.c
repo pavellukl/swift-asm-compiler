@@ -1,16 +1,16 @@
 /**
  * @file parser.c
- * @brief TODO: file header
- * 
- * @author your name (you@domain.com)
+ * @brief Implementation of the get_next_token wrapper functions
+ *
+ * @author Pavel Lukl (xluklp00)
+ * @author Jan Klanica (xklani00)
  */
 
 #include "parser.h"
 
 bool _next_token(ParserOptions *parser_opt) {
     if (parser_opt->sem_ctx.is_eol_before_required &&
-        !parser_opt->token.eol_before /*&&
-        parser_opt->token.type != TOKEN_END_OF_FILE*/) {
+        !parser_opt->token.eol_before) {
         parser_opt->return_code = STX_ERR;
         return false;
     }

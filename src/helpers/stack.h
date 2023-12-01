@@ -1,8 +1,9 @@
 /**
  * @file stack.h
- * @brief TODO: file header
+ * @brief Contains definitions of structs, functions and macros for the ADT
+ * stack.
  *
- * @author your name (you@domain.com)
+ * @author Pavel Lukl (xluklp00)
  */
 
 #ifndef STACK_H
