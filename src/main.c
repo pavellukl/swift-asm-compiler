@@ -12,7 +12,9 @@
 int main() {
     // TODO: remove
     // for debugging purposes
-    // FILE* in = fopen("./tests/generation/test_files/if.swift", "r");
+    // FILE* in = fopen(
+    //     "./tests/syntax_semantics/test_files/expr_nil_comparison3.swift",
+    //     "r");
     // TODO: remove pointer and address it directly
     FILE* in = stdin;
 

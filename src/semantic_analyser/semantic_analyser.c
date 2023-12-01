@@ -248,7 +248,8 @@ bool analyze_generate_return(ParserOptions *parser_opt, LSTElement *fnc,
     // retype expression to float if expression is int and expected type is
     // float
     if ((fnc->return_type == T_FLOAT || fnc->return_type == T_FLOAT_NIL) &&
-        expression_node->data_type == T_INT) {
+        expression_node->data_type == T_INT &&
+        expression_node->token.type != TOKEN_IDENTIF) {
         expression_node->data_type = T_FLOAT;
     }
 
