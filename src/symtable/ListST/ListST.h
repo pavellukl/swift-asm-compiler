@@ -1,16 +1,12 @@
-/**
- * @file ListST.h
- * @brief TODO: file header
- * 
- * @author your name (you@domain.com)
- */
-
 #ifndef LIST_ST_H
 #define LIST_ST_H
 
 #include "../../helpers/list.h"
 #include "../../scanner/token.h"
 
+/**
+ * Return type of element in symtable
+*/
 typedef enum {
     T_VOID,
     T_INT,
@@ -24,9 +20,11 @@ typedef enum {
     T_NIL
 } Type;
 
+/**
+ * Variant of element in symtable
+*/
 typedef enum { CONSTANT, VARIABLE, FUNCTION } Variant;
 
-// TODO: comments
 typedef struct Argument {
     char* name;
     char* identifier;
@@ -35,21 +33,28 @@ typedef struct Argument {
     TokenType token_type;
 } Argument;
 
-// TODO: comments
 typedef struct Arguments {
     int size;
     int capacity;
     Argument* argument_arr;
 } Arguments;
 
-// TODO: comments
+/**
+ * Parameter of function 
+*/
 typedef struct Parameter {
     char* name;
     char* identifier;
     Type par_type;
 } Parameter;
 
-// TODO: comments
+/**
+ * Parameters of function declared in symtable
+ * 
+ * @param bool      true - infinite num of params
+ * @param int       number of params
+ * @param int       capacity of array of parameters
+*/
 typedef struct Parameters {
     bool infinite;
     int size;
@@ -57,7 +62,10 @@ typedef struct Parameters {
     Parameter* parameters_arr;
 } Parameters;
 
-// TODO: comments
+/**
+ * Value of element in symtable
+ * Depends on return type of element
+*/
 typedef union {
     long long int int_value;
     char* string_value;
@@ -66,7 +74,15 @@ typedef union {
     Parameters parameters;
 } LSTElementValue;
 
-// TODO: comments
+/**
+ * Element of hashtable in scope
+ * 
+ * @param char*             identifier
+ * @param Type              return type
+ * @param Variant           variant of element
+ * @param bool              true - value is defined
+ * @param LSTElementValue   value of element if defined 
+*/
 typedef struct LSTElement {
     char* identifier;
     Type return_type;
@@ -75,10 +91,17 @@ typedef struct LSTElement {
     LSTElementValue value;
 } LSTElement;
 
-// TODO: comments
+/**
+ * Element of stack of scopes
+ * 
+ * @param int           identifier
+ * @param LSTElement**  local hashtable
+ * @param int           size of hashtable
+ * @param int           capacity of hashtable
+*/
 typedef struct ListElement {
     int identifier;
-    LSTElement** local_table;  // hash table
+    LSTElement** local_table; 
     int size;
     int max_size;
 } ListElement;
