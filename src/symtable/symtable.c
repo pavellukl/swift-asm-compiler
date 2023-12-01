@@ -1,8 +1,9 @@
 /**
  * @file symtable.c
  * @brief TODO: file header
- * 
+ *
  * @author your name (you@domain.com)
+ * @author Pave Lukl (xluklp00)
  */
 
 #include "symtable.h"

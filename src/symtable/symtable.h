@@ -1,8 +1,9 @@
 /**
  * @file symtable.h
  * @brief TODO: file header
- * 
+ *
  * @author your name (you@domain.com)
+ * @author Pave Lukl (xluklp00)
  */
 
 #ifndef SYMTABLE_H
