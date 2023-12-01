@@ -79,8 +79,8 @@ STError st_add_element(ListST* list, char* identifier, Type return_type,
     if (new == NULL) return E_ALLOC;
 
     if (list->firstItem->data->size >= (list->firstItem->data->max_size - 1)) {
-        if (_realloc(list->firstItem->data->local_table, 
-                    &list->firstItem->data->max_size) != E_OK) 
+        if (_realloc(list->firstItem->data->local_table,
+                     &list->firstItem->data->max_size) != H_OK)
             return E_ALLOC;
     }
 
@@ -111,7 +111,7 @@ STError st_remove_element(ListST* list, char* identifier) {
 
     ListItemST* tmp = list->firstItem;
 
-    STError err;
+    HTError err;
 
     while (tmp != NULL) {
 
