@@ -195,6 +195,12 @@ bool _function_definition(ParserOptions *parser_opt) {
         }
         free(tmp_main_scope);
 
+        // generate function end
+        if (!generate_function_end(parser_opt->gen_var.functions)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
         // restore prefix for labels
         if (!sbuffer_overwrite_content(parser_opt->gen_var.label, "%s",
                                        tmp_label)) {
@@ -693,7 +699,7 @@ bool _return_command(ParserOptions *parser_opt) {
         ASTNode *expression_node_ptr;
         if (!__return(parser_opt, &expression_node_ptr)) return false;
 
-        // semantically check and generate return statement
+        // semantically check return
         if (!analyze_generate_return(parser_opt,
                                      parser_opt->sem_ctx.current_fnc,
                                      expression_node_ptr)) {

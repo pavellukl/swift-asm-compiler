@@ -279,11 +279,6 @@ bool analyze_generate_return(ParserOptions *parser_opt, LSTElement *fnc,
         }
     }
 
-    if (!generate_function_end(parser_opt->gen_var.scope)) {
-        parser_opt->return_code = INTER_ERR;
-        return false;
-    }
-
     return true;
 }
 
