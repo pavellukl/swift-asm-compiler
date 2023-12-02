@@ -6,8 +6,6 @@
  */
 
 #include "hashtable.h"
-#include "hahtable_type.h"
-#include "ListST/ListST.h"
 #include "../helpers/parameters/parameters.h"
 #include <string.h>
 #include <stdio.h>
@@ -23,44 +21,35 @@ unsigned int _get_hash(char* str) {
     return hash;
 }
 
-HTError _realloc(HTable* table){
-    table->capacity = table->capacity * 2;
+HTError _realloc(LSTElement** hashtable, int* size){
+    *size = (*size) * 2;
 
-    LSTElement** new = ht_new(table->capacity);
-    if(new == NULL)
+    LSTElement** new = ht_new(*size);
+    if (new == NULL) {
         return H_ALLOC;
+    }
 
     unsigned hash;
     int index, step;
 
-    for(int i = 0; i < table->capacity / 2; i ++){
-        if(table->table[i] != NULL){
-            
-            hash = _get_hash((table->table[i])->identifier);
-            index = hash % (table->capacity);
-            step = hash % (table->capacity - 1) + 1;
+    for(int i = 0; i < *size / 2; i++){
+        if(hashtable[i] != NULL){
+            hash = _get_hash(hashtable[i]->identifier);
+            index = hash % (*size);
+            step = hash % (*size - 1) + 1;
 
             while(new[index] != NULL){
-                if(index * step >= table->capacity){
-                    index = index + step - table->capacity;
-                }
-                else{
+                if(index + step >= *size){
+                    index = index + step - *size;
+                } else {
                     index += step;
                 }
             }
-            new[index] = table->table[i]; 
-             
-            // printf("%d\n", index);     
+            new[index] = hashtable[i];    
+            printf("rehashing %s\n", hashtable[i]->identifier);
         }
     }
-   
-    free(table->table);
-    table->table = new;
-
-    // for(int i = 0; i < *size; i++){
-    //     if(hashtable[i] != NULL)
-    //         printf("%d\n", *size);
-    // }
+    *hashtable = *new;
 
     return H_OK;
 }
@@ -95,16 +84,17 @@ void ht_rehash(LSTElement** hash_table, LSTElement** new, int size) {
             new[index] = hash_table[i];
         }
     }
+    
 }
 
-void ht_free(HTable* table) {
-    for(int i = 0; i < table->capacity; i++){
-        if(table->table[i] != NULL){
-            if(table->table[i]->variant == FUNCTION){
-                destroy_parameter_array(&(table->table[i]->value.parameters));  
+void ht_free(LSTElement** hashtable, int size) {
+    for(int i = 0; i < size; i++){
+        if(hashtable[i] != NULL){
+            if(hashtable[i]->variant == FUNCTION){
+                destroy_parameter_array(&(hashtable[i]->value.parameters));  
             } 
 
-            free(table->table[i]->identifier);   
+            free(hashtable[i]->identifier);   
             // TODO: needed?
             // if(list->firstItem->data->local_table[i]->return_type ==
             // T_STRING ||
@@ -113,27 +103,27 @@ void ht_free(HTable* table) {
             //     free(list->firstItem->data->local_table[i]->value.string_value);
             // }   
 
-            free(table->table[i]); 
+            free(hashtable[i]); 
         }
     }
  
-    free(table->table);
-    *table->table = NULL;
+    free(hashtable);
+    *hashtable = NULL;
 }
 
-LSTElement* ht_search(HTable* table, char* identifier){
+LSTElement* ht_search(LSTElement** hashtable, char* identifier, int size){
     unsigned int hash = _get_hash(identifier);
-    int index = hash % table->capacity;
-    int step = hash % (table->capacity - 1) + 1;
+    int index = hash % size;
+    int step = hash % (size - 1) + 1;
 
     int count = 0;
 
-    while(table->table[index] != NULL && count < table->capacity){
-        if(strcmp(table->table[index]->identifier, identifier) == 0){
-            return table->table[index];
+    while(hashtable[index] != NULL && count < size){
+        if(strcmp(hashtable[index]->identifier, identifier) == 0){
+            return hashtable[index];
         }
-        if(index + step >= table->capacity){
-            index = index + step - table->capacity;
+        if(index + step >= size){
+            index = index + step - size;
         } else {
             index += step;
         }
@@ -143,51 +133,48 @@ LSTElement* ht_search(HTable* table, char* identifier){
     return NULL;
 }
 
-HTError ht_insert(HTable* table, LSTElement* element){
+HTError ht_insert(LSTElement** hashtable, LSTElement* element, int *size){
     unsigned int hash = _get_hash(element->identifier);
-    int index = hash % table->capacity;
-    int step = hash % (table->capacity - 1) + 1;
+    int index = hash % *size;
+    int step = hash % (*size - 1) + 1;
 
     int count = 0;
 
-    while(table->table[index] != NULL){
-        
-        if(count >= table->capacity){
-            //LSTElement** new = ht_new(*size);
-            if (_realloc(table) != H_OK) {
+    while(hashtable[index] != NULL){
+        if(count >= *size){
+            if (_realloc(hashtable, size) == H_ALLOC) {
                 return H_ALLOC;
             }
             hash = _get_hash(element->identifier);
-            index = hash % table->capacity;
-            step = hash % (table->capacity - 1) + 1;
+            index = hash % *size;
+            step = hash % (*size - 1) + 1;
             count = 0;       
         }
-        if(index + step >= table->capacity){
-            index = index + step - table->capacity;
+        if(index + step >= *size){
+            index = index + step - *size;
         } else {
             index += step;
         }
         count++;
     }
-    table->table[index] = element;
-    //  printf("%d\n\n", index);
+    hashtable[index] = element;
     return H_OK;
 }
 
-HTError ht_remove(HTable* table, char* identifier){
+HTError ht_remove(LSTElement** hashtable, char* identifier, int size){
     unsigned int hash = _get_hash(identifier);
-    int index = hash % table->capacity;
-    int step = hash % (table->capacity - 1) + 1;
+    int index = hash % size;
+    int step = hash % (size - 1) + 1;
 
     int count = 0;
 
-    while(table->table[index] != NULL && count < table->capacity){
-        if(strcmp(table->table[index]->identifier, identifier) == 0){
+    while(hashtable[index] != NULL && count < size){
+        if(strcmp(hashtable[index]->identifier, identifier) == 0){
             break;
         }
         else{
-            if(index + step >= table->capacity){
-                index = index + step - table->capacity;
+            if(index + step >= size){
+                index = index + step - size;
             } else {
                 index += step;
             }
@@ -195,26 +182,25 @@ HTError ht_remove(HTable* table, char* identifier){
         count++;
     }
 
-    if(table->table[index] == NULL)
+    if(hashtable[index] == NULL)
         return H_SEARCH;
     
-    if(table->table[index]->variant == FUNCTION){
-        if (table->table[index]->value.parameters.parameters_arr != NULL && table->table[index]->defined_value == true) {
-            free(table->table[index]->value.parameters.parameters_arr);
+    if(hashtable[index]->variant == FUNCTION){
+        if (hashtable[index]->value.parameters.parameters_arr != NULL && hashtable[index]->defined_value == true) {
+            free(hashtable[index]->value.parameters.parameters_arr);
         }
     }
    
-    free(table->table[index]);
-    table->table[index] = NULL;
+    free(hashtable[index]);
+    hashtable[index] = NULL;
 
-    LSTElement** new = ht_new(table->capacity);
+    LSTElement** new = ht_new(size);
     if (new == NULL) {
         return H_ALLOC;
     }
     
-    ht_rehash(table->table, new, table->capacity);
-    table->table = new;
-    table->size -= 1;
+    ht_rehash(hashtable, new, size);
+    hashtable = new;
     
     return H_OK;
 }
