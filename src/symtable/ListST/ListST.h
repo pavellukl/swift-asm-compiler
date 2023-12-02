@@ -1,8 +1,16 @@
+/**
+ * @file ListST.h
+ * @brief TODO: file header
+ * 
+ * @author your name (you@domain.com)
+ */
+
 #ifndef LIST_ST_H
 #define LIST_ST_H
 
 #include "../../helpers/list.h"
 #include "../../scanner/token.h"
+
 
 /**
  * Return type of element in symtable
@@ -91,19 +99,21 @@ typedef struct LSTElement {
     LSTElementValue value;
 } LSTElement;
 
+typedef struct hashtable{
+    LSTElement** table;
+    int size;
+    int capacity;
+}HTable;
+
 /**
  * Element of stack of scopes
  * 
  * @param int           identifier
  * @param LSTElement**  local hashtable
- * @param int           size of hashtable
- * @param int           capacity of hashtable
 */
 typedef struct ListElement {
     int identifier;
-    LSTElement** local_table; 
-    int size;
-    int max_size;
+    HTable table; 
 } ListElement;
 
 LIST_DEC(ListElement*, ST, st)
