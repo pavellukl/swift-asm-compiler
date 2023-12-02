@@ -958,10 +958,11 @@ bool __if(ParserOptions *parser_opt, bool *has_else_branch) {
             return false;
         }
 
-        STError add_err =
-            st_add_element(parser_opt->symtable, identifier, el->return_type,
-                           CONSTANT, el->value, el->defined_value);
-        if (add_err != E_OK) {
+        // store value of variable on stack
+        if (!sbuffer_printf(parser_opt->gen_var.scope, "  PUSHS ") ||
+            !generate_variable(parser_opt->gen_var.scope, parser_opt->symtable,
+                               identifier) ||
+            !sbuffer_printf(parser_opt->gen_var.scope, "\n")) {
             free(identifier);
             parser_opt->return_code = INTER_ERR;
             return false;
@@ -975,6 +976,35 @@ bool __if(ParserOptions *parser_opt, bool *has_else_branch) {
                             "  PUSHS nil@nil\n"
                             "  JUMPIFEQS %sf\n",
                             parser_opt->gen_var.label->string)) {
+            free(identifier);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
+        // add let variable to symtable
+        STError add_err =
+            st_add_element(parser_opt->symtable, identifier, el->return_type,
+                           CONSTANT, el->value, el->defined_value);
+        if (add_err != E_OK) {
+            free(identifier);
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
+        // generate variable for if branch
+        if (!sbuffer_printf(parser_opt->gen_var.scope, "  DEFVAR ") ||
+            !generate_variable(parser_opt->gen_var.scope, parser_opt->symtable,
+                               el->identifier) ||
+            !sbuffer_printf(parser_opt->gen_var.scope, "\n")) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
+
+        // pass value of variable to branch
+        if (!sbuffer_printf(parser_opt->gen_var.scope, "  POPS ") ||
+            !generate_variable(parser_opt->gen_var.scope, parser_opt->symtable,
+                               el->identifier) ||
+            !sbuffer_printf(parser_opt->gen_var.scope, "\n")) {
             parser_opt->return_code = INTER_ERR;
             return false;
         }

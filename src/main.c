@@ -14,7 +14,7 @@ int main() {
     // for debugging purposes
     // FILE* in = fopen(
     //     "./tests/generation/test_files/"
-    //     "00_ok.swift",
+    //     "if_let_0.swift",
     //     "r");
     // TODO: remove pointer and address it directly
     FILE* in = stdin;
