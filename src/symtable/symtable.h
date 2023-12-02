@@ -17,7 +17,7 @@
 #include "ListST/ListST.h"
 
 
-#define HASH_SIZE 2
+#define HASH_SIZE 109
 
 typedef enum { E_ALLOC, E_SEARCH, E_LIST, E_OK } STError;
 
