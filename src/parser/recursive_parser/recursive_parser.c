@@ -20,6 +20,12 @@ bool _look_ahead_for_fn(ParserOptions *parser_opt, bool *is_function) {
 
     if (el == NULL) {
         parser_opt->return_code = UNDEFVAR_ERR;
+        if (!_next_token(parser_opt)) return false;
+
+        if (parser_opt->token.type == TOKEN_L_BRACKET) {
+            parser_opt->return_code = DEF_ERR;
+        }
+
         return false;
     }
 
@@ -119,8 +125,8 @@ bool _function_definition(ParserOptions *parser_opt) {
         int tmp_if_n = parser_opt->gen_var.if_n;
         int tmp_while_n = parser_opt->gen_var.while_n;
         int tmp_expr_n = parser_opt->gen_var.expr_n;
-        // reinit all counters to 0 
-        parser_opt->gen_var.scope_n = 0;
+        // reinit all counters to 0 and scope counter to 1 for function scope
+        parser_opt->gen_var.scope_n = 1;
         parser_opt->gen_var.if_n = 0;
         parser_opt->gen_var.while_n = 0;
         parser_opt->gen_var.expr_n = 0;
@@ -952,20 +958,26 @@ bool __if(ParserOptions *parser_opt, bool *has_else_branch) {
             return false;
         }
 
-        if (!sbuffer_printf(parser_opt->gen_var.scope, "  PUSHS ")
-            || !generate_variable(parser_opt->gen_var.scope,
-                                  parser_opt->symtable, identifier)
-            || !sbuffer_printf(parser_opt->gen_var.scope, "\n"
-                                                          "  PUSHS nil@nil\n"
-                                                          "  JUMPIFEQS %sf\n",
-                                         parser_opt->gen_var.label->string)) {
+        STError add_err =
+            st_add_element(parser_opt->symtable, identifier, el->return_type,
+                           CONSTANT, el->value, el->defined_value);
+        if (add_err != E_OK) {
             free(identifier);
             parser_opt->return_code = INTER_ERR;
             return false;
         }
 
-        // free token string value
-        free(identifier);
+        if (!sbuffer_printf(parser_opt->gen_var.scope, "  PUSHS ") ||
+            !generate_variable(parser_opt->gen_var.scope, parser_opt->symtable,
+                               identifier) ||
+            !sbuffer_printf(parser_opt->gen_var.scope,
+                            "\n"
+                            "  PUSHS nil@nil\n"
+                            "  JUMPIFEQS %sf\n",
+                            parser_opt->gen_var.label->string)) {
+            parser_opt->return_code = INTER_ERR;
+            return false;
+        }
 
         bool has_returns_tmp = parser_opt->sem_ctx.has_function_all_returns;
         parser_opt->sem_ctx.has_function_all_returns = false;

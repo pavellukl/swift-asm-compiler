@@ -66,6 +66,15 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
         return COMP_INTER_ERR;
     };
 
+    if (!add_inbuilt_functions_to_symtable(parser_opt.symtable) ||
+        !generate_inbuilt_functions(parser_opt.gen_var, parser_opt.symtable)) {
+        st_pop_scope(parser_opt.symtable);
+        scanner_opt_free(&parser_opt.sc_opt);
+        st_destroy_list(parser_opt.symtable);
+        generation_free(parser_opt.gen_var);
+        return COMP_INTER_ERR;
+    }
+
     // first run
     PRINTF_STDDEBUG("first run\n");
     parse_function_definition(&parser_opt);
@@ -82,14 +91,6 @@ CompilerReturnCode compile(FILE *in, FILE *out) {
     parser_opt.is_first_run = false;
     init_semantic_context(&parser_opt.sem_ctx);
     scanner_rewind_file(&parser_opt.sc_opt);
-    if (!add_inbuilt_functions_to_symtable(parser_opt.symtable) ||
-        !generate_inbuilt_functions(parser_opt.gen_var, parser_opt.symtable)) {
-        st_pop_scope(parser_opt.symtable);
-        scanner_opt_free(&parser_opt.sc_opt);
-        st_destroy_list(parser_opt.symtable);
-        generation_free(parser_opt.gen_var);
-        return COMP_INTER_ERR;
-    }
 
     // second run
     PRINTF_STDDEBUG("second run\n");

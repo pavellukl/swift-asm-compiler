@@ -309,8 +309,14 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
     }
 
     // if type isn't explicitly provided and no value is provided
-    if (expected_type == T_VOID && (provided_value_node->data_type == T_VOID ||
-                                    provided_value_node->data_type == T_NIL)) {
+    if ((provided_value_node->data_type == T_VOID ||
+         provided_value_node->data_type == T_NIL) &&
+        is_function) {
+        parser_opt->return_code = EXPRTYPE_ERR;
+        return false;
+    } else if (expected_type == T_VOID &&
+               (provided_value_node->data_type == T_VOID ||
+                provided_value_node->data_type == T_NIL)) {
         parser_opt->return_code = UNDEFTYPE_ERR;
         return false;
     }
@@ -347,8 +353,8 @@ bool analyze_if_let(ParserOptions *parser_opt, char *identifier,
     // try to find specified variable
     LSTElement *el = st_search_element(parser_opt->symtable, identifier, NULL);
 
-    // if variable does not exist or is not a constant
-    if (el == NULL || el->variant != CONSTANT) {
+    // if variable does not exist
+    if (el == NULL) {
         parser_opt->return_code = UNDEFVAR_ERR;
         return false;
     }
