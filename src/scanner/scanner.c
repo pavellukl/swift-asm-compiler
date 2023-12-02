@@ -397,10 +397,13 @@ bool get_next_token(ParserOptions* parser_opt) {
                        (next_char != EOF)) {
                     // skipping characters
                 }
+
                 if (next_char == EOF) {
                     parser_opt->sc_opt.i--;
                     current_state = END_OF_FILE;
                     break;
+                } else {
+                    new_line_before_token = true;
                 }
 
                 current_state = WHITE_SPACE;

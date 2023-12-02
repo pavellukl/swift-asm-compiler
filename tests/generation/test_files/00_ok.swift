@@ -1,7 +1,7 @@
-/* hello */
+/*hello123abc123*/
 /*hello
-12
-3.1415
+123
+abc
 */
 
 var a : String = "hello"
@@ -48,7 +48,7 @@ fn3(a, d)
 fn3("lit", "lit")
 fn4(aa: a, bb: d)
 fn4(aa: "lit", bb: "lit")
-write(123, "abc", 123.123)
+write(123, "abc")
 
 // Assignment
 a = "hello"
