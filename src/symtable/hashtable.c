@@ -123,9 +123,8 @@ void ht_free(HTable* table) {
             free(table->table[i]); 
         }
     }
- 
+
     free(table->table);
-    *table->table = NULL;
 }
 
 LSTElement* ht_search(HTable* table, char* identifier){
