@@ -1,5 +1,6 @@
 /* hello */
-// NO_INT
+/* hello 12 3.1415 asdas 555 551.6295 qergr 81 15.0 qwd */
+
 var a : String = "hello"
 var b : String
 var c = "hello"

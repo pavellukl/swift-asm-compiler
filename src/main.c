@@ -13,8 +13,8 @@ int main() {
     // TODO: remove
     // for debugging purposes
     // FILE* in = fopen(
-    //     "./tests/syntax_semantics/test_files/"
-    //     "x_example3.swift",
+    //     "./tests/generation/test_files/"
+    //     "00_ok.swift",
     //     "r");
     // TODO: remove pointer and address it directly
     FILE* in = stdin;
