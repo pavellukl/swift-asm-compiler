@@ -28,13 +28,13 @@ STError st_push_scope(ListST* list, int identifier) {
     LSTElement** hash_table = ht_new(HASH_SIZE);
 
     new->identifier = identifier;
-    new->local_table = hash_table;
-    new->max_size = HASH_SIZE;
-    new->size = 0;
+    new->table.table = hash_table;
+    new->table.capacity = HASH_SIZE;
+    new->table.size = 0;
 
     if (list->firstItem == NULL) {
         if (list_st_insert_first(list, new) != LIST_OK) {
-            free(new->local_table);
+            free(new->table.table);
             free(new);
             return E_ALLOC;
         }
@@ -43,7 +43,7 @@ STError st_push_scope(ListST* list, int identifier) {
     }
 
     if (list_st_insert_before(list, new) != LIST_OK) {
-        free(new->local_table);
+        free(new->table.table);
         free(new);
         return E_ALLOC;
     }
@@ -78,15 +78,53 @@ STError st_add_element(ListST* list, char* identifier, Type return_type,
 
     if (new == NULL) return E_ALLOC;
 
-    if (list->firstItem->data->size >= (list->firstItem->data->max_size - 1)) {
-        if (_realloc(list->firstItem->data->local_table,
-                     &list->firstItem->data->max_size) != H_OK)
+    if (list->firstItem->data->table.size >= (list->firstItem->data->table.capacity - 1)) {
+        //LSTElement** newa = ht_new(list->firstItem->data->max_size*2);
+        if ( _realloc(&list->firstItem->data->table) != H_OK)
             return E_ALLOC;
-    }
+        // free(list->firstItem->data->local_table);
+        // list->activeItem->data->local_table = newa;
+        //   LSTElement** newa = ht_new(list->firstItem->data->max_size);
+        //      if (newa == NULL) {
+        //          return E_ALLOC;
+        //      } 
 
-    ht_insert(list->firstItem->data->local_table, new,
-              list->firstItem->data->max_size);
-    list->firstItem->data->size += 1;
+        // unsigned hash;
+        // int index, step;
+
+        //     for(int i = 0; i < list->firstItem->data->max_size; i ++){
+        //           if(list->activeItem->data->local_table[i] != NULL){
+            
+        //          hash = _get_hash(list->firstItem->data->local_table[i]->identifier);
+        //          index = hash % (list->firstItem->data->max_size*2);
+        //          step = hash % (list->firstItem->data->max_size*2 - 1) + 1;
+
+        //             while(newa[index] != NULL){
+        //                if(index * step >= list->firstItem->data->max_size * 2){
+        //                  index = index + step - list->firstItem->data->max_size * 2;
+        //               }
+        //               else{
+        //                  index += step;
+        //               }
+        //          }
+        //         newa[index] =list->firstItem->data->local_table[i]; 
+             
+        //     // printf("%d\n", index);     
+        //      }
+        //  }
+        // free(list->firstItem->data->local_table);
+        // list->firstItem->data->local_table = newa;
+    }
+    
+    ht_insert(&(list->firstItem->data->table), new);
+    list->firstItem->data->table.size += 1;
+
+    // for(int i = 0; i < list->firstItem->data->max_size; i++){
+    //     if(list->firstItem->data->local_table[i]!= NULL){
+    //         printf("%d neni null\n", i);
+    //     }
+    // }
+    // printf("\n------------\n");
 
     return E_OK;
 }
@@ -95,7 +133,7 @@ void st_pop_scope(ListST* list) {
     if (list == NULL) return;
     if (list->firstItem == NULL) return;
 
-    ht_free(list->firstItem->data->local_table, list->firstItem->data->max_size);
+    ht_free(&(list->firstItem->data->table));
     
     //free(list->firstItem->data->local_table);
     free(list->firstItem->data);
@@ -115,7 +153,7 @@ STError st_remove_element(ListST* list, char* identifier) {
 
     while (tmp != NULL) {
 
-        err = ht_remove(tmp->data->local_table, identifier, tmp->data->max_size);
+        err = ht_remove(&(tmp->data->table), identifier);
         if (err == H_OK) {
             break;
         }
@@ -160,7 +198,7 @@ LSTElement* st_search_element(ListST* list, char* identifier,
    
     while (tmp != NULL) {
 
-        element = ht_search(tmp->data->local_table, identifier, tmp->data->max_size);
+        element = ht_search(&(tmp->data->table), identifier);
 
         if(element != NULL) {
             if(scope_identifier != NULL) 

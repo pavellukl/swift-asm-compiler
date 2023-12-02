@@ -10,7 +10,10 @@
 
 #include "ListST/ListST.h"
 
+
+
 #define HT_SIZE 109
+
 
 typedef enum { H_ALLOC, H_OK , H_SEARCH } HTError;
 
@@ -29,7 +32,7 @@ LSTElement** ht_new(int size);
  * @param LSTElement**  hashtable
  * @param int           size of hashtable
 */
-void ht_free(LSTElement** hashtable, int size);
+void ht_free(HTable* table);
 
 /**
  * Searches element in hashtable
@@ -40,7 +43,7 @@ void ht_free(LSTElement** hashtable, int size);
  * 
  * @return LSTElement*  element or NULL if not found
 */
-LSTElement* ht_search(LSTElement** hashtable, char* identifier, int size);
+LSTElement* ht_search(HTable* table, char* identifier);
 
 /**
  * Inserts new element to hastable
@@ -51,7 +54,7 @@ LSTElement* ht_search(LSTElement** hashtable, char* identifier, int size);
  * 
  * @return HTError      result of the operation
 */
-HTError ht_insert(LSTElement** hastable, LSTElement* element, int size);
+HTError ht_insert(HTable* table, LSTElement* element);
 
 /**
  * Removes element from hashtable
@@ -62,13 +65,13 @@ HTError ht_insert(LSTElement** hastable, LSTElement* element, int size);
  * 
  * @return HTError      result of the operation 
 */
-HTError ht_remove(LSTElement** hashtable, char* identifier, int size);
+HTError ht_remove(HTable* table, char* identifier);
 
 //INSIDE FUNCTIONS
-void ht_rehash(LSTElement** hashtable, LSTElement** new_hashtable, int size);
+void ht_rehash(LSTElement** table, LSTElement** new_hashtable, int size);
 
 unsigned int _get_hash(char* str);
 
-HTError _realloc(LSTElement** hashtable, int* size);
+HTError _realloc(HTable* table);
 
 #endif
