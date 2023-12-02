@@ -1,5 +1,8 @@
 /* hello */
-/* hello 12 3.1415 asdas 555 551.6295 qergr 81 15.0 qwd */
+/*hello
+12
+3.1415
+*/
 
 var a : String = "hello"
 var b : String
@@ -15,16 +18,16 @@ if 1 == 1 {
     write(a)
 }
 
-while 1 == 1 {
-    write(a)
-}
+// while 1 == 1 {
+//     write(a)
+// }
 
 // Function definition
 func fn() {}
 
 func fn2(_ a : String) -> String {
     fn3("a", "b")
-    fn2(a)
+    // fn2(a)
 
     return a
 }
