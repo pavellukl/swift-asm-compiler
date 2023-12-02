@@ -31,8 +31,12 @@ typedef enum {
  * @brief Item of the list in the precedence parsing.
  */
 typedef struct {
-    PPListItemType pp_type; /* type identifier of the list item */
-    ASTNode *node; /* expression abstract syntax tree node */
+    /* type identifier of the list item */
+    PPListItemType pp_type;
+    /* whether the nodes data type can be converted */
+    bool dtype_is_convertable; 
+    /* expression abstract syntax tree node */
+    ASTNode *node;
 } PPListItem;
 
 LIST_DEC(PPListItem, PP, pp)

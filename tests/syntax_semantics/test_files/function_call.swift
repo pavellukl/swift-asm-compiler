@@ -4,7 +4,7 @@ func decrement(of n: Int, by m: Int) -> Int {
     return n - m
 }
 
-func factorial(_ n : Int) -> Int? {
+func factorial(_ n : Int) -> Int {
     var result : Int?
     if (n < 2) {
         result = 1

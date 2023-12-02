@@ -28,7 +28,8 @@ void _free_pp_list(ListPP *list) {
 
 bool _get_token_types(ParserOptions *parser_opt,
                       PPListItemType item_last_pp_type, TokenData token,
-                      PPListItemType *pp_type, Type *data_type) {
+                      PPListItemType *pp_type, Type *data_type,
+                      bool *dtype_is_convertable) {
     switch (token.type)
     {
         case TOKEN_ADD:
@@ -79,18 +80,22 @@ bool _get_token_types(ParserOptions *parser_opt,
         case TOKEN_INT:
             *pp_type = TERMINAL_INT;
             *data_type = T_INT;
+            *dtype_is_convertable = true;
             return true;
         case TOKEN_FLOAT:
             *pp_type = TERMINAL_FLOAT;
             *data_type = T_FLOAT;
+            *dtype_is_convertable = true;
             return true;
         case TOKEN_STRING:
             *pp_type = TERMINAL_STRING;
             *data_type = T_STRING;
+            *dtype_is_convertable = true;
             return true;
         case TOKEN_BOOL:
             *pp_type = TERMINAL_BOOL;
             *data_type = T_BOOL;
+            *dtype_is_convertable = true;
             return true;
         case TOKEN_IDENTIF:
             // check for special end of expression with an identifier which does
@@ -123,10 +128,12 @@ bool _get_token_types(ParserOptions *parser_opt,
                 return false;
             }
             *data_type = el->return_type;
+            *dtype_is_convertable = false;
             return true;
         case TOKEN_KEYWORD_NIL:
             *pp_type = TERMINAL_KEYWORD_NIL;
             *data_type = T_NIL;
+            *dtype_is_convertable = true;
             return true;
         case TOKEN_L_BRACKET:
             *pp_type = TERMINAL_L_BRACKET;
@@ -164,6 +171,7 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
             new_item->node = items[2].node;
             new_item->node->left = NULL;
             new_item->node->right = NULL;
+            new_item->dtype_is_convertable = items[2].dtype_is_convertable;
             if (items[2].pp_type == TERMINAL_IDENTIF) {
                 LSTElement *el =
                     st_search_element(parser_opt->symtable,
@@ -189,6 +197,7 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
                 new_item->node->left = items[2].node;
                 new_item->node->right = NULL;
                 new_item->node->data_type = items[2].node->data_type;
+                new_item->dtype_is_convertable = items[2].dtype_is_convertable;
             } else {
                 // E -> E TOKEN_EXCL_MARK (items[1] items[2])
                 // no data type tests (every data type is ok)
@@ -209,16 +218,19 @@ bool _build_rule_result(ParserOptions *parser_opt, PPListItem items[3],
                 _free_AST(items[0].node);
                 _free_AST(items[2].node);
             } else {
+                /* E -> E OPERATOR E (items[0] items[1] items[2]) */
                 // data type tests
                 if (!analyze_binary_operation(parser_opt,
-                    items[1].node->token.type, items[0].node->data_type,
-                    items[2].node->data_type, &items[1].node->data_type)) {
+                    items[1].node->token.type, items[0], items[2],
+                    &items[1].node->data_type)) {
                     return false;
                 }
                 // build new_item (data type already set)
                 new_item->node = items[1].node;
                 new_item->node->left = items[0].node;
                 new_item->node->right = items[2].node;
+                new_item->dtype_is_convertable = items[0].dtype_is_convertable
+                    && items[2].dtype_is_convertable;
             }
             break;
     }
@@ -374,7 +386,7 @@ bool _token_to_pplist_item(ParserOptions *parser_opt,
     }
 
     if (!_get_token_types(parser_opt, item_last_pp_type, token, &item->pp_type,
-                          &item->node->data_type)) {
+                          &item->node->data_type, &item->dtype_is_convertable)){
         free(item->node);
         return false;
     }

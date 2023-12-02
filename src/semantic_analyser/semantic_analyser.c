@@ -423,6 +423,21 @@ Type _remove_nilable(Type type) {
     }
 }
 
+Type _add_nilable(Type type) {
+    switch (type) {
+        case T_INT:
+            return T_INT_NIL;
+        case T_FLOAT:
+            return T_FLOAT_NIL;
+        case T_STRING:
+            return T_STRING_NIL;
+        case T_BOOL:
+            return T_BOOL_NIL;
+        default:
+            return type;
+    }
+}
+
 bool _is_number_type(Type type) {
     return type == T_INT || type == T_FLOAT || type == T_INT_NIL ||
            type == T_FLOAT_NIL;
@@ -433,18 +448,103 @@ bool _is_nilable_type(Type type) {
            type == T_BOOL_NIL;
 }
 
+void _do_number_types_conversion(PPListItem *l_operand, PPListItem *r_operand) {
+    Type *l_op_type = &l_operand->node->data_type;
+    Type *r_op_type = &r_operand->node->data_type;
+
+    // check if we work with number types
+    if (!_is_number_type(_remove_nilable(*l_op_type)) ||
+        !_is_number_type(_remove_nilable(*r_op_type))) {
+        return;
+    }
+
+    // convert T_INT/_NIL literal to T_FLOAT/_NIL if needed
+    Type convert_to;
+    if (*l_op_type == T_FLOAT || *r_op_type == T_FLOAT) {
+        convert_to = T_FLOAT;
+    } else if (*l_op_type == T_FLOAT_NIL || *r_op_type == T_FLOAT_NIL) {
+        convert_to = T_FLOAT_NIL;
+    } else {
+        return;
+    }
+
+    if ((*l_op_type == T_INT || *l_op_type == T_INT_NIL) &&
+        l_operand->dtype_is_convertable) {
+        *l_op_type = convert_to;
+    } else if ((*r_op_type == T_INT || *r_op_type == T_INT_NIL) &&
+               r_operand->dtype_is_convertable) {
+        *r_op_type = convert_to;
+    }
+}
+
+bool _operands_are_pairable(PPListItem l_operand, PPListItem r_operand,
+                        bool allow_nilable, bool allow_nil,
+                        bool allow_only_numbers) {
+    Type *l_op_type = &l_operand.node->data_type;
+    Type *r_op_type = &r_operand.node->data_type;
+
+    // there is nil operand
+    if (*l_op_type == T_NIL || *r_op_type == T_NIL) {
+        // if required, do not allow
+        if (!allow_nil) return false;
+
+        // other type has to be any nilable type or nil
+        if (_is_nilable_type(*l_op_type) || _is_nilable_type(*r_op_type) ||
+            (*l_op_type == T_NIL && *r_op_type == T_NIL)) {
+            return true;
+        }
+        return false;
+    }
+
+    // if required, do not allow nilable types
+    if (!allow_nilable &&
+        (_is_nilable_type(*l_op_type) || _is_nilable_type(*r_op_type))) {
+        return false;
+    }
+
+    // if required, allow only numbers
+    if (allow_only_numbers &&
+        (!_is_number_type(_remove_nilable(*l_op_type)) ||
+         !_is_number_type(_remove_nilable(*r_op_type)))) {
+        return false;
+    }
+
+    _do_number_types_conversion(&l_operand, &r_operand);
+
+    // compare operands for the first time
+    if (*l_op_type == *r_op_type) {
+        return true;
+    }
+
+    // convert literals to nilable types
+    if (l_operand.dtype_is_convertable) {
+        *l_op_type = _add_nilable(*l_op_type);
+    }
+    if (r_operand.dtype_is_convertable) {
+        *r_op_type = _add_nilable(*r_op_type);
+    }
+
+    // compare operands for the second time
+    if (*l_op_type == *r_op_type) {
+        return true;
+    }
+    
+    return false;
+}
+
 bool analyze_binary_operation(ParserOptions *parser_opt,
-                              TokenType operator_type, Type l_op_type,
-                              Type r_op_type, Type *new_data_type) {
+                              TokenType operator_type, PPListItem l_operand,
+                              PPListItem r_operand, Type *new_data_type) {
+    Type l_op_type = l_operand.node->data_type;
+    Type r_op_type = r_operand.node->data_type;
     // E -> E OPERATOR E
     // data type tests and new data type resolving
     switch (operator_type) {
         case TOKEN_ADD:
             // both should be only int or float or string (not nilable)
-            if ((l_op_type != T_STRING || r_op_type != T_STRING) 
-                &&
-                (!_is_number_type(l_op_type) || !_is_number_type(r_op_type ||
-                 _is_nilable_type(l_op_type) || _is_nilable_type(r_op_type)))) {
+            if (!_operands_are_pairable(l_operand, r_operand, false, false,
+                                        true) &&
+                (l_op_type != T_STRING || r_op_type != T_STRING)) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
@@ -458,10 +558,8 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
         case TOKEN_MUL:
         case TOKEN_DIV:
             // both should be only int or float (not nilable)
-            if (!_is_number_type(l_op_type) ||
-                !_is_number_type(r_op_type ||
-                _is_nilable_type(l_op_type) ||
-                _is_nilable_type(r_op_type))) {
+            if (!_operands_are_pairable(l_operand, r_operand, false, false,
+                                        true)) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
@@ -473,15 +571,13 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
             break;
         case TOKEN_EQUAL:
         case TOKEN_NOT_EQUAL:
-            // both should be of the same type (int and float are same)
-            // operands can't be nilable type (nil as well)
-            if ((l_op_type != r_op_type) &&
-                (!_is_number_type(l_op_type) || !_is_number_type(r_op_type))) {
-                parser_opt->return_code = EXPRTYPE_ERR;
-                return false;
-            }
-            if (_is_nilable_type(l_op_type) || _is_nilable_type(r_op_type) ||
-                l_op_type == T_NIL) {
+            // both should be of the same type
+            // (int literal and float are same)
+            // (nilable type and same notnilable type are same)
+            // (nilable type and nil are same)
+            // operands can be nilable type
+            if (!_operands_are_pairable(l_operand, r_operand, true, true,
+                                        false)) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
@@ -491,16 +587,12 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
         case TOKEN_LESSER_EQUAL:
         case TOKEN_GREATER:
         case TOKEN_GREATER_EQUAL:
-            // both should be of the same type (int and float are same)
+            // both should be of the same type (int literal and float are same)
             // operands can't be nilable type (not nil as well)
             // operands can't be bool
-            if ((l_op_type != r_op_type) &&
-                (!_is_number_type(l_op_type) || !_is_number_type(r_op_type))) {
-                parser_opt->return_code = EXPRTYPE_ERR;
-                return false;
-            }
-            if (_is_nilable_type(l_op_type) || _is_nilable_type(r_op_type) ||
-                l_op_type == T_BOOL || l_op_type == T_NIL) {
+            if (!_operands_are_pairable(l_operand, r_operand, false, false,
+                                        false) ||
+                l_op_type == T_BOOL) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }
@@ -520,7 +612,9 @@ bool analyze_binary_operation(ParserOptions *parser_opt,
             /* right operand must be of the same type as left operand
                (but without nilable part) */
             // operands can't be nil
-            if (l_op_type == T_NIL || _remove_nilable(l_op_type) != r_op_type) {
+            if (!_operands_are_pairable(l_operand, r_operand, true, false,
+                                        false) ||
+                _is_nilable_type(r_op_type)) {
                 parser_opt->return_code = EXPRTYPE_ERR;
                 return false;
             }

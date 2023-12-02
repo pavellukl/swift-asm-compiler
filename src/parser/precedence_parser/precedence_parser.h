@@ -53,12 +53,14 @@ void _free_pp_list(ListPP *list);
  * @param item_last_pp_type PP type of the last item read from input.
  * @param pp_type Precedence parsing type pointer for result type.
  * @param data_type Data type pointer for result type.
+ * @param dtype_is_convertable Whether is data type convertable.
  * @return true If the operation was successful.
  * @return false If an error occurred. See @p parser_opt.return_code.
  */
 bool _get_token_types(ParserOptions *parser_opt,
                       PPListItemType item_last_pp_type, TokenData token,
-                      PPListItemType *pp_type, Type *data_type);
+                      PPListItemType *pp_type, Type *data_type,
+                      bool *dtype_is_convertable);
 
 /**
  * @brief Derives rule result. Performs rule semantic analysis.

@@ -131,7 +131,7 @@ bool _do_types_match(Type a, Type b);
 Type _remove_nilable(Type type);
 
 /**
- * @brief Tells if a value of this type is a number.
+ * @brief Tells if a value of this type is a number. (not nilable)
  *
  * @param type Type of the value.
  * @return true If it is a number.
@@ -149,6 +149,30 @@ bool _is_number_type(Type type);
 bool _is_nilable_type(Type type);
 
 /**
+ * @brief Converts number literal operands to the type of the other operand if
+ *        it is T_FLOAT or T_FLOAT_NIL.
+ * 
+ * @param l_operand Left operand.
+ * @param r_operand Right operand.
+ */
+void _do_number_types_conversion(PPListItem *l_operand, PPListItem *r_operand);
+
+/**
+ * @brief Tells if operands are of compatible types.
+ * 
+ * @param l_operand Left operand.
+ * @param r_operand Right operand.
+ * @param allow_nilable Operands can be nilable.
+ * @param allow_nil Operands can be nil.
+ * @param allow_only_numbers Operands can be only numbers.
+ * @return true If operands are pairable.
+ * @return false If operands are not pairable.
+ */
+bool _operands_are_pairable(PPListItem l_operand, PPListItem r_operand,
+                        bool allow_nilable, bool allow_nil,
+                        bool allow_only_numbers);
+
+/**
  * @brief Analyzes data types of operands of a binary operation and returns
  * resulting data type.
  *
@@ -157,14 +181,14 @@ bool _is_nilable_type(Type type);
  * @param parser_opt Parser options pointer to save possible semantic error
  *                   code.
  * @param operator_type A type of the operator.
- * @param l_op_type A type of the left operand.
- * @param r_op_type A type of the right operand.
+ * @param l_operand PPListItem of the left operand.
+ * @param r_operand PPListItem of the right operand.
  * @param new_data_type Type pointer to save resulting data type.
  * @return true If operands' data types are ok.
  * @return false If an error occurred. See @p parser_opt.return_code.
  */
 bool analyze_binary_operation(ParserOptions *parser_opt,
-                              TokenType operator_type, Type l_op_type,
-                              Type r_op_type, Type *new_data_type);
+                              TokenType operator_type, PPListItem l_operand,
+                              PPListItem r_operand, Type *new_data_type);
 
 #endif /* SEMANTIC_ANALYSER_H */
