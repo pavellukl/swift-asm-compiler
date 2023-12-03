@@ -1,14 +1,15 @@
 /**
  * @file token.h
- * @brief TODO: file header
+ * @brief header file that contains different types of token and 
+ * structures for necessary token data and token values to store
  * 
- * @author your name (you@domain.com)
+ * @author Denis Milistenfer (xmilis00)
  */
 
 #ifndef TOKEN_H
 #define TOKEN_H
 
-// TODO: comments
+// TokenTypes: all possible token types that scanner generates
 typedef enum {
     TOKEN_IDENTIF,
     TOKEN_KEYWORD_DOUBLE,        // Double
@@ -58,7 +59,7 @@ typedef enum {
     TOKEN_END_OF_FILE
 } TokenType;
 
-// TODO: comments
+// TokenValue: structure to store string, identifier, number or boolean values
 typedef union {
     char* string;
     long long int int_value;
@@ -66,7 +67,7 @@ typedef union {
     bool boolean;
 } TokenValue;
 
-// TODO: comments
+// TokenData: structure to store all neccesary data for token
 typedef struct {
     TokenType type;
     int id;
