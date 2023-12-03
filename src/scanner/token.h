@@ -29,12 +29,12 @@ typedef enum {
     TOKEN_KEYWORD_BOOL,          // Bool
     TOKEN_KEYWORD_BOOL_NIL,      // Bool?
     TOKEN_BOOL,                  //true/false
-    TOKEN_INT,                   // Int                        // TODO: nested strings
+    TOKEN_INT,                   // Int
     TOKEN_FLOAT,                 //Float
-    TOKEN_STRING,                // e.g. "any string"          // TODO: unicode (and escape) value evaluation
+    TOKEN_STRING,                // e.g. "any string"
     TOKEN_ADD,                   // +
     TOKEN_SUB,                   // -
-    TOKEN_MUL,                   // *                          // TODO: lookahead
+    TOKEN_MUL,                   // *
     TOKEN_DIV,                   // /
     TOKEN_NIL_COALESCING,        // ??
     TOKEN_EXCL_MARK,             // !
