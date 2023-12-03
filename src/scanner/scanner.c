@@ -905,31 +905,66 @@ bool get_next_token(ParserOptions* parser_opt) {
 
             case MULTILINE_STRING:
                 if (current_char == '"') {
-                    char next_char1 = get_next_char(&parser_opt->sc_opt);
-                    char next_char2 = get_next_char(&parser_opt->sc_opt);
-
-                    if (next_char1 == '"' && next_char2 == '"') {
-                        if (new_line_online == true) {
-                            b_buffer.i--;
-                            parser_opt->sc_opt.line_counter++;
-                            if (whitespace_count > 0){
-                                _remove_extra_whitespaces(&b_buffer, whitespace_count);
-                            }
-                            current_state = STRING_END;
-                        } else {
-                            scanner_buf_free(&b_buffer);
-                            parser_opt->return_code = LEX_ERR;
-                            return false;
-                        }
-                    } else {
-                        parser_opt->sc_opt.i -= 2;
+                    current_state = MULTILINE_QUOTE_TWO;
+                } else {
+                    if (current_char == '\n') {
+                        new_line_online = true;
+                        parser_opt->sc_opt.line_counter++;
+                    } else if (!isspace(current_char)){
                         new_line_online = false;
                         whitespace_count = 0;
-                        if (!scanner_buf_insert(&b_buffer, current_char)) {
-                            scanner_buf_free(&b_buffer);
-                            parser_opt->return_code = INTER_ERR;
-                            return false;
+                    } else if (isspace(current_char)){
+                        whitespace_count++;
+                    }
+                    if (!scanner_buf_insert(&b_buffer, '"')) {
+                        scanner_buf_free(&b_buffer);
+                        parser_opt->return_code = INTER_ERR;
+                        return false;
+                    }
+                    parser_opt->sc_opt.i--;
+                    current_state = MULTILINE_STRING;
+                }
+                current_char = get_next_char(&parser_opt->sc_opt);
+                break;
+            
+            case MULTILINE_QUOTE_ONE:
+                if (current_char == '"') {
+                    current_state = MULTILINE_QUOTE_TWO;
+                } else {
+                    if (current_char == '\n') {
+                        new_line_online = true;
+                        parser_opt->sc_opt.line_counter++;
+                    } else if (!isspace(current_char)){
+                        new_line_online = false;
+                        whitespace_count = 0;
+                    } else if (isspace(current_char)){
+                        whitespace_count++;
+                    }
+                    if (!scanner_buf_insert(&b_buffer, '"')) {
+                        scanner_buf_free(&b_buffer);
+                        parser_opt->return_code = INTER_ERR;
+                        return false;
+                    }
+                    parser_opt->sc_opt.i--;
+                    current_state = MULTILINE_STRING;
+                }
+                current_char = get_next_char(&parser_opt->sc_opt);
+                break;
+            
+            case MULTILINE_QUOTE_TWO:
+                if (current_char == '"') {
+                    if (new_line_online == true){
+                        b_buffer.i--;
+                        parser_opt->sc_opt.line_counter++;
+                        if (whitespace_count > 0){
+                            _remove_extra_whitespaces(&b_buffer, whitespace_count);
                         }
+                        current_state = STRING_END;
+                    } else {
+                        //not a \n before closing """
+                        scanner_buf_free(&b_buffer);
+                        parser_opt->return_code = LEX_ERR;
+                        return false;
                     }
                 } else {
                     if (current_char == '\n') {
@@ -941,11 +976,18 @@ bool get_next_token(ParserOptions* parser_opt) {
                     } else if (isspace(current_char)){
                         whitespace_count++;
                     }
-                    if (!scanner_buf_insert(&b_buffer, current_char)) {
+                    if (!scanner_buf_insert(&b_buffer, '"')) {
                         scanner_buf_free(&b_buffer);
                         parser_opt->return_code = INTER_ERR;
                         return false;
                     }
+                    if (!scanner_buf_insert(&b_buffer, '"')) {
+                        scanner_buf_free(&b_buffer);
+                        parser_opt->return_code = INTER_ERR;
+                        return false;
+                    }
+                    parser_opt->sc_opt.i--;
+                    current_state = MULTILINE_STRING;
                 }
                 current_char = get_next_char(&parser_opt->sc_opt);
                 break;
