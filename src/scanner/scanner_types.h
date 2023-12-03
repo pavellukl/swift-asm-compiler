@@ -1,8 +1,9 @@
 /**
  * @file scanner_types.h
- * @brief TODO: file header
+ * @brief header file containing automat states and structures necessary for 
+ * input file handling and scanner buffer handling
  * 
- * @author your name (you@domain.com)
+ * @author Denis Milistenfer (xmilis00)
  */
 
 #ifndef SCANNER_TYPES_H
@@ -17,7 +18,7 @@
 #include "StackTokenData/StackTokenData.h"
 #include "token.h"
 
-// TODO: comments
+// AutomatStates: all possible states that finite state machine can get to
 typedef enum {
     START,
     DIV,
@@ -66,7 +67,9 @@ typedef enum {
     AND
 } AutomatState;
 
-// TODO: comments
+// ScannerOptions: structure for handling input file, keeping track of current line,
+// token id and contains StackTokenData stack where returned tokens from parser are stored
+// in order to achieve "lookahead" effect 
 typedef struct {
     char *file;
     int i;
@@ -76,7 +79,7 @@ typedef struct {
     StackTokenData *returned_tokens;
 } ScannerOptions;
 
-// TODO: comments
+// ScannerBuffer: structure for handling scanner buffer
 typedef struct {
     char *buffer;
     int i;
