@@ -73,6 +73,7 @@ bool generate_function_beginning(GenerationVariables gen_var, LSTElement *fn) {
                                       "  CREATEFRAME\n", fn->identifier);
 
     for (int i = fn->value.parameters.size - 1; i >= 0; i--) {
+        if (!fn->value.parameters.parameters_arr[i].identifier) continue;
         SBUFFER_PRINTF(gen_var.functions,
                        "  DEFVAR TF@%s1\n"
                        "  POPS TF@%s1\n",
