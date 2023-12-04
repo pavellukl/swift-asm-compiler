@@ -4,7 +4,7 @@
  * @brief Contains definitions of structs and functions for the compiler.
  *
  * @author Jan Klanica (xklani00)
- * @author Pavel Lukl (xklukl00)
+ * @author Pavel Lukl (xlukl00)
  */
 
 #ifndef COMPILER_H

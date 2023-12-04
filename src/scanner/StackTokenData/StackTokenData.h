@@ -1,9 +1,10 @@
 /**
  * @name Implementation of IFJ23 language compiler
  * @file StackTokenData.h
- * @brief TODO: file header
+ * @brief Contains the expansion of stack declaration macro
  *
- * @author your name (you@domain.com)
+ * @author Jan Klanica (xklani00)
+ * @author Pavel Lukl (xlukl00)
  */
 
 #ifndef STACK_TOKEN_DATA_H
