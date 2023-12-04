@@ -1200,9 +1200,7 @@ bool __if_let_identif_body(ParserOptions *parser_opt, bool *has_else_branch) {
 bool __if_let_identif_body_else(ParserOptions *parser_opt,
                                 bool *has_else_branch) {
     if (parser_opt->token.type == TOKEN_L_CRLY_BRACKET) {
-        // save current scope counter
-        int tmp_scope_n = parser_opt->gen_var.scope_n;
-        // push if scope
+        // push else scope
         STError err =
             st_push_scope(parser_opt->symtable, ++parser_opt->gen_var.scope_n);
         if (err != E_OK) {
@@ -1222,8 +1220,6 @@ bool __if_let_identif_body_else(ParserOptions *parser_opt,
 
         // pop if scope
         st_pop_scope(parser_opt->symtable);
-        // restore saved state of scope count
-        parser_opt->gen_var.scope_n = tmp_scope_n;
 
         return true;
     } else if (parser_opt->token.type == TOKEN_KEYWORD_IF) {
