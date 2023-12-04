@@ -107,7 +107,7 @@ test_run:
 	@ python3 ./tests/generation/generationTester.py
 
 test_more: build
-	@ bash /home/jklanica/docs/VUT/ifj/tests/test/run
+	@ bash $(realpath ./tests/test/run)
 
 deploy: | $(DEPLOY_BASE_DIR).dir
 	@ rm -rf $(DEPLOY_BASE_DIR)/*

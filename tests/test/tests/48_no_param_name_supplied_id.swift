@@ -1,4 +1,4 @@
-// 9
+// 4
 let str : String = "hello"
 print_if_b(str, bb: 1)
 
