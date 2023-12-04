@@ -1,5 +1,0 @@
-Toto je nejaky text v programu jazyka IFJ23
-Toto je nejaky text v programu jazyka IFJ23, ktery jeste trochu obohatime
-Delka retezce ve str1: 43
-Zadejte serazenou posloupnost vsech malych pismen a-h, 
-Spatne zadana posloupnost, zkuste znovu:
