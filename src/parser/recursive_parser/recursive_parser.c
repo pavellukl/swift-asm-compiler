@@ -1041,10 +1041,10 @@ bool __if(ParserOptions *parser_opt, bool *has_else_branch) {
         }
 
         // generate variable for if branch
-        if (!sbuffer_printf(parser_opt->gen_var.scope, "  DEFVAR ") ||
-            !generate_variable(parser_opt->gen_var.scope, parser_opt->symtable,
-                               el->identifier) ||
-            !sbuffer_printf(parser_opt->gen_var.scope, "\n")) {
+        if (!sbuffer_printf(parser_opt->gen_var.selected, "  DEFVAR ") ||
+            !generate_variable(parser_opt->gen_var.selected,
+                               parser_opt->symtable, el->identifier) ||
+            !sbuffer_printf(parser_opt->gen_var.selected, "\n")) {
             parser_opt->return_code = INTER_ERR;
             return false;
         }
