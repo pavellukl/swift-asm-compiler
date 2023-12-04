@@ -804,7 +804,6 @@ bool _variable_def(ParserOptions *parser_opt) {
         return false;
     }
 
-    // add variable to the symtable
     bool is_value_defined = provided_expression_node_ptr->data_type != T_VOID ||
                             _is_nilable_type(expected_var_type);
     LSTElementValue var_val = {0};
@@ -842,7 +841,8 @@ bool _variable_def(ParserOptions *parser_opt) {
     }
 
     // generate assignment
-    if (!generate_assignment(parser_opt->gen_var, parser_opt->symtable,
+    if (is_value_defined &&
+        !generate_assignment(parser_opt->gen_var, parser_opt->symtable,
                              identif)) {
         parser_opt->return_code = INTER_ERR;
         return false;
