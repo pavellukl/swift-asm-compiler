@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file generation.h
  * @brief Contains definitions of structs and functions for the generation.
  *

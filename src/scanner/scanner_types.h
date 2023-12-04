@@ -1,8 +1,9 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file scanner_types.h
- * @brief header file containing automat states and structures necessary for 
+ * @brief header file containing automat states and structures necessary for
  * input file handling and scanner buffer handling
- * 
+ *
  * @author Denis Milistenfer (xmilis00)
  */
 

@@ -1,8 +1,9 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file semantic_analyser.c
  * @brief Contains the implementation of the functions for the semantic
  *        analysis.
- * 
+ *
  * @author Pavel Lukl (xluklp00)
  * @author Jan Klanica (xklani00)
  */

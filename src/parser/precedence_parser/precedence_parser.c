@@ -1,7 +1,8 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file precedence_parser.c
  * @brief Contains the implementation of the precedence parser.
- * 
+ *
  * @author Jan Klanica (xklani00)
  */
 

@@ -1,7 +1,8 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file scanner_func.h
  * @brief header file containing function definitions for scanner
- * 
+ *
  * @author Denis Milistenfer (xmilis00)
  */
 

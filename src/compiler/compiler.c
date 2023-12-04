@@ -1,7 +1,8 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file compiler.c
  * @brief Contains the implementation of the compiler.
- * 
+ *
  * @author Jan Klanica (xklani00)
  * @author Pavel Lukl (xklukl00)
  */

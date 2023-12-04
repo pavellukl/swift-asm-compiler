@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file utils.c
  * @brief Contains the implementation of the utility functions.
  *

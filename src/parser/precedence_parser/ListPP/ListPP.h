@@ -1,8 +1,9 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file ListPP.h
  * @brief Contains definitions of structs and functions for the list used in the
  *        precedence parsing.
- * 
+ *
  * @author Jan Klanica (xklani00)
  */
 

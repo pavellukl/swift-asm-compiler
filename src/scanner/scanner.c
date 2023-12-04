@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file scanner.c
  * @brief contains implemenation of the scanner (get_next_token and some other
  * service functions)

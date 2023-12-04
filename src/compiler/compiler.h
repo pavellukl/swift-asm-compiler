@@ -1,7 +1,8 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file compiler.c
  * @brief Contains definitions of structs and functions for the compiler.
- * 
+ *
  * @author Jan Klanica (xklani00)
  * @author Pavel Lukl (xklukl00)
  */

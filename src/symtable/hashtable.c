@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file hashtable.c
  * @brief TODO: file header
  *

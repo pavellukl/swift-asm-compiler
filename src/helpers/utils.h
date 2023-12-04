@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file utils.h
  * @brief Contains definitions of the utility functions.
  *

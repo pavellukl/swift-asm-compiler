@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file parameters.h
  * @brief Header file for functions operating upon the Parameter struct
  *

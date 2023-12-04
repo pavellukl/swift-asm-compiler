@@ -1,8 +1,9 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file token.h
- * @brief header file that contains different types of token and 
+ * @brief header file that contains different types of token and
  * structures for necessary token data and token values to store
- * 
+ *
  * @author Denis Milistenfer (xmilis00)
  */
 

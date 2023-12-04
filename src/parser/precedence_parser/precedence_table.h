@@ -1,7 +1,8 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file precedence_table.h
  * @brief Contains definitions of structs and macros for the precedence table.
- * 
+ *
  * @author Jan Klanica (xklani00)
  */
 

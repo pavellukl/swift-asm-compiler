@@ -1,8 +1,9 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file precedence_parser.h
  * @brief Contains definitions of structs and functions for the precedence
  *        parser.
- * 
+ *
  * @author Jan Klanica (xklani00)
  */
 

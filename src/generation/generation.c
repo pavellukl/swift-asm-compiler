@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file generation.c
  * @brief Contains the implementation of the generation.
  *

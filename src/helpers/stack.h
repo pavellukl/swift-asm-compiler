@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file stack.h
  * @brief Contains definitions of structs, functions and macros for the ADT
  * stack.

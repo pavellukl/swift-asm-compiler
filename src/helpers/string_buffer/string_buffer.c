@@ -1,7 +1,8 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file string_buffer.c
  * @brief Contains the implementation of the string buffer.
- * 
+ *
  * @author Jan Klanica (xklani00)
  */
 

@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file parser.c
  * @brief Implementation of the get_next_token wrapper functions
  *

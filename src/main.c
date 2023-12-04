@@ -1,7 +1,8 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file main.c
  * @brief Contains main body of the console compiler aplication.
- * 
+ *
  * @author Jan Klanica (xklani00)
  */
 

@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file parameters.c
  * @brief Contains implementation of the functions operating upon Parameters
  * struct

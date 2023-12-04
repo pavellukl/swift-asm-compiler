@@ -1,7 +1,8 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file debug.h
  * @brief Contains definitions of debuging macros.
- * 
+ *
  * @author Jan Klanica (xklani00)
  */
 

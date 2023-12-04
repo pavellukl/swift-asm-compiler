@@ -1,7 +1,8 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file StackTokenData.h
  * @brief TODO: file header
- * 
+ *
  * @author your name (you@domain.com)
  */
 

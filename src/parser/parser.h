@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file parser.h
  * @brief Header file containing structures for parsing and wrapper functions
  * for get_next_token functions

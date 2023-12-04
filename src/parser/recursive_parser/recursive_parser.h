@@ -1,4 +1,5 @@
 /**
+ * @name Implementation of IFJ23 language compiler
  * @file recursive_parser.h
  * @brief contains function definitions for the recursive descent and some
  * wrapper functions
