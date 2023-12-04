@@ -2,7 +2,7 @@
 // NO_INT
 var a : String
 
-while 1 == 1 {
+while 0 == 1 {
     a = "a"
 }
 

@@ -166,6 +166,8 @@ bool analyze_generate_function_call(ParserOptions *parser_opt, char *identifier,
                  func_param.par_type == T_FLOAT_NIL) &&
                 call_arg->par_type == T_INT) {
                 call_arg->par_type = T_FLOAT;
+                call_arg->token_type = TOKEN_FLOAT;
+                call_arg->value.float_value = (float)call_arg->value.int_value;
             }
         }
 
