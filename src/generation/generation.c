@@ -161,9 +161,9 @@ bool generate_inbuilt_functions(GenerationVariables gen_var, ListST *symtable) {
                    "  GT LF@cond LF@i1 LF@length\n"  // i >= length(s)
                    "  EQ LF@cond2 LF@i1 LF@length\n"
                    "  OR LF@cond LF@cond LF@cond2\n"
-                   "  JUMPIFEQ _string_return_nil LF@cond bool@true\n"
+                   "  JUMPIFEQ _substring_return_nil LF@cond bool@true\n"
                    "  GT LF@cond LF@j1 LF@length\n"  // j > length(s)
-                   "  JUMPIFEQ _string_return_nil LF@cond bool@true\n");
+                   "  JUMPIFEQ _substring_return_nil LF@cond bool@true\n");
     // getting substring
     SBUFFER_PRINTF(gen_var.selected,
                    "  DEFVAR LF@substring\n"
