@@ -1,4 +1,5 @@
-// 5
+// 0
+// NO_INT
 var a : String
 
 while 1 == 1 {

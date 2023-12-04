@@ -1,4 +1,5 @@
-// 9
+// 4
+// NO_INT
 func fn(_ a : Int, bb b : String) {
     return
 }

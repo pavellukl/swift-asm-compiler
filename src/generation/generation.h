@@ -123,18 +123,17 @@ bool generate_fnc_call(GenerationVariables gen_var, char *identifier);
  * 
  * @param gen_var Pointer to the generation variables.
  * @param symtable Pointer to the symtable.
- * @param identifier Identifier of the variable.
  * @param provided_expression_node Expression node
  *                                 (type is T_VOID if no expression)
  * @param is_function Whether the assigned value is a function.
  * @return true If generation was successful.
  * @return false If an error occured.
  */
-bool generate_variable_definition(GenerationVariables *gen_var,
-                                  ListST *symtable, char *identifier,
-                                  Type expected_var_type,
-                                  ASTNode *provided_expression_node,
-                                  bool is_function);
+bool generate_variable_definition_rvalue(GenerationVariables *gen_var,
+                                         ListST *symtable,
+                                         Type expected_var_type,
+                                         ASTNode *provided_expression_node,
+                                         bool is_function);
 
 /**
  * @brief Generates function call argument.

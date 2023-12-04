@@ -288,9 +288,9 @@ bool analyze_generate_return(ParserOptions *parser_opt, LSTElement *fnc,
     return true;
 }
 
-bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
-                     char *identifier, Type expected_type,
-                     ASTNode *provided_value_node, bool is_function) {
+bool analyze_var_def(ParserOptions *parser_opt, char *identifier,
+                     Type expected_type, ASTNode *provided_value_node,
+                     bool is_function) {
     int found_scope_id = -1;
     // try to find variable with the same identifier
     LSTElement *el =
@@ -329,23 +329,6 @@ bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
         return false;
     }
 
-    bool is_value_defined = provided_value_node->data_type != T_VOID ||
-                            _is_nilable_type(expected_type);
-    LSTElementValue var_val = {0};
-
-    // actual variable type to be saved in symtable
-    Type actual_type = expected_type != T_VOID ? expected_type
-                                               : provided_value_node->data_type;
-
-    // add defined variable to symtable
-    STError err = st_add_element(parser_opt->symtable, identifier, actual_type,
-                                 is_constant ? CONSTANT : VARIABLE, var_val,
-                                 is_value_defined);
-
-    if (err != E_OK) {
-        parser_opt->return_code = INTER_ERR;
-        return false;
-    }
     return true;
 }
 

@@ -1,4 +1,5 @@
-// 2
+// 7
+// NO_INT
 var a = 1
 var b = 2
 

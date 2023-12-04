@@ -254,18 +254,11 @@ bool generate_fnc_call(GenerationVariables gen_var, char *identifier) {
 }
 
 
-bool generate_variable_definition(GenerationVariables *gen_var,
-                                  ListST *symtable, char *identifier,
-                                  Type expected_var_type,
-                                  ASTNode *provided_expression_node,
-                                  bool is_function) {
-    // variable declaration
-    SBUFFER_PRINTF(gen_var->selected, "  DEFVAR ");
-    if (!generate_variable(gen_var->selected, symtable, identifier)) {
-        return false;
-    }
-    SBUFFER_PRINTF(gen_var->selected, "\n");
-
+bool generate_variable_definition_rvalue(GenerationVariables *gen_var,
+                                         ListST *symtable,
+                                         Type expected_var_type,
+                                         ASTNode *provided_expression_node,
+                                         bool is_function) {
     // generate assignment rvalue calculation
     if (is_function) {
         // it is a function call return value
@@ -287,9 +280,6 @@ bool generate_variable_definition(GenerationVariables *gen_var,
         // it is uninitialized
         return true;
     } 
-
-    // generate assignment
-    if (!generate_assignment(*gen_var, symtable, identifier)) return false;
 
     return true;
 }

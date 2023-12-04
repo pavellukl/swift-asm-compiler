@@ -745,67 +745,110 @@ bool __return(ParserOptions *parser_opt, ASTNode **expression_node) {
 }
 
 bool _variable_def(ParserOptions *parser_opt) {
-    if (parser_opt->token.type == TOKEN_KEYWORD_VAR ||
-        parser_opt->token.type == TOKEN_KEYWORD_LET) {
-        // save if defined variable is a variable or constant
-        bool is_constant = true;
-        if (parser_opt->token.type == TOKEN_KEYWORD_VAR) is_constant = false;
-
-        if (!_next_token(parser_opt)) return false;
-
-        if (parser_opt->token.type != TOKEN_IDENTIF) {
-            parser_opt->return_code = STX_ERR;
-            return false;
-        }
-
-        // save defined varible identifier
-        // it gets added to symtable, no freeing required
-        char *identif;
-        if (!clone_string(&identif, parser_opt->token.value.string)) {
-            parser_opt->return_code = INTER_ERR;
-            return false;
-        };
-
-        if (!_next_token(parser_opt)) {
-            free(identif);
-            return false;
-        }
-
-        Type expected_var_type = T_VOID;
-        ASTNode *provided_expression_node_ptr;
-        bool is_function = false;
-
-        if (!__varlet_identif(parser_opt, &expected_var_type,
-                              &provided_expression_node_ptr, &is_function)) {
-            free(identif);
-            return false;
-        }
-
-        // do semantic actions on variable definition
-        if (!analyze_var_def(parser_opt, is_constant, identif,
-                             expected_var_type, provided_expression_node_ptr,
-                             is_function)) {
-            free(identif);
-            _free_AST(provided_expression_node_ptr);
-            return false;
-        }
-
-        if (!generate_variable_definition(&parser_opt->gen_var,
-                                          parser_opt->symtable, identif,
-                                          expected_var_type,
-                                          provided_expression_node_ptr,
-                                          is_function)) {
-            _free_AST(provided_expression_node_ptr);
-            parser_opt->return_code = INTER_ERR;
-            return false;
-        }
-
-        _free_AST(provided_expression_node_ptr);
-
-        return true;
+    if (parser_opt->token.type != TOKEN_KEYWORD_VAR &&
+        parser_opt->token.type != TOKEN_KEYWORD_LET) {
+        parser_opt->return_code = STX_ERR;
+        return false;
     }
-    parser_opt->return_code = STX_ERR;
-    return false;
+
+    // save if defined variable is a variable or constant
+    bool is_constant = true;
+    if (parser_opt->token.type == TOKEN_KEYWORD_VAR) is_constant = false;
+
+    if (!_next_token(parser_opt)) return false;
+
+    if (parser_opt->token.type != TOKEN_IDENTIF) {
+        parser_opt->return_code = STX_ERR;
+        return false;
+    }
+
+    // save defined varible identifier
+    // it gets added to symtable, no freeing required
+    char *identif;
+    if (!clone_string(&identif, parser_opt->token.value.string)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    };
+
+    if (!_next_token(parser_opt)) {
+        free(identif);
+        return false;
+    }
+
+    Type expected_var_type = T_VOID;
+    ASTNode *provided_expression_node_ptr;
+    bool is_function = false;
+
+    if (!__varlet_identif(parser_opt, &expected_var_type,
+                            &provided_expression_node_ptr, &is_function)) {
+        free(identif);
+        return false;
+    }
+
+    // do semantic actions on variable definition
+    if (!analyze_var_def(parser_opt, identif, expected_var_type,
+                         provided_expression_node_ptr, is_function)) {
+        free(identif);
+        _free_AST(provided_expression_node_ptr);
+        return false;
+    }
+
+    // generate assignment rvalue
+    if (!generate_variable_definition_rvalue(&parser_opt->gen_var,
+                                             parser_opt->symtable,
+                                             expected_var_type,
+                                             provided_expression_node_ptr,
+                                             is_function)) {
+        _free_AST(provided_expression_node_ptr);
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+
+    // add variable to the symtable
+    bool is_value_defined = provided_expression_node_ptr->data_type != T_VOID ||
+                            _is_nilable_type(expected_var_type);
+    LSTElementValue var_val = {0};
+
+    // actual variable type to be saved in symtable
+    Type actual_type = 
+        expected_var_type != T_VOID ? expected_var_type
+                                    : provided_expression_node_ptr->data_type;
+
+    _free_AST(provided_expression_node_ptr);
+
+    // add defined variable to symtable
+    STError err = st_add_element(parser_opt->symtable, identif, actual_type,
+                                is_constant ? CONSTANT : VARIABLE, var_val,
+                                is_value_defined);
+
+    if (err != E_OK) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+
+    // generate variable declaration (assignment lvalue)
+    if (!sbuffer_printf(parser_opt->gen_var.selected, "  DEFVAR ")) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+    if (!generate_variable(parser_opt->gen_var.selected, parser_opt->symtable,
+                           identif)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+    if (!sbuffer_printf(parser_opt->gen_var.selected, "\n")) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+
+    // generate assignment
+    if (!generate_assignment(parser_opt->gen_var, parser_opt->symtable,
+                             identif)) {
+        parser_opt->return_code = INTER_ERR;
+        return false;
+    }
+
+    return true;
 }
 
 bool __varlet_identif(ParserOptions *parser_opt, Type *expected_var_type,

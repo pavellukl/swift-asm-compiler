@@ -68,16 +68,15 @@ bool analyze_generate_return(ParserOptions *parser_opt, LSTElement *fnc,
  * @brief analyzes variable definition, and adds variable to symtable
  *
  * @param parser_opt parser options pointer to save possible semantic error code
- * @param is_constant bool whether let or var was used (let = true, var = false)
  * @param identifier identifier of newly defined variable
  * @param expected_type explicitly defined type of variable (T_VOID if not
  * defined)
  * @param provided_value_node expression node (type is T_VOID if no expression)
  * @param is_function whether the assigned value is a function
  */
-bool analyze_var_def(ParserOptions *parser_opt, bool is_constant,
-                     char *identifier, Type expected_type,
-                     ASTNode *provided_value_node, bool is_function);
+bool analyze_var_def(ParserOptions *parser_opt, char *identifier,
+                     Type expected_type, ASTNode *provided_value_node,
+                     bool is_function);
 
 /**
  * @brief analyzes if with let id syntax
