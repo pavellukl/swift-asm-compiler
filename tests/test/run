@@ -1,0 +1,207 @@
+#!/bin/bash
+
+# Function for error print in red
+function error() {
+    echo -e -n "\033[0;31m$1\033[0m"
+}
+
+# Function for success print in green
+function success() {
+    echo -e -n "\033[0;32m$1\033[0m"
+}
+
+# Warning
+function warning() {
+    echo -e "\033[0;33m$1\033[0m"
+}
+
+function purple() {
+    echo -e "\033[0;35m$1\033[0m"
+}
+
+OUTPUT_DIR="$(dirname $0)/../../_tests_build/mid_prod/more"
+
+TESTS_DIR="$(dirname $0)/tests"
+COMP_PATH="$(dirname $0)/../../_build/bin/epicCompiler3000"
+
+STDERR_DIR="$OUTPUT_DIR/stderr"
+STDOUT_DIR="$OUTPUT_DIR/stdout"
+INT_STDOUT_DIR="$OUTPUT_DIR/int_stdout"
+INT_STDERR_DIR="$OUTPUT_DIR/int_stderr"
+
+INT_PATH="$(dirname $0)/../../ic23int"
+
+mkdir -p "$OUTPUT_DIR"
+mkdir -p "$STDERR_DIR"
+mkdir -p "$STDOUT_DIR"
+mkdir -p "$INT_STDOUT_DIR"
+mkdir -p "$INT_STDERR_DIR"
+
+echo TESTS_DIR=$TESTS_DIR
+
+# Get all files ending with .swift
+TESTS=$(find $TESTS_DIR -name "*.swift" | sort)
+
+echo TESTS=$TESTS
+
+TOTAL_TESTS="$(echo "$TESTS" | wc -l | xargs)"
+PASSED_TESTS=0
+FAILED_TESTS=0
+FAILED_TESTS_LIST=""
+SKIPPED_TESTS_LIST=""
+INT_FAILURES=0
+INT_ATTEMPTS=0
+
+# For each test, read the first line and get the expected return code
+for TEST in $TESTS; do
+    # echo TEST="$TEST"
+    EXPECTED="$(head -n 1 "$TEST")"
+    EXPECTED="${EXPECTED:3:1}"
+
+    # if expected is empty, set it to 0
+    if [ -z "$EXPECTED" ]; then
+        EXPECTED=0
+    fi
+
+    # echo EXPECTED="$EXPECTED"
+
+    FILE_CONTENT=$(cat "$TEST")
+
+    # if the file content is empty, skip
+    if [ -z "$FILE_CONTENT" ]; then
+        warning "Skipping empty test: $TEST"
+        continue
+    fi
+
+    # if line 2 contains SKIP, skip
+    if [[ "$FILE_CONTENT" == *"SKIP"* ]]; then
+        warning "Skipping test (explicit skip): $TEST"
+        SKIPPED_TESTS_LIST="$SKIPPED_TESTS_LIST\n$TEST"
+        continue
+    fi
+
+    # Get expected output starting on line 3
+    EXPECTED_OUTPUT="$(echo "$FILE_CONTENT" | tail -n +3)"
+    # Expected output end with */
+    EXPECTED_OUTPUT="$(echo "$EXPECTED_OUTPUT" | sed -n '/\*\//q;p')"
+
+    expected_output_file="$(dirname $0)/out/$(basename -s .swift $TEST).out"
+    if [ -f "$expected_output_file" ]; then
+        echo "Using expected output from file: $expected_output_file"
+        EXPECTED_OUTPUT="$(cat "$expected_output_file")"
+    else
+        echo "Using expected output from test file"
+        expected_output_file=""
+    fi
+
+    stdin_file="$(dirname $0)/in/$(basename -s .swift $TEST).in"
+    if [ -f "$stdin_file" ]; then
+        echo "Using stdin from file: $stdin_file"
+    else
+        if [ "$expected_output_file" != "" ]; then
+            warning "No stdin file found: $stdin_file"
+        fi
+
+        stdin_file=""
+    fi
+
+    echo "Running test: $TEST"
+    TEST_NAME="$(basename $TEST)"
+    STDERR_FILE="$STDERR_DIR/$TEST_NAME"
+    STDOUT_FILE="$STDOUT_DIR/$TEST_NAME"
+    INT_STDOUT_FILE="$INT_STDOUT_DIR/$TEST_NAME"
+    INT_STDERR_FILE="$INT_STDERR_DIR/$TEST_NAME"
+
+    touch "$STDERR_FILE"
+    touch "$STDOUT_FILE"
+    touch "$INT_STDOUT_FILE"
+    touch "$INT_STDERR_FILE"
+
+    $COMP_PATH < "$TEST" 2> "$STDERR_FILE" > "$STDOUT_FILE"
+    ACTUAL=$?
+
+    if [ "$EXPECTED" != "$ACTUAL" ]; then
+        error "Test failed: $TEST\n"
+        echo "Expected: $EXPECTED"
+        echo "Actual: $ACTUAL"
+        FAILED_TESTS=$((FAILED_TESTS+1))
+        FAILED_TESTS_LIST="$FAILED_TESTS_LIST\n$TEST\tExpected: $EXPECTED \tActual: $ACTUAL"
+        continue
+    fi
+
+    # if line 2 contains NO_INT, skip interpreter
+    if [[ "$FILE_CONTENT" == *"NO_INT"* ]]; then
+        purple "Skipping interpreter: $TEST\n"
+        PASSED_TESTS=$((PASSED_TESTS+1))
+        continue
+    fi
+
+    # Try running interpreter with the generated code
+    if [ "$ACTUAL" == "0" ]; then
+        INT_ATTEMPTS=$((INT_ATTEMPTS+1))
+
+        # Run interpreter
+        purple "Running interpreter with generated code...\n"
+        $INT_PATH "$STDOUT_FILE" < "$stdin_file" > "$INT_STDOUT_FILE" 2> "$INT_STDERR_FILE"
+        INT_ACTUAL=$?
+
+        INT_STDOUT="$(cat "$INT_STDOUT_FILE")"
+        INT_STDERR="$(cat "$INT_STDERR_FILE")"
+
+        if [ "$INT_ACTUAL" != "0" ]; then
+            error "Interpreter failed: $TEST\n"
+            echo "Interpreter return code: $INT_ACTUAL"
+            echo "STDERR:"
+            echo "$INT_STDERR"
+            echo "STDOUT:"
+            echo "$INT_STDOUT"
+
+            INT_FAILURES=$((INT_FAILURES+1))
+
+            continue
+        fi
+
+        # Check interpreter output
+        if [ "$INT_STDOUT" != "$EXPECTED_OUTPUT" ]; then
+            error "Interpreter output does not match expected: $TEST\n"
+            echo "Expected:"
+            echo "$EXPECTED_OUTPUT"
+            echo "Actual:"
+            echo "$INT_STDOUT"
+            echo "STDERR:"
+            echo "$INT_STDERR"
+
+            INT_FAILURES=$((INT_FAILURES+1))
+            FAILED_TESTS=$((FAILED_TESTS+1))
+            continue
+        else
+            success "Interpreter output matches expected: $TEST\n"
+            echo "Expected:"
+            echo "$EXPECTED_OUTPUT"
+            echo "Actual:"
+            echo "$INT_STDOUT"
+            echo "Interpreter return code: $INT_ACTUAL"
+        fi
+    fi
+
+    PASSED_TESTS=$((PASSED_TESTS+1))
+    success "Test passed: $TEST\n"
+done
+
+echo "Skipped tests:"
+warning "$SKIPPED_TESTS_LIST\n"
+
+echo "Failed tests:"
+error "$FAILED_TESTS_LIST\n"
+
+echo -n "Failed tests: "
+error "$FAILED_TESTS" -n
+echo "/$TOTAL_TESTS"
+
+echo -n "Passed: "
+success "$PASSED_TESTS" -n
+echo "/$TOTAL_TESTS"
+
+echo -n "Interpreter failures: "
+error "$INT_FAILURES" -n
+echo "/$INT_ATTEMPTS"

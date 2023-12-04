@@ -106,6 +106,9 @@ test_run:
 	@ for test in $(TESTS_BIN) ; do ./$$test --verbose=1; echo ""; done
 	@ python3 ./tests/generation/generationTester.py
 
+test_more: build
+	@ bash /home/jklanica/docs/VUT/ifj/tests/test/run
+
 deploy: | $(DEPLOY_BASE_DIR).dir
 	@ rm -rf $(DEPLOY_BASE_DIR)/*
 	@ for file in $(C) ; do basename $$file | ( read filename; cat $$file | sed -E 's,#include *"([^\/"]+\/)*([^"]+)",#include "\2",g' > $(DEPLOY_BASE_DIR)/$$filename ) ; done
