@@ -905,7 +905,7 @@ bool get_next_token(ParserOptions* parser_opt) {
 
             case MULTILINE_STRING:
                 if (current_char == '"') {
-                    current_state = MULTILINE_QUOTE_TWO;
+                    current_state = MULTILINE_QUOTE_ONE;
                 } else {
                     if (current_char == '\n') {
                         new_line_online = true;
@@ -916,12 +916,11 @@ bool get_next_token(ParserOptions* parser_opt) {
                     } else if (isspace(current_char)){
                         whitespace_count++;
                     }
-                    if (!scanner_buf_insert(&b_buffer, '"')) {
+                    if (!scanner_buf_insert(&b_buffer, current_char)) {
                         scanner_buf_free(&b_buffer);
                         parser_opt->return_code = INTER_ERR;
                         return false;
                     }
-                    parser_opt->sc_opt.i--;
                     current_state = MULTILINE_STRING;
                 }
                 current_char = get_next_char(&parser_opt->sc_opt);
