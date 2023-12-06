@@ -1,7 +1,7 @@
 /**
  * @name Implementation of IFJ23 language compiler
  * @file symtable.h
- * @brief TODO: file header
+ * @brief contains function headers and types for working with symtable
  *
  * @author Veronika Čalkovská (xcalko00)
  * @author Pave Lukl (xluklp00)
