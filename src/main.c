@@ -11,16 +11,7 @@
 #include "compiler/compiler.h"
 
 int main() {
-    // TODO: remove
-    // for debugging purposes
-    // FILE* in = fopen(
-    //     "./tests/syntax_semantics/test_files/"
-    //     "x_substr.swift",
-    //     "r");
-    // TODO: remove pointer and address it directly
-    FILE* in = stdin;
-
-    switch (compile(in, stdout)) {
+    switch (compile(stdin, stdout)) {
         case COMP_OK:
             return 0;
         case COMP_LEX_ERR:

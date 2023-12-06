@@ -110,17 +110,9 @@ void ht_free(HTable* table) {
         if(table->table[i] != NULL){
             if(table->table[i]->variant == FUNCTION){
                 destroy_parameter_array(&(table->table[i]->value.parameters));  
-            } 
+            }
 
-            free(table->table[i]->identifier);   
-            // TODO: needed?
-            // if(list->firstItem->data->local_table[i]->return_type ==
-            // T_STRING ||
-            // list->firstItem->data->local_table[i]->return_type ==
-            // T_STRING_NIL) {
-            //     free(list->firstItem->data->local_table[i]->value.string_value);
-            // }   
-
+            free(table->table[i]->identifier);
             free(table->table[i]); 
         }
     }
