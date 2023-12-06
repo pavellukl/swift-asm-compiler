@@ -1,7 +1,7 @@
 /**
  * @name Implementation of IFJ23 language compiler
  * @file ListST.h
- * @brief TODO: file header
+ * @brief contains list definitions and types for symtable 
  *
  * @author your name (you@domain.com)
  */
